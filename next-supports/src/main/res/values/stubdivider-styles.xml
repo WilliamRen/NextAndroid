@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+     <!--Base Stub view-->
+    <style name="NextStubDivider">
+
+    </style>
+
+    <color name="NextStubDivider.Divider.Color">#DCDCDC</color>
+
+    <style name="NextStubDivider.Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/NextStubDivider.Divider.Color</item>
+    </style>
+
+    <declare-styleable name="NextStubDivider.Divider">
+        <attr name="showDivider" format="boolean" />
+    </declare-styleable>
+
+</resources>

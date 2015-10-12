@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/next_vehiclemodify_group"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <RadioButton
+        android:id="@+id/next_vehiclemodify_text_1"
+        style="@style/NextVehicleModify.Item"/>
+
+    <RadioButton
+        android:id="@+id/next_vehiclemodify_text_2"
+        style="@style/NextVehicleModify.Item"/>
+
+    <RadioButton
+        android:id="@+id/next_vehiclemodify_text_3"
+        style="@style/NextVehicleModify.Item"/>
+
+    <RadioButton
+        android:id="@+id/next_vehiclemodify_text_4"
+        style="@style/NextVehicleModify.Item"/>
+
+    <RadioButton
+        android:id="@+id/next_vehiclemodify_text_5"
+        style="@style/NextVehicleModify.Item"/>
+
+    <RadioButton
+        android:id="@+id/next_vehiclemodify_text_6"
+        style="@style/NextVehicleModify.Item"/>
+
+    <RadioButton
+        android:id="@+id/next_vehiclemodify_text_7"
+        android:layout_marginRight="0dp"
+        style="@style/NextVehicleModify.Item"/>
+</RadioGroup>

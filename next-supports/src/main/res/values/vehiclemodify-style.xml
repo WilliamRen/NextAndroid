@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="NextVehicleModifyItem.Selected">#999999</color>
+    <color name="NextVehicleModifyItem.Normal">#DDDDDD</color>
+
+    <style name="NextVehicleModify">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <style name="NextVehicleModify.Item">
+        <item name="android:layout_height">64dp</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">36sp</item>
+        <item name="android:typeface">monospace</item>
+        <item name="android:freezesText">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:button">@null</item>
+        <item name="android:background">@drawable/next_btn_vehiclemodify</item>
+        <item name="android:layout_marginRight">2dp</item>
+    </style>
+
+</resources>

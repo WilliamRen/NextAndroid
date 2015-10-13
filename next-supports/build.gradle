@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
+        classpath 'com.github.dcendents:android-maven-plugin:1.2'
+    }
+}
+
 apply plugin: 'com.android.library'
 
 android {
@@ -24,3 +34,5 @@ dependencies {
     compile 'com.facebook.rebound:rebound:0.3.+' // for toggle button
     compile project(':next')
 }
+
+apply from: 'https://raw.githubusercontent.com/msdx/gradle-publish/master/bintray.gradle'

@@ -8,14 +8,15 @@ import com.github.yoojia.next.lang.ObjectMap;
  */
 public final class Action {
 
-    public static final Action EMPTY = new Action(null, new ObjectMap());
-
     public final String type;
     public final ObjectMap data;
 
     private Action(String type, ObjectMap data) {
         this.type = type;
         this.data = data;
+        if (this.type == null || this.type.isEmpty()) {
+            throw new NullPointerException("Action.type must not be null or empty !");
+        }
     }
 
     public static class Builder {
@@ -23,8 +24,8 @@ public final class Action {
         private String mType;
         private final ObjectMap mData = new ObjectMap();
 
-        public Builder setName(String name){
-            mType = name;
+        public Builder setType(String type){
+            mType = type;
             return this;
         }
 
@@ -41,8 +42,12 @@ public final class Action {
     @Override
     public String toString() {
         return "{" +
-                "type='" + (type == null ? "<NO-TYPE>" : type) + '\'' +
+                "type='" + type + '\'' +
                 ", data=" + data +
                 '}';
+    }
+
+    public static Action create(String eventName) {
+        return new Action.Builder().setType(eventName).build();
     }
 }

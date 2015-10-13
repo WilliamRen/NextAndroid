@@ -13,28 +13,53 @@ public final class Dispatcher {
 
     private final NextEvents mEvents;
 
+    /**
+     * 构建Dispatcher,指定扫描停止类型
+     * @param stopAtParentType 扫描停止类型
+     */
     public Dispatcher(Class<?> stopAtParentType) {
         mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(), "FluxDispatcher", stopAtParentType);
     }
 
+    /**
+     * 扫描目标并注册其@Subscribe方法
+     * @param host 目标对象实例
+     */
     public void register(Object host){
         mEvents.register(host);
     }
 
+    /**
+     * 异步地扫描并注册
+     * @param host 目标对象实例
+     */
     public void registerAsync(Object host){
         mEvents.registerAsync(host);
     }
 
+    /**
+     * 扫描目标,并指定其它扫描停止类型
+     * @param host 目标对象实例
+     * @param stopAtParentType 指定其它扫描停止类型
+     */
     void registerWithStopType(Object host, Class<?> stopAtParentType){
         mEvents.register(host, stopAtParentType);
     }
 
+    /**
+     * 反注册目标
+     * @param host 目标对象实例
+     */
     public void unregister(Object host){
         mEvents.unregister(host);
     }
 
-    public void emit(Action action, String eventName){
-        mEvents.emit(action, eventName);
+    /**
+     * 提交Action事件
+     * @param action Action 事件
+     */
+    public void emit(Action action){
+        mEvents.emit(action, action.type);
     }
 
     public void shutdown(){

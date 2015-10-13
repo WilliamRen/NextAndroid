@@ -153,14 +153,8 @@ public class NextEvents {
     final public void shutdown() {
         Log.d(mTag, "- Trigger events count: " + getTriggeredCount());
         Log.d(mTag, "- Submit tasks count:   " + getSubmitCount());
-        final int override = getOverrideCount();
-        if (override > 0) {
-            Log.w(mTag, "- Override events count:" + override);
-        }
-        final int deadEvents = getDeadEventsCount();
-        if (deadEvents > 0) {
-            Log.e(mTag, "- [!!]Dead events count:" + getDeadEventsCount());
-        }
+        Log.w(mTag, "- Override events count:" + getOverrideCount());
+        Log.e(mTag, "- [!!]Dead events count:" + getDeadEventsCount());
         mThreads.shutdown();
     }
 

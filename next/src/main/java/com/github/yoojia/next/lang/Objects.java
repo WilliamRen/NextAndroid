@@ -15,13 +15,20 @@ public class Objects {
     }
 
     public boolean setField(Field field, Object value){
+        final boolean origin = field.isAccessible();
         try {
-            field.setAccessible(true);
+            if (!origin){
+                field.setAccessible(true);
+            }
             field.set(mHost, value);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }finally {
+            if (!origin){
+                field.setAccessible(false);
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 package com.github.yoojia.next.ext.utils;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

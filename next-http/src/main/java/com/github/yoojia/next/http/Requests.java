@@ -102,7 +102,7 @@ public class Requests {
             public void run() {
                 try {
                     sendRequest(callback);
-                } catch (Exception errors) {
+                } catch (Throwable errors) {
                     callback.onErrors(errors);
                 } finally {
                     callback.onEnd();
@@ -193,7 +193,12 @@ public class Requests {
         final OkHttpClient client = new OkHttpClient();
         client.setCookieHandler(COOKIES);
         client.setFollowRedirects(false);
+        onClientSetting(client);
         final Response response = client.newCall(conf.build()).execute();
         callback.onResponse(response.code(), response.body().string());
+    }
+
+    protected void onClientSetting(OkHttpClient client) {
+
     }
 }

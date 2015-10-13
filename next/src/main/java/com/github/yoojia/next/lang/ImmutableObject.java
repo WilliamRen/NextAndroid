@@ -32,7 +32,7 @@ public class ImmutableObject<T> {
 
     public boolean has() {
         synchronized (mLock) {
-            return null == mObject;
+            return null != mObject;
         }
     }
 }

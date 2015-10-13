@@ -1,5 +1,6 @@
 package com.github.yoojia.next.lang;
 
+import android.text.TextUtils;
 import android.util.SparseArray;
 
 /**
@@ -11,11 +12,16 @@ public class ObjectMap {
     private final SparseArray<Object> mData = new SparseArray<>();
 
     public ObjectMap put(String key, Object value){
+        checkKey(key);
+        if (value == null) {
+            throw new NullPointerException("Value must not be null !");
+        }
         mData.put(Objects.hash(key), value);
         return this;
     }
 
     public Object get(String key, Object defValue){
+        checkKey(key);
         final Object value = mData.get(Objects.hash(key));
         if (value == null) {
             return defValue;
@@ -26,12 +32,7 @@ public class ObjectMap {
 
     @SuppressWarnings("unchecked")
     public <T> T getTyped(String key, T defValue) {
-        try{
-            return (T) get(key, defValue);
-        }catch (ClassCastException e) {
-            e.printStackTrace();
-            return defValue;
-        }
+        return (T) get(key, defValue);
     }
 
     public String getString(String key){
@@ -61,5 +62,11 @@ public class ObjectMap {
     @Override
     public String toString() {
         return mData.toString();
+    }
+
+    private void checkKey(String key) {
+        if (TextUtils.isEmpty(key)) {
+            throw new NullPointerException("Key must not be empty !");
+        }
     }
 }

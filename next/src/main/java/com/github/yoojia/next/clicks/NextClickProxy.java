@@ -2,6 +2,7 @@ package com.github.yoojia.next.clicks;
 
 import android.app.Activity;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
@@ -20,6 +21,7 @@ public class NextClickProxy {
     private static final String TAG = "CLICKS";
 
     private final Class<?> mStopAtParentType;
+    private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
     private final NextEvents mEvents;
 
     public NextClickProxy(Class<?> stopAtParentType) {
@@ -38,9 +40,12 @@ public class NextClickProxy {
                     for (Field field : fields){
                         final EmitClick evt = field.getAnnotation(EmitClick.class);
                         try {
-                            tryBindClick(host, field, evt.event());
-                        } catch (Exception e) {
-                            throw new IllegalStateException(e);
+                            final View view = bindClickView(host, field, evt.event());
+                            if (Integer.MIN_VALUE != evt.keyCode()) {
+                                mKeyCodeMapping.append(evt.keyCode(), view);
+                            }
+                        } catch (Exception error) {
+                            throw new IllegalStateException(error);
                         }
                     }
                     mEvents.registerAsync(host);
@@ -50,12 +55,19 @@ public class NextClickProxy {
         new Thread(task).start();
     }
 
+    public void emitKeyCode(int keyCode) {
+        View view = mKeyCodeMapping.get(keyCode);
+        if (view != null) {
+            view.performClick();
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends View> void emitClick(T view, String event){
         mEvents.emit(new ClickEvent(view), event);
     }
 
-    private void tryBindClick(Object host, Field field, final String event) throws Exception {
+    private View bindClickView(Object host, Field field, final String event) throws Exception {
         field.setAccessible(true);
         final Object viewField = field.get(host);
         if (viewField instanceof View){
@@ -66,6 +78,7 @@ public class NextClickProxy {
                     emitClick(v, event);
                 }
             });
+            return view;
         }else{
             throw new IllegalArgumentException("@EmitClick field not a View: " + field);
         }

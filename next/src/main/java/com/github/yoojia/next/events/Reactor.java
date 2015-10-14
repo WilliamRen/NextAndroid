@@ -50,8 +50,8 @@ final class Reactor {
             accepted = true;
             final Trigger trigger = wrap.emit(event, value);
             if (trigger != null) {
-                mTriggeredCount.addAndGet(1);
                 output.add(trigger);
+                mTriggeredCount.addAndGet(1);
             }
         }
         if (!allowDeviate && !accepted) {
@@ -78,7 +78,7 @@ final class Reactor {
 
     private static class Wrap {
 
-        private final Map<String, EventWrap> mEventWraps;
+        private final Map<String, EventWrap> mWraps;
         private final Map<String, Object> mEvents;
         private final Target mTarget;
         private final AtomicInteger mOverrideCountRef;
@@ -86,10 +86,10 @@ final class Reactor {
         public Wrap(AtomicInteger overrideCountRef, Target target, EventWrap... events) {
             mOverrideCountRef = overrideCountRef;
             mEvents = new HashMap<>(events.length);
-            mEventWraps = new HashMap<>(events.length);
+            mWraps = new HashMap<>(events.length);
             mTarget = target;
             for (EventWrap item : events) {
-                mEventWraps.put(item.event, item);
+                mWraps.put(item.event, item);
                 mEvents.put(item.event, NULL_VALUE);
             }
         }
@@ -110,7 +110,7 @@ final class Reactor {
             if (!mEvents.containsKey(event)) {
                 return false;
             }
-            final EventWrap wrap = mEventWraps.get(event);
+            final EventWrap wrap = mWraps.get(event);
             return wrap.type.equals(value.getClass());
         }
 
@@ -121,7 +121,7 @@ final class Reactor {
         private Trigger getTriggered(){
             final Trigger copy = new Trigger(mTarget, mEvents);
             // reset after copy
-            for (EventWrap item : mEventWraps.values()) {
+            for (EventWrap item : mWraps.values()) {
                 mEvents.put(item.event, NULL_VALUE);
             }
             return copy;

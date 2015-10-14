@@ -11,6 +11,7 @@ import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Objects;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -49,7 +50,18 @@ public class NextClickProxy {
                             throw new IllegalStateException(error);
                         }
                     }
-                    mEvents.registerAsync(host);
+                    // 只注册管理参数为ClickEvent类型的方法
+                    final NextEvents.Filter filter = new NextEvents.Filter() {
+                        @Override public boolean is(Method method) {
+                            // 点击只接受一个事件,并且只能是ClickEvent类型
+                            final Class<?>[] types = method.getParameterTypes();
+                            if (types.length != 1) {
+                                return false;
+                            }
+                            return ClickEvent.class.equals(types[0]);
+                        }
+                    };
+                    mEvents.registerAsync(host, filter);
                 }
             }
         };

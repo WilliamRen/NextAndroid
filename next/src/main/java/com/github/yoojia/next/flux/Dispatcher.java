@@ -5,6 +5,8 @@ import android.app.Activity;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.UIThreadEvents;
 
+import java.lang.reflect.Method;
+
 /**
  * @author 陈小锅 (yoojiachen@gmail.com)
  * @since 1.0
@@ -30,7 +32,7 @@ public final class Dispatcher {
      */
     public void register(Object host){
         checkType(host.getClass());
-        mEvents.register(host);
+        mEvents.register(host, new ActionMethodFilter());
     }
 
     /**
@@ -39,7 +41,7 @@ public final class Dispatcher {
      */
     public void registerAsync(Object host){
         checkType(host.getClass());
-        mEvents.registerAsync(host);
+        mEvents.registerAsync(host, new ActionMethodFilter());
     }
 
     /**
@@ -48,7 +50,7 @@ public final class Dispatcher {
      * @param stopAtParentType 指定其它扫描停止类型
      */
     void registerWithStopType(Object host, Class<?> stopAtParentType){
-        mEvents.register(host, stopAtParentType);
+        mEvents.register(host, stopAtParentType, new ActionMethodFilter());
     }
 
     /**
@@ -83,6 +85,20 @@ public final class Dispatcher {
         if ( ! mStopAtParentType.isAssignableFrom(hostType)) {
             throw new IllegalArgumentException("Host type(" + hostType.getName()
                     + ") is not a type of given parent type: " + mStopAtParentType);
+        }
+    }
+
+    private class ActionMethodFilter implements NextEvents.Filter {
+
+        @Override public boolean is(Method method) {
+            // 全部类型都只能是Action类型
+            final Class<?>[] types = method.getParameterTypes();
+            for (Class<?> type : types) {
+                if ( ! Action.class.equals(type)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 

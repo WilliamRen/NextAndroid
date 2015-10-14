@@ -7,7 +7,9 @@ import com.github.yoojia.next.lang.MethodsFinder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,27 +67,33 @@ public class NextEvents {
      * @param targetHost 需要被注册的目标对象实例
      * @param stopAtParentType 扫描 @Subscribe 方法时的停止超类类型。
      *                         例如： NextEvents 的超类为 Object，则其停止超类类型为 Object.class
+     * @param filter 对扫描后的Method作过滤处理. 通过此接口,可以过滤掉一些方法参数类型不匹配的方法.
      */
-    final public void register(Object targetHost, Class<?> stopAtParentType) {
+    final public void register(Object targetHost, Class<?> stopAtParentType, Filter filter) {
         final long startScan = System.nanoTime();
         final List<Method> methods = new MethodsFinder(targetHost.getClass(), stopAtParentType).filter(Subscribe.class);
         timeLogging("SCAN[@Subscribe]", startScan);
+        final long startRegister = System.nanoTime();
+        for (Iterator<Method> iterator = methods.iterator(); iterator.hasNext();){
+            final Method method = iterator.next();
+            // Filter
+            if (filter != null && !filter.is(method)) {
+                iterator.remove();
+                continue;
+            }
+            final Subscribe conf = method.getAnnotation(Subscribe.class);
+            final EventWrap[] events = wrap(method);
+            final String[] eventsInOrder = new String[events.length];
+            for (int i = 0; i < events.length; i++) {
+                eventsInOrder[i] = events[i].event;
+            }
+            final MethodTarget target = new MethodTarget(eventsInOrder, conf.async(), targetHost, method);
+            mReactor.register(target, events);
+        }
+        timeLogging("REGISTER", startRegister);
         if (methods.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
             Warning.show(mTag);
-        }else{
-            final long startRegister = System.nanoTime();
-            for (Method method : methods){
-                final Subscribe conf = method.getAnnotation(Subscribe.class);
-                final EventWrap[] events = wrap(method);
-                final String[] eventsInOrder = new String[events.length];
-                for (int i = 0; i < events.length; i++) {
-                    eventsInOrder[i] = events[i].event;
-                }
-                final MethodTarget target = new MethodTarget(eventsInOrder, conf.async(), targetHost, method);
-                mReactor.register(target, events);
-            }
-            timeLogging("REGISTER", startRegister);
         }
     }
 
@@ -94,6 +102,8 @@ public class NextEvents {
      * @param targetHost 需要反注册的目标对象
      */
     final public void unregister(final Object targetHost) {
+        // Logging events statistics
+        printEventsStatistics();
         final Runnable task = new Runnable() {
             @Override public void run() {
                 mReactor.unregister(targetHost);
@@ -104,8 +114,8 @@ public class NextEvents {
 
     /**
      * 允许事件没有目标
-     * @param eventObject
-     * @param eventName
+     * @param eventObject 事件对象
+     * @param eventName 事件名
      */
     final public void emit(final Object eventObject, final String eventName) {
         emit(eventObject, eventName, true);
@@ -136,24 +146,27 @@ public class NextEvents {
         final List<Reactor.Trigger> trigger = mReactor.emit(eventName, eventObject, allowDeviate);
         mSubmitCounter.addAndGet(trigger.size());
         for (final Reactor.Trigger item : trigger){
-            final Runnable task = new Runnable() {
-                @Override public void run(){
+            // Fast-Fail: 使用Callable来捕获回调出错信息, 并抛出顶层, 通过引起App崩溃来强制要求开发者解决错误.
+            // 如果用Runnable的话, 异常会被线程捕获, 主线程不受影响,达不到强制要求开发者解决错误的目的.
+            final Callable<Void> task = new Callable<Void>() {
+                @Override public Void call() throws Exception {
                     try {
                         item.invoke();
                     } catch (Exception error) {
                         if (mOnErrorsListener.has()) {
                             mOnErrorsListener.get().onErrors(error);
                         }else{
-                            error.printStackTrace();
+                            throw error;
                         }
                     }
+                    return null;
                 }
             };
             trySubmitTask(task);
         }
     }
 
-    protected void trySubmitTask(Runnable task){
+    protected void trySubmitTask(Callable<Void> task){
         mThreads.submit(task);
     }
 
@@ -161,41 +174,46 @@ public class NextEvents {
      * 关闭 NextEvents，销毁线程池。
      */
     final public void shutdown() {
-        Log.d(mTag, "- Trigger events count: " + getTriggeredCount());
-        Log.d(mTag, "- Submit tasks count:   " + getSubmitCount());
-        Log.w(mTag, "- Override events count:" + getOverrideCount());
-        Log.e(mTag, "- [!!]Dead events count:" + getDeadEventsCount());
         mThreads.shutdown();
     }
 
-    /**
-     * 登录默认扫描 @Subscribe 方法时的停止超类类型来注册目标对象实例
-     * @param targetHost 目标对象实例
-     */
+    final public void register(Object targetHost, Class<?> stopAtParentType) {
+        register(targetHost, stopAtParentType, null);
+    }
+
     final public void register(Object targetHost) {
         register(targetHost, mDefStopAtParentType);
     }
 
+    final public void register(Object targetHost, Filter filter) {
+        register(targetHost, mDefStopAtParentType, filter);
+    }
+
     /**
-     * 异步地注册
+     * 异步扫描
      * @param targetHost 需要被注册的目标对象实例
+     * @param stopAtParentType 扫描 @Subscribe 方法时的停止超类类型
+     * @param filter 扫描结果过滤
      */
+    final public void registerAsync(final Object targetHost, final Class<?> stopAtParentType, final Filter filter) {
+        final Runnable task = new Runnable() {
+            @Override public void run() {
+                register(targetHost, stopAtParentType, filter);
+            }
+        };
+        mThreads.execute(task);
+    }
+
+    final public void registerAsync(final Object targetHost, final Class<?> stopAtParentType) {
+        registerAsync(targetHost, stopAtParentType, null);
+    }
+
     final public void registerAsync(final Object targetHost) {
         registerAsync(targetHost, mDefStopAtParentType);
     }
 
-    /**
-     * 指定扫描 @Subscribe 方法时的停止超类类型，异步地注册
-     * @param targetHost 需要被注册的目标对象实例
-     * @param stopAtParentType 扫描 @Subscribe 方法时的停止超类类型
-     */
-    final public void registerAsync(final Object targetHost, final Class<?> stopAtParentType) {
-        final Runnable task = new Runnable() {
-            @Override public void run() {
-                register(targetHost, stopAtParentType);
-            }
-        };
-        mThreads.execute(task);
+    final public void registerAsync(final Object targetHost, Filter filter) {
+        registerAsync(targetHost, mDefStopAtParentType, filter);
     }
 
     /**
@@ -238,6 +256,13 @@ public class NextEvents {
         mOnErrorsListener.setOnce(listener);
     }
 
+    final public void printEventsStatistics() {
+        Log.d(mTag, "- Trigger events count: " + getTriggeredCount());
+        Log.d(mTag, "- Submit tasks count:   " + getSubmitCount());
+        Log.w(mTag, "- Override events count:" + getOverrideCount());
+        Log.e(mTag, "- [!!]Dead events count:" + getDeadEventsCount());
+    }
+
     private EventWrap[] wrap(Method method){
         final Class<?>[] types = method.getParameterTypes();
         if (types.length == 0) {
@@ -261,5 +286,17 @@ public class NextEvents {
         if (delta < 5) return;
         final String time = String.format("%.3f", delta)  + "ms";
         Log.d(mTag, "[" + time + "](>5ms)\t" + message);
+    }
+
+    /**
+     * 过滤方法类型
+     */
+    public interface Filter {
+        /**
+         * 如果Method类型匹配, 返回True则被NextEvent管理起来.
+         * @param method Method对象
+         * @return 是否匹配
+         */
+        boolean is(Method method);
     }
 }

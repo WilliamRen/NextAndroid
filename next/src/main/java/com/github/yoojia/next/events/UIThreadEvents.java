@@ -3,6 +3,7 @@ package com.github.yoojia.next.events;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -26,7 +27,16 @@ public class UIThreadEvents extends NextEvents{
     }
 
     @Override
-    protected void trySubmitTask(Runnable task) {
-        mHandler.post(task);
+    protected void trySubmitTask(final Callable<Void> task) {
+        mHandler.post(new Runnable() {
+            @Override public void run() {
+                try {
+                    task.call();
+                } catch (Exception error) {
+                    // throw it to ui thread
+                    throw new IllegalStateException(error);
+                }
+            }
+        });
     }
 }

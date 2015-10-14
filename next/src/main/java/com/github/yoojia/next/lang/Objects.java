@@ -32,6 +32,22 @@ public class Objects {
         }
     }
 
+    public static Class<?> findAndroidParent(Class<?> type) {
+        if (type == null) {
+            throw new NullPointerException("Type must not be empty !");
+        }
+        Class<?> output = null;
+        while (!Object.class.equals(type)) {
+            final String packages = type.getName();
+            if (packages.startsWith("android.")) {
+                output = type;
+                break;
+            }
+            type = type.getSuperclass();
+        }
+        return output;
+    }
+
     public static int hash(Object obj){
         return obj == null ? 0 : obj.hashCode();
     }

@@ -8,6 +8,7 @@ import android.view.View;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.UIThreadEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
+import com.github.yoojia.next.lang.Objects;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -64,7 +65,7 @@ public class NextClickProxy {
 
     @SuppressWarnings("unchecked")
     public <T extends View> void emitClick(T view, String event){
-        mEvents.emit(new ClickEvent(view), event);
+        mEvents.emit(new ClickEvent(view), event, false/*Not allow deviate*/);
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {
@@ -88,6 +89,14 @@ public class NextClickProxy {
         NextClickProxy proxy = new NextClickProxy(rootType);
         proxy.register(host);
         return proxy;
+    }
+
+    public static NextClickProxy bindAndroid(Object host) {
+        final Class<?> androidParent = Objects.findAndroidParent(host.getClass());
+        if (androidParent == null) {
+            throw new IllegalArgumentException("Object is not a sub class inherit from Android Framework !");
+        }
+        return bind(host, androidParent);
     }
 
     public static NextClickProxy bindActivity(Object host){

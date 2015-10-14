@@ -103,6 +103,15 @@ public class NextEvents {
     }
 
     /**
+     * 允许事件没有目标
+     * @param eventObject
+     * @param eventName
+     */
+    final public void emit(final Object eventObject, final String eventName) {
+        emit(eventObject, eventName, true);
+    }
+
+    /**
      * 提交事件。
      * 被注册管理的方法中，如果 @Event(EVENT-NAME) 中的 EVENT-NAME 与提交的事件名相同，并且方法声明的全部事件都已提交，
      * 则该方法被触发并由线程池执行。
@@ -117,13 +126,14 @@ public class NextEvents {
      *
      * @param eventObject 事件对象
      * @param eventName 事件名
+     * @param allowDeviate 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
      * @throws NullPointerException 如果事件对象或者事件名为空，将抛出 NullPointerException
      */
-    final public void emit(final Object eventObject, final String eventName) {
+    public void emit(final Object eventObject, final String eventName, final boolean allowDeviate) {
         if (eventObject == null || eventName == null || eventName.isEmpty()) {
             throw new NullPointerException("Event OBJECT or NAME must not be null or empty !");
         }
-        final List<Reactor.Trigger> trigger = mReactor.emit(eventName, eventObject);
+        final List<Reactor.Trigger> trigger = mReactor.emit(eventName, eventObject, allowDeviate);
         mSubmitCounter.addAndGet(trigger.size());
         for (final Reactor.Trigger item : trigger){
             final Runnable task = new Runnable() {

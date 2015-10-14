@@ -39,22 +39,25 @@ final class Reactor {
         }
     }
 
-    public List<Trigger> emit(String event, Object value) {
+    public List<Trigger> emit(String event, Object value, boolean allowDeviate) {
         final List<Trigger> output = new ArrayList<>();
         mLock.lock();
-        boolean triggered = false;
+        boolean accepted = false; // 事件是否被某一个目标接受
         for (Wrap wrap : mWrapSet) {
             if( ! wrap.isMatched(event, value)) {
                 continue;
             }
-            triggered = true;
+            accepted = true;
             final Trigger trigger = wrap.emit(event, value);
             if (trigger != null) {
                 mTriggeredCount.addAndGet(1);
                 output.add(trigger);
             }
         }
-        if ( ! triggered) {
+        if (!allowDeviate && !accepted) {
+            throw new RuntimeException("Event without a target: " + event);
+        }
+        if ( ! accepted) {
             mDeadEventsCount.addAndGet(1);
         }
         mLock.unlock();

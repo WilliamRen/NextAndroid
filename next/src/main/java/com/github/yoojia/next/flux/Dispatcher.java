@@ -11,6 +11,7 @@ import com.github.yoojia.next.events.UIThreadEvents;
  */
 public final class Dispatcher {
 
+    private final Class<?> mStopAtParentType;
     private final NextEvents mEvents;
 
     /**
@@ -18,7 +19,9 @@ public final class Dispatcher {
      * @param stopAtParentType 扫描停止类型
      */
     public Dispatcher(Class<?> stopAtParentType) {
-        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(), "FluxDispatcher", stopAtParentType);
+        mStopAtParentType = stopAtParentType;
+        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(),
+                "FluxDispatcher", stopAtParentType);
     }
 
     /**
@@ -26,6 +29,7 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
+        checkType(host.getClass());
         mEvents.register(host);
     }
 
@@ -34,6 +38,7 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void registerAsync(Object host){
+        checkType(host.getClass());
         mEvents.registerAsync(host);
     }
 
@@ -55,15 +60,30 @@ public final class Dispatcher {
     }
 
     /**
-     * 提交Action事件
+     * 提交Action事件, 不允许事件没有目标
      * @param action Action 事件
      */
     public void emit(Action action){
+        mEvents.emit(action, action.type, false/* not allow deviate*/);
+    }
+
+    /**
+     * 提交事件,并且允许事件没有目标
+     * @param action Action 事件
+     */
+    public void emitLeniently(Action action){
         mEvents.emit(action, action.type);
     }
 
     public void shutdown(){
         mEvents.shutdown();
+    }
+
+    private void checkType(Class<?> hostType) {
+        if ( ! mStopAtParentType.isAssignableFrom(hostType)) {
+            throw new IllegalArgumentException("Host type(" + hostType.getName()
+                    + ") is not a type of given parent type: " + mStopAtParentType);
+        }
     }
 
     public static Dispatcher newActivity(){

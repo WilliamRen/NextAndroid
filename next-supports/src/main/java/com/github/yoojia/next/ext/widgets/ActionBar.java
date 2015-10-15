@@ -53,6 +53,14 @@ public class ActionBar {
         mTitle.setText(resId);
     }
 
+    public TextView getTitle() {
+        return mTitle;
+    }
+
+    public String getTitleText() {
+        return mTitle.getText().toString();
+    }
+
     public void setLeftImageButton(@DrawableRes int resId, View.OnClickListener listener) {
         mLeftTextButton.setVisibility(View.GONE);
         mLeftImageButton.setVisibility(View.VISIBLE);

@@ -5,7 +5,7 @@
 
     <style name="NextIconInput">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">64dp</item>
+        <item name="android:layout_height">54dp</item>
     </style>
 
     <style name="NextIconInput.Icon" parent="android:Widget.Holo.Light.ImageButton">
@@ -18,11 +18,12 @@
 
     <style name="NextIconInput.Input">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">64dp</item>
+        <item name="android:layout_height">54dp</item>
         <item name="android:background">@android:color/transparent</item>
         <item name="android:hint">HINT NOT SET</item>
-        <item name="android:padding">10dp</item>
+        <item name="android:paddingLeft">10dp</item>
         <item name="android:singleLine">true</item>
+        <item name="android:textColorHint">#ADADAD</item>
         <item name="android:imeOptions">actionNext</item>
     </style>
 

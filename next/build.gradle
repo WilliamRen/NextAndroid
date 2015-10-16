@@ -18,8 +18,4 @@ android {
     }
 }
 
-dependencies {
-
-}
-
 apply from: 'https://raw.githubusercontent.com/msdx/gradle-publish/master/bintray.gradle'

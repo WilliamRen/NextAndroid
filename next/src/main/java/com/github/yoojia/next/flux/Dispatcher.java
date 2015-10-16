@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.UIThreadEvents;
+import com.github.yoojia.next.lang.CallStack;
 
 import java.lang.reflect.Method;
 
@@ -12,6 +13,8 @@ import java.lang.reflect.Method;
  * @since 1.0
  */
 public final class Dispatcher {
+
+    private static boolean DEBUG_ENABLED = false;
 
     private final Class<?> mStopAtParentType;
     private final NextEvents mEvents;
@@ -66,6 +69,13 @@ public final class Dispatcher {
      * @param action Action 事件
      */
     public void emit(Action action){
+        // 记录回调方法栈
+        if (DEBUG_ENABLED) {
+            final String callStackInfo = CallStack.collect();
+            action.setSenderStack(callStackInfo);
+        }else{
+            action.setSenderStack("Set Dispatcher.debugEnabled(true) to collect methods stack !");
+        }
         mEvents.emit(action, action.type, false/* not allow deviate*/);
     }
 
@@ -74,11 +84,22 @@ public final class Dispatcher {
      * @param action Action 事件
      */
     public void emitLeniently(Action action){
+        // 记录回调方法栈
+        if (DEBUG_ENABLED) {
+            final String callStackInfo = CallStack.collect();
+            action.setSenderStack(callStackInfo);
+        }else{
+            action.setSenderStack("Set Dispatcher.debugEnabled(true) to collect methods stack !");
+        }
         mEvents.emit(action, action.type);
     }
 
     public void shutdown(){
         mEvents.shutdown();
+    }
+
+    public static void debugEnabled(boolean enabled) {
+        DEBUG_ENABLED = enabled;
     }
 
     private void checkType(Class<?> hostType) {

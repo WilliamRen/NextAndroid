@@ -1,5 +1,6 @@
 package com.github.yoojia.next.flux;
 
+import com.github.yoojia.next.lang.ImmutableObject;
 import com.github.yoojia.next.lang.ObjectMap;
 
 /**
@@ -7,6 +8,8 @@ import com.github.yoojia.next.lang.ObjectMap;
  * @since 1.0
  */
 public final class Action {
+
+    private final ImmutableObject<String> mSenderStack = new ImmutableObject<>();
 
     public final String type;
     public final ObjectMap data;
@@ -17,6 +20,21 @@ public final class Action {
         if (this.type == null || this.type.isEmpty()) {
             throw new NullPointerException("Action.type must not be null or empty !");
         }
+    }
+
+    /**
+     * 获取Action被emit前的调用方法栈.
+     * @return 方法栈调用过程文本描述
+     */
+    public String getSenderStack(){
+        return mSenderStack.get();
+    }
+
+    /**
+     * hide for flux
+     */
+    void setSenderStack(String senderStack) {
+        mSenderStack.setOnce(senderStack);
     }
 
     public static class Builder {

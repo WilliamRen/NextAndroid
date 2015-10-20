@@ -14,7 +14,9 @@ import java.lang.reflect.Method;
  */
 public final class Dispatcher {
 
-    private static boolean DEBUG_ENABLED = false;
+    private static final String STACK_WARNING = "Set dispatcher.enabledDebug(true) to collect methods stack !";
+
+    private boolean mDebugEnabled = false;
 
     private final Class<?> mStopAtParentType;
     private final NextEvents mEvents;
@@ -70,11 +72,11 @@ public final class Dispatcher {
      */
     public void emit(Action action){
         // 记录回调方法栈
-        if (DEBUG_ENABLED) {
+        if (mDebugEnabled) {
             final String callStackInfo = CallStack.collect();
             action.setSenderStack(callStackInfo);
         }else{
-            action.setSenderStack("Set Dispatcher.debugEnabled(true) to collect methods stack !");
+            action.setSenderStack(STACK_WARNING);
         }
         mEvents.emit(action, action.type, false/* not allow deviate*/);
     }
@@ -85,11 +87,11 @@ public final class Dispatcher {
      */
     public void emitLeniently(Action action){
         // 记录回调方法栈
-        if (DEBUG_ENABLED) {
+        if (mDebugEnabled) {
             final String callStackInfo = CallStack.collect();
             action.setSenderStack(callStackInfo);
         }else{
-            action.setSenderStack("Set Dispatcher.debugEnabled(true) to collect methods stack !");
+            action.setSenderStack(STACK_WARNING);
         }
         mEvents.emit(action, action.type);
     }
@@ -98,8 +100,8 @@ public final class Dispatcher {
         mEvents.shutdown();
     }
 
-    public static void debugEnabled(boolean enabled) {
-        DEBUG_ENABLED = enabled;
+    public void enabledDebug(boolean enabled) {
+        mDebugEnabled = enabled;
     }
 
     private void checkType(Class<?> hostType) {

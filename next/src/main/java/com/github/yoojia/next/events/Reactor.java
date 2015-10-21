@@ -55,7 +55,7 @@ final class Reactor {
             }
         }
         if (!allowDeviate && !accepted) {
-            throw new RuntimeException("Event without a target: " + event);
+            throw new IllegalStateException("Event without a target: " + event);
         }
         if ( ! accepted) {
             mDeadEventsCount.addAndGet(1);

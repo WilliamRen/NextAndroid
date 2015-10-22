@@ -71,11 +71,20 @@ public class NextEvents {
      */
     final public void register(Object targetHost, Class<?> stopAtParentType, Filter filter) {
         final long startScan = System.nanoTime();
-        final List<Method> methods = new MethodsFinder(targetHost.getClass(), stopAtParentType).filter(Subscribe.class);
+        final List<Method> annotatedMethods = new MethodsFinder(targetHost.getClass(), stopAtParentType)
+                .filter(Subscribe.class);
         timeLogging("SCAN[@Subscribe]", startScan);
         final long startRegister = System.nanoTime();
-        for (Iterator<Method> iterator = methods.iterator(); iterator.hasNext();){
+        for (Iterator<Method> iterator = annotatedMethods.iterator(); iterator.hasNext();){
             final Method method = iterator.next();
+            // BASIC CHECK: Check if return type is Void
+            if (! Void.TYPE.equals(method.getReturnType())) {
+                Log.w(mTag, "Found @Subscribe method return a non-void type. We recommend a void type.");
+            }
+            // BASIC CHECK: Arguments count
+            if (method.getParameterTypes().length == 0) {
+                throw new IllegalArgumentException("@Subscribe methods must require at less one arguments.");
+            }
             // Filter
             if (filter != null && !filter.is(method)) {
                 iterator.remove();
@@ -96,7 +105,7 @@ public class NextEvents {
             mReactor.register(target, events);
         }
         timeLogging("REGISTER", startRegister);
-        if (methods.isEmpty()){
+        if (annotatedMethods.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
             Warning.show(mTag);
         }

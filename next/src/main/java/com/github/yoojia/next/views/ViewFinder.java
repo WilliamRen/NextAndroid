@@ -9,7 +9,7 @@ import android.view.View;
  */
 public class ViewFinder implements NextAutoView.Finder{
 
-    private static final String TAG = "FINDER";
+    private static final String TAG = ViewFinder.class.getSimpleName();
 
     private final View mRootView;
 

@@ -70,7 +70,7 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
     }
 
     protected boolean isAnnotated(T itemObject, Class<? extends Annotation> annotationType){
-        return null != itemObject.getAnnotation(annotationType);
+        return itemObject.isAnnotationPresent(annotationType);
     }
 
     public interface Filter<T> {

@@ -33,7 +33,7 @@ final class Reactor {
         }
         for (Iterator<Wrap> it = mWrapSet.iterator(); it.hasNext();) {
             final Wrap wrap = it.next();
-            if (wrap.mTarget.isSameHost(host)) {
+            if (wrap.target.isSameHost(host)) {
                 it.remove();
             }
         }
@@ -78,16 +78,17 @@ final class Reactor {
 
     private static class Wrap {
 
+        final Target target;
+
         private final Map<String, EventWrap> mWraps;
         private final Map<String, Object> mEvents;
-        private final Target mTarget;
         private final AtomicInteger mOverrideCountRef;
 
         public Wrap(AtomicInteger overrideCountRef, Target target, EventWrap... events) {
             mOverrideCountRef = overrideCountRef;
             mEvents = new HashMap<>(events.length);
             mWraps = new HashMap<>(events.length);
-            mTarget = target;
+            this.target = target;
             for (EventWrap item : events) {
                 mWraps.put(item.event, item);
                 mEvents.put(item.event, NULL_VALUE);
@@ -119,7 +120,7 @@ final class Reactor {
         }
 
         private Trigger getTriggered(){
-            final Trigger copy = new Trigger(mTarget, mEvents);
+            final Trigger copy = new Trigger(target, mEvents);
             // reset after copy
             for (EventWrap item : mWraps.values()) {
                 mEvents.put(item.event, NULL_VALUE);
@@ -133,13 +134,13 @@ final class Reactor {
             if (o == null || getClass() != o.getClass()) return false;
             final Wrap wrap = (Wrap) o;
             if (!mEvents.equals(wrap.mEvents)) return false;
-            return mTarget.equals(wrap.mTarget);
+            return target.equals(wrap.target);
         }
 
         @Override
         public int hashCode() {
             final int result = mEvents.hashCode();
-            return 31 * result + mTarget.hashCode();
+            return 31 * result + target.hashCode();
         }
 
         private static class NullValue {

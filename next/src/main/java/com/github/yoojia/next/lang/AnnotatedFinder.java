@@ -45,7 +45,7 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
         }
         return filterWith(new Filter<T>() {
             @Override public boolean is(T item) {
-                return isAnnotated(item, type);
+                return isAccepted(item, type);
             }
         });
     }
@@ -69,7 +69,7 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
         return output;
     }
 
-    protected boolean isAnnotated(T itemObject, Class<? extends Annotation> annotationType){
+    protected boolean isAccepted(T itemObject, Class<? extends Annotation> annotationType){
         return itemObject.isAnnotationPresent(annotationType);
     }
 

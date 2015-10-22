@@ -1,6 +1,7 @@
 package com.github.yoojia.next.lang;
 
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
@@ -15,6 +16,16 @@ public class MethodsFinder extends AnnotatedFinder<Method> {
 
     public MethodsFinder(Class<?> currentHostType) {
         super(currentHostType);
+    }
+
+    @Override
+    protected boolean isAccepted(Method itemObject, Class<? extends Annotation> annotationType) {
+        if (itemObject.isBridge()) {
+            return false;
+        }else{
+            // Super will check annotation
+            return super.isAccepted(itemObject, annotationType);
+        }
     }
 
     @Override

@@ -40,7 +40,12 @@ public class NextClickProxy {
                     Warning.show(TAG);
                 }else{
                     for (Field field : fields){
+                        final boolean origin = field.isAccessible();
+                        field.setAccessible(true);
                         final EmitClick evt = field.getAnnotation(EmitClick.class);
+                        if (!origin) {
+                            field.setAccessible(false);
+                        }
                         try {
                             final View view = bindClickView(host, field, evt.event());
                             if (Integer.MIN_VALUE != evt.keyCode()) {

@@ -66,7 +66,7 @@ public class ObjectMap {
 
     private void checkKey(String key) {
         if (TextUtils.isEmpty(key)) {
-            throw new NullPointerException("Key must not be empty !");
+            throw new IllegalArgumentException("Key must not be empty !");
         }
     }
 }

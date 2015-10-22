@@ -81,13 +81,18 @@ public class NextEvents {
                 iterator.remove();
                 continue;
             }
-            final Subscribe conf = method.getAnnotation(Subscribe.class);
             final EventWrap[] events = wrap(method);
-            final String[] eventsInOrder = new String[events.length];
+            final String[] orderedEvents = new String[events.length];
             for (int i = 0; i < events.length; i++) {
-                eventsInOrder[i] = events[i].event;
+                orderedEvents[i] = events[i].event;
             }
-            final MethodTarget target = new MethodTarget(eventsInOrder, conf.async(), targetHost, method);
+            final boolean origin = method.isAccessible();
+            method.setAccessible(true);
+            final Subscribe conf = method.getAnnotation(Subscribe.class);
+            if (!origin) {
+                method.setAccessible(false);
+            }
+            final MethodTarget target = new MethodTarget(orderedEvents, conf.async(), targetHost, method);
             mReactor.register(target, events);
         }
         timeLogging("REGISTER", startRegister);

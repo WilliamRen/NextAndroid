@@ -22,13 +22,17 @@ final class MethodTarget implements Target{
     }
 
     @Override
-    public void invoke(Map<String, Object> events) throws Exception{
+    public void invoke(Map<String, Object> events) throws Exception {
         final Object[] params = new Object[mOrderedEvents.length];
         for (int i = 0; i < mOrderedEvents.length; i++) {
             params[i] = events.get(mOrderedEvents[i]);
         }
+        final boolean origin = mMethod.isAccessible();
         mMethod.setAccessible(true);
         mMethod.invoke(mHost, params);
+        if (!origin) {
+            mMethod.setAccessible(false);
+        }
     }
 
     @Override

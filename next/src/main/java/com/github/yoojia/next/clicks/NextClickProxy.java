@@ -81,8 +81,12 @@ public class NextClickProxy {
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {
+        final boolean origin = field.isAccessible();
         field.setAccessible(true);
         final Object viewField = field.get(host);
+        if (!origin) {
+            field.setAccessible(false);
+        }
         if (viewField instanceof View){
             final View view = (View) viewField;
             view.setOnClickListener(new View.OnClickListener() {

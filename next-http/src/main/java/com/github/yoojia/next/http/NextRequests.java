@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-public class Requests {
+public class NextRequests {
 
     private static final String TAG = "REQUESTS";
 
@@ -38,38 +38,40 @@ public class Requests {
     private static final CookieManager COOKIES = new CookieManager();
     private static final ExecutorService THREADS = Executors.newCachedThreadPool();
 
+    private final RequestFilter mRequestFilter;
     private final String mBaseURL;
     private final Map<String, Object> mParams = new HashMap<>();
 
     private boolean mPOST = false;
     private String mTargetURL;
 
-    public Requests(String baseURL) {
+    public NextRequests(String baseURL, RequestFilter requestFilter) {
         mBaseURL = baseURL;
         mTargetURL = baseURL;
+        mRequestFilter = requestFilter;
     }
 
-    public Requests post(String uri) {
+    public NextRequests post(String uri) {
         return post(uri, Collections.EMPTY_MAP);
     }
 
-    public Requests post(String uri, String jsonText){
+    public NextRequests post(String uri, String jsonText){
         return post(uri, jsonText, "application/json; charset=utf-8");
     }
 
-    public Requests post(String uri, String content, String contentType){
+    public NextRequests post(String uri, String content, String contentType){
         final Map<String, Object> params = new HashMap<>(2);
         params.put(SCHEME_RAW + "content", content);
         params.put(SCHEME_RAW + "type", contentType);
         return post(uri, params);
     }
 
-    public Requests post(String uri, Map<String, Object> params){
+    public NextRequests post(String uri, Map<String, Object> params){
         mTargetURL = mBaseURL + uri;
         return post(params);
     }
 
-    public Requests post(Map<String, Object> params) {
+    public NextRequests post(Map<String, Object> params) {
         mPOST = true;
         mParams.clear();
         if (params != null && !params.isEmpty()){
@@ -78,16 +80,16 @@ public class Requests {
         return this;
     }
 
-    public Requests get(String uri) {
+    public NextRequests get(String uri) {
         return get(uri, Collections.EMPTY_MAP);
     }
 
-    public Requests get(String uri, Map<String, Object> params){
+    public NextRequests get(String uri, Map<String, Object> params){
         mTargetURL = mBaseURL + uri;
         return get(params);
     }
 
-    public Requests get(Map<String, Object> params) {
+    public NextRequests get(Map<String, Object> params) {
         mPOST = false;
         mParams.clear();
         if (params != null && !params.isEmpty()){
@@ -96,7 +98,7 @@ public class Requests {
         return this;
     }
 
-    public void go(final Callback callback){
+    public void go(final NextCallback callback){
         THREADS.submit(new Runnable() {
             @Override
             public void run() {
@@ -111,7 +113,7 @@ public class Requests {
         });
     }
 
-    private void sendRequest(final Callback callback) throws Exception{
+    private void sendRequest(final NextCallback callback) throws Exception{
         callback.onStart();
         if (mPOST){
             requestPost(callback);
@@ -120,8 +122,8 @@ public class Requests {
         }
     }
 
-    private void requestPost(Callback callback) throws Exception{
-        final Request.Builder conf = new Request.Builder();
+    private void requestPost(NextCallback callback) throws Exception{
+        final Request.Builder request = new Request.Builder();
         final Map<String, String> files = new HashMap<>();
         final Map<String, String> raw = new HashMap<>();
         final String query = MapToQuery.toQuery(mParams, true, new MapToQuery.Filter() {
@@ -141,6 +143,8 @@ public class Requests {
                 return true;
             }
         });
+        // Config
+        mRequestFilter.onEachRequest(request);
         final RequestBody body;
         if (!files.isEmpty()){
             // Upload files
@@ -172,13 +176,13 @@ public class Requests {
             // post query params
             body = RequestBody.create(MEDIA_TYPE_FORM, query);
         }
-        conf.post(body);
-        conf.url(mTargetURL);
+        request.post(body);
+        request.url(mTargetURL);
         Log.d(TAG, "Send POST request, URL= " + mTargetURL + ", Params=" + mParams);
-        request(conf, callback);
+        request(request, callback);
     }
 
-    private void requestGet(Callback callback) throws Exception {
+    private void requestGet(NextCallback callback) throws Exception {
         final Request.Builder conf = new Request.Builder();
         String url = mTargetURL;
         if(mParams != null && !mParams.isEmpty()) {
@@ -189,16 +193,13 @@ public class Requests {
         request(conf, callback);
     }
 
-    private void request(Request.Builder conf, Callback callback) throws IOException {
+    private void request(Request.Builder conf, NextCallback callback) throws IOException {
         final OkHttpClient client = new OkHttpClient();
         client.setCookieHandler(COOKIES);
         client.setFollowRedirects(false);
-        onClientSetting(client);
+        mRequestFilter.onClientCreated(client);
         final Response response = client.newCall(conf.build()).execute();
         callback.onResponse(response.code(), response.body().string());
     }
 
-    protected void onClientSetting(OkHttpClient client) {
-
-    }
 }

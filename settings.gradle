@@ -1,1 +1,1 @@
-include ':app', ':next', ':next-supports'
+include ':app', ':next', ':next-supports', ':next-http'

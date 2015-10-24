@@ -17,50 +17,53 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 final class Reactor {
 
-    private final Lock mLock = new ReentrantLock();
     private final Set<Wrap> mWrapSet = new LinkedHashSet<>();
     private final AtomicInteger mTriggeredCount = new AtomicInteger(0);
     private final AtomicInteger mOverrideCount = new AtomicInteger(0);
     private final AtomicInteger mDeadEventsCount = new AtomicInteger(0);
 
-    public synchronized void register(Target target, EventWrap... events) {
-        mWrapSet.add(new Wrap(mOverrideCount, target, events));
+    public void register(Target target, EventWrap... events) {
+        synchronized (mWrapSet) {
+            mWrapSet.add(new Wrap(mOverrideCount, target, events));
+        }
     }
 
-    public synchronized void unregister(Object host) {
+    public void unregister(Object host) {
         if (host == null) {
             throw new NullPointerException("Host must not be null !");
         }
-        for (Iterator<Wrap> it = mWrapSet.iterator(); it.hasNext();) {
-            final Wrap wrap = it.next();
-            if (wrap.target.isSameHost(host)) {
-                it.remove();
+        synchronized (mWrapSet) {
+            for (Iterator<Wrap> it = mWrapSet.iterator(); it.hasNext();) {
+                final Wrap wrap = it.next();
+                if (wrap.target.isSameHost(host)) {
+                    it.remove();
+                }
             }
         }
     }
 
     public List<Trigger> emit(String event, Object value, boolean allowDeviate) {
         final List<Trigger> output = new ArrayList<>();
-        mLock.lock();
-        boolean accepted = false; // 事件是否被某一个目标接受
-        for (Wrap wrap : mWrapSet) {
-            if( ! wrap.isMatched(event, value)) {
-                continue;
+        synchronized (mWrapSet) {
+            boolean accepted = false; // 事件是否被某一个目标接受
+            for (Wrap wrap : mWrapSet) {
+                if( ! wrap.isMatched(event, value)) {
+                    continue;
+                }
+                accepted = true;
+                final Trigger trigger = wrap.emit(event, value);
+                if (trigger != null) {
+                    output.add(trigger);
+                    mTriggeredCount.addAndGet(1);
+                }
             }
-            accepted = true;
-            final Trigger trigger = wrap.emit(event, value);
-            if (trigger != null) {
-                output.add(trigger);
-                mTriggeredCount.addAndGet(1);
+            if (!allowDeviate && !accepted) {
+                throw new IllegalStateException("Event without a target: " + event);
+            }
+            if ( ! accepted) {
+                mDeadEventsCount.addAndGet(1);
             }
         }
-        if (!allowDeviate && !accepted) {
-            throw new IllegalStateException("Event without a target: " + event);
-        }
-        if ( ! accepted) {
-            mDeadEventsCount.addAndGet(1);
-        }
-        mLock.unlock();
         return output;
     }
 

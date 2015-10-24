@@ -22,8 +22,7 @@ public final class Dispatcher {
      * 构建Dispatcher,指定扫描停止类型
      */
     public Dispatcher() {
-        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(),
-                "FluxDispatcher");
+        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(), "FluxDispatcher");
     }
 
     /**
@@ -40,15 +39,6 @@ public final class Dispatcher {
      */
     public void registerAsync(Object host){
         mEvents.registerAsync(host, new ActionMethodFilter());
-    }
-
-    /**
-     * 扫描目标,并指定其它扫描停止类型
-     * @param host 目标对象实例
-     * @param stopAtParentType 指定其它扫描停止类型
-     */
-    void registerWithStopType(Object host, Class<?> stopAtParentType){
-        mEvents.register(host, new ActionMethodFilter());
     }
 
     /**

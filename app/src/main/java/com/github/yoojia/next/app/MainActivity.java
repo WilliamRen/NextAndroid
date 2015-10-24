@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     @AutoView(R.id.button)
     private Button mButton;
 
-    private final Dispatcher mDispatcher = new Dispatcher(AppCompatActivity.class);
+    private final Dispatcher mDispatcher = new Dispatcher();
     private TestStore mStore;
 
     @Override
@@ -35,9 +35,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Debug.startMethodTracing();
         // Inject views
-        NextAutoView.useAndroid(this).inject(this);
+        NextAutoView.use(this).inject(this);
         // Click proxy
-        NextClickProxy.bindAndroid(this);
+        NextClickProxy.bind(this);
         // Flux
         mStore = new TestStore(mDispatcher, this);
         mStore.register();

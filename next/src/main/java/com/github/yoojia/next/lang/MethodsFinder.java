@@ -10,21 +10,17 @@ import java.lang.reflect.Method;
  */
 public class MethodsFinder extends AnnotatedFinder<Method> {
 
-    public MethodsFinder(Class<?> currentHostType, Class<?> stopAtParentType) {
-        super(currentHostType, stopAtParentType);
-    }
-
     public MethodsFinder(Class<?> currentHostType) {
         super(currentHostType);
     }
 
     @Override
-    protected boolean isAccepted(Method itemObject, Class<? extends Annotation> annotationType) {
-        if (itemObject.isBridge()) {
+    protected boolean acceptResource(Method method, Class<? extends Annotation> annotationType) {
+        if (method.isBridge() || method.isSynthetic()) {
             return false;
         }else{
             // Super will check annotation
-            return super.isAccepted(itemObject, annotationType);
+            return super.acceptResource(method, annotationType);
         }
     }
 

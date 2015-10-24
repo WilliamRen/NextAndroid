@@ -1,7 +1,5 @@
 package com.github.yoojia.next.flux;
 
-import android.app.Activity;
-
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.UIThreadEvents;
 import com.github.yoojia.next.lang.CallStack;
@@ -18,17 +16,14 @@ public final class Dispatcher {
 
     private boolean mDebugEnabled = false;
 
-    private final Class<?> mStopAtParentType;
     private final NextEvents mEvents;
 
     /**
      * 构建Dispatcher,指定扫描停止类型
-     * @param stopAtParentType 扫描停止类型
      */
-    public Dispatcher(Class<?> stopAtParentType) {
-        mStopAtParentType = stopAtParentType;
+    public Dispatcher() {
         mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(),
-                "FluxDispatcher", stopAtParentType);
+                "FluxDispatcher");
     }
 
     /**
@@ -36,7 +31,6 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
-        checkType(host.getClass());
         mEvents.register(host, new ActionMethodFilter());
     }
 
@@ -45,7 +39,6 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void registerAsync(Object host){
-        checkType(host.getClass());
         mEvents.registerAsync(host, new ActionMethodFilter());
     }
 
@@ -55,7 +48,7 @@ public final class Dispatcher {
      * @param stopAtParentType 指定其它扫描停止类型
      */
     void registerWithStopType(Object host, Class<?> stopAtParentType){
-        mEvents.register(host, stopAtParentType, new ActionMethodFilter());
+        mEvents.register(host, new ActionMethodFilter());
     }
 
     /**
@@ -104,16 +97,9 @@ public final class Dispatcher {
         mDebugEnabled = enabled;
     }
 
-    private void checkType(Class<?> hostType) {
-        if ( ! mStopAtParentType.isAssignableFrom(hostType)) {
-            throw new IllegalArgumentException("Host type(" + hostType.getName()
-                    + ") is not a type of given parent type: " + mStopAtParentType);
-        }
-    }
-
     private class ActionMethodFilter implements NextEvents.Filter {
 
-        @Override public boolean is(Method method) {
+        @Override public boolean accept(Method method) {
             // 全部类型都只能是Action类型
             final Class<?>[] types = method.getParameterTypes();
             for (Class<?> type : types) {
@@ -125,7 +111,4 @@ public final class Dispatcher {
         }
     }
 
-    public static Dispatcher newActivity(){
-        return new Dispatcher(Activity.class);
-    }
 }

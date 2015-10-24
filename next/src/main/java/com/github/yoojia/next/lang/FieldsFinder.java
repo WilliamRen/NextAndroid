@@ -9,10 +9,6 @@ import java.lang.reflect.Field;
  */
 public class FieldsFinder extends AnnotatedFinder<Field> {
 
-    public FieldsFinder(Class<?> currentHostType, Class<?> stopAtParentType) {
-        super(currentHostType, stopAtParentType);
-    }
-
     public FieldsFinder(Class<?> currentHostType) {
         super(currentHostType);
     }

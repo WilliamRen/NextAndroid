@@ -25,7 +25,6 @@ public class NextEvents {
     private final AtomicInteger mSubmitCounter = new AtomicInteger(0);
 
     private final ExecutorService mThreads;
-    private final Class<?> mDefStopAtParentType;
     private final Reactor mReactor = new Reactor();
     private final ImmutableObject<OnErrorsListener> mOnErrorsListener = new ImmutableObject<>();
 
@@ -33,11 +32,9 @@ public class NextEvents {
      * 使用指定线程池来处理事件。
      * @param threads 线程池实现
      * @param tag NextEvent 实例标签名
-     * @param stopAtParentType 默认扫描 @Subscribe 方法时的停止超类类型
      */
-    public NextEvents(ExecutorService threads, String tag, Class<?> stopAtParentType){
+    public NextEvents(ExecutorService threads, String tag){
         mTag = tag;
-        mDefStopAtParentType = stopAtParentType;
         mThreads = threads;
     }
 
@@ -46,32 +43,28 @@ public class NextEvents {
      * 注意： 固定大小线程池的处理策略是当线程池繁忙时，抛弃后续处理任务。
      * @param threads 指定固定线程池大小
      * @param tag NextEvent 实例标签名
-     * @param stopAtParentType 默认扫描 @Subscribe 方法时的停止超类类型
      */
-    public NextEvents(int threads, String tag, Class<?> stopAtParentType) {
-        this(Executors.newFixedThreadPool(threads), tag, stopAtParentType);
+    public NextEvents(int threads, String tag) {
+        this(Executors.newFixedThreadPool(threads), tag);
     }
 
     /**
      * 使用动态大小线程池来处理事件。
      * @param tag NextEvent 实例标签名
-     * @param stopAtParentType 默认扫描 @Subscribe 方法时的停止超类类型
      */
-    public NextEvents(String tag, Class<?> stopAtParentType) {
-        this(Executors.newCachedThreadPool(), tag, stopAtParentType);
+    public NextEvents(String tag) {
+        this(Executors.newCachedThreadPool(), tag);
     }
 
     /**
      * 将目标对象实例注册到 NextEvents 中，NextEvents 将扫描目标对象及其超类中所有添加 @Subscribe 注解的方法，并注册管理。
      * 注意：目标对象实例及 @Subscribe 注解的方法将被强引用。
      * @param targetHost 需要被注册的目标对象实例
-     * @param stopAtParentType 扫描 @Subscribe 方法时的停止超类类型。
-     *                         例如： NextEvents 的超类为 Object，则其停止超类类型为 Object.class
      * @param filter 对扫描后的Method作过滤处理. 通过此接口,可以过滤掉一些方法参数类型不匹配的方法.
      */
-    final public void register(Object targetHost, Class<?> stopAtParentType, Filter filter) {
+    final public void register(Object targetHost, Filter filter) {
         final long startScan = System.nanoTime();
-        final List<Method> annotatedMethods = new MethodsFinder(targetHost.getClass(), stopAtParentType)
+        final List<Method> annotatedMethods = new MethodsFinder(targetHost.getClass())
                 .filter(Subscribe.class);
         timeLogging("SCAN[@Subscribe]", startScan);
         final long startRegister = System.nanoTime();
@@ -86,7 +79,7 @@ public class NextEvents {
                 throw new IllegalArgumentException("@Subscribe methods must require at less one arguments.");
             }
             // Filter
-            if (filter != null && !filter.is(method)) {
+            if (filter != null && !filter.accept(method)) {
                 iterator.remove();
                 continue;
             }
@@ -191,43 +184,26 @@ public class NextEvents {
         mThreads.shutdown();
     }
 
-    final public void register(Object targetHost, Class<?> stopAtParentType) {
-        register(targetHost, stopAtParentType, null);
-    }
-
     final public void register(Object targetHost) {
-        register(targetHost, mDefStopAtParentType);
-    }
-
-    final public void register(Object targetHost, Filter filter) {
-        register(targetHost, mDefStopAtParentType, filter);
+        register(targetHost, null);
     }
 
     /**
      * 异步扫描
      * @param targetHost 需要被注册的目标对象实例
-     * @param stopAtParentType 扫描 @Subscribe 方法时的停止超类类型
      * @param filter 扫描结果过滤
      */
-    final public void registerAsync(final Object targetHost, final Class<?> stopAtParentType, final Filter filter) {
+    final public void registerAsync(final Object targetHost, final Filter filter) {
         final Runnable task = new Runnable() {
             @Override public void run() {
-                register(targetHost, stopAtParentType, filter);
+                register(targetHost, filter);
             }
         };
         mThreads.execute(task);
     }
 
-    final public void registerAsync(final Object targetHost, final Class<?> stopAtParentType) {
-        registerAsync(targetHost, stopAtParentType, null);
-    }
-
     final public void registerAsync(final Object targetHost) {
-        registerAsync(targetHost, mDefStopAtParentType);
-    }
-
-    final public void registerAsync(final Object targetHost, Filter filter) {
-        registerAsync(targetHost, mDefStopAtParentType, filter);
+        registerAsync(targetHost, null);
     }
 
     /**
@@ -311,6 +287,6 @@ public class NextEvents {
          * @param method Method对象
          * @return 是否匹配
          */
-        boolean is(Method method);
+        boolean accept(Method method);
     }
 }

@@ -14,16 +14,12 @@ public class UIThreadEvents extends NextEvents{
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-    public UIThreadEvents(ExecutorService threads, String tag, Class<?> stopAtParentType) {
-        super(threads, tag, stopAtParentType);
+    public UIThreadEvents(ExecutorService threads, String tag) {
+        super(threads, tag);
     }
 
-    public UIThreadEvents(int threads, String tag, Class<?> stopAtParentType) {
-        super(threads, tag, stopAtParentType);
-    }
-
-    public UIThreadEvents(String tag, Class<?> stopAtParentType) {
-        super(tag, stopAtParentType);
+    public UIThreadEvents(int threads, String tag) {
+        super(threads, tag);
     }
 
     @Override

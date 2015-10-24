@@ -1,18 +1,19 @@
 package com.github.yoojia.next.clicks;
 
-import android.app.Activity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.UIThreadEvents;
+import com.github.yoojia.next.lang.AnnotatedFinder;
 import com.github.yoojia.next.lang.FieldsFinder;
-import com.github.yoojia.next.lang.Objects;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+
+import static com.github.yoojia.next.lang.Preconditions.notNull;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
@@ -22,19 +23,25 @@ public class NextClickProxy {
 
     private static final String TAG = "CLICKS";
 
-    private final Class<?> mStopAtParentType;
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
     private final NextEvents mEvents;
 
-    public NextClickProxy(Class<?> stopAtParentType) {
-        this.mStopAtParentType = stopAtParentType;
-        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(), TAG, stopAtParentType);
+    public NextClickProxy() {
+        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(), TAG);
     }
 
     public void register(final Object host){
+        notNull(host, "Host must not be null !");
+        final FieldsFinder finder = new FieldsFinder();
+        finder.map(new AnnotatedFinder.Map<Field>() {
+            @Override
+            public boolean accept(Field field) {
+                return field.isAnnotationPresent(EmitClick.class);
+            }
+        });
         final Runnable task = new Runnable() {
             @Override public void run() {
-                final List<Field> fields = new FieldsFinder(host.getClass(), mStopAtParentType).filter(EmitClick.class);
+                final List<Field> fields = finder.find(host.getClass());
                 if (fields.isEmpty()){
                     Log.d(TAG, "- Empty Handlers(with @EmitClick) ! ");
                     Warning.show(TAG);
@@ -57,7 +64,7 @@ public class NextClickProxy {
                     }
                     // 只注册管理参数为ClickEvent类型的方法
                     final NextEvents.Filter filter = new NextEvents.Filter() {
-                        @Override public boolean is(Method method) {
+                        @Override public boolean accept(Method method) {
                             // 点击只接受一个事件,并且只能是ClickEvent类型
                             final Class<?>[] types = method.getParameterTypes();
                             if (types.length != 1) {
@@ -82,6 +89,8 @@ public class NextClickProxy {
 
     @SuppressWarnings("unchecked")
     public <T extends View> void emitClick(T view, String event){
+        notNull(view, "View must not be null !");
+        notNull(event, "Event must not be null !");
         mEvents.emit(new ClickEvent(view), event, false/*Not allow deviate*/);
     }
 
@@ -106,22 +115,10 @@ public class NextClickProxy {
         }
     }
 
-    public static NextClickProxy bind(Object host, Class<?> rootType){
-        NextClickProxy proxy = new NextClickProxy(rootType);
+    public static NextClickProxy bind(Object host){
+        NextClickProxy proxy = new NextClickProxy();
         proxy.register(host);
         return proxy;
-    }
-
-    public static NextClickProxy bindAndroid(Object host) {
-        final Class<?> androidParent = Objects.findAndroidParent(host.getClass());
-        if (androidParent == null) {
-            throw new IllegalArgumentException("Object is not a sub class inherit from Android Framework !");
-        }
-        return bind(host, androidParent);
-    }
-
-    public static NextClickProxy bindActivity(Object host){
-        return bind(host, Activity.class);
     }
 
 }

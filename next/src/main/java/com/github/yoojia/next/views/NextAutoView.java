@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.View;
 
+import com.github.yoojia.next.lang.AnnotatedFinder;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Objects;
 
@@ -27,8 +28,15 @@ public class NextAutoView {
         mHostType = host.getClass();
     }
 
-    public void inject(Finder finder){
-        final List<Field> fields = new FieldsFinder(mHostType).filter(AutoView.class);
+    public void inject(Finder viweField){
+        final FieldsFinder fieldsFinder = new FieldsFinder();
+        fieldsFinder.map(new AnnotatedFinder.Map<Field>() {
+            @Override
+            public boolean accept(Field field) {
+                return field.isAnnotationPresent(AutoView.class);
+            }
+        });
+        final List<Field> fields = fieldsFinder.find(mHostType);
         if (fields.isEmpty()){
             Log.d(TAG, "- Empty Views(with @AutoView) ! ");
             Warning.show(TAG);
@@ -41,7 +49,7 @@ public class NextAutoView {
                 if (!origin) {
                     field.setAccessible(false);
                 }
-                os.setField(field, finder.find(ano.value(), ano.parents()));
+                os.setField(field, viweField.find(ano.value(), ano.parents()));
             }
         }
     }

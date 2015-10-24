@@ -2,6 +2,7 @@ package com.github.yoojia.next.events;
 
 import android.util.Log;
 
+import com.github.yoojia.next.lang.AnnotatedFinder;
 import com.github.yoojia.next.lang.ImmutableObject;
 import com.github.yoojia.next.lang.MethodsFinder;
 
@@ -13,6 +14,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.github.yoojia.next.lang.Preconditions.notEmpty;
+import static com.github.yoojia.next.lang.Preconditions.notNull;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -64,8 +68,14 @@ public class NextEvents {
      */
     final public void register(Object targetHost, Filter filter) {
         final long startScan = System.nanoTime();
-        final List<Method> annotatedMethods = new MethodsFinder(targetHost.getClass())
-                .filter(Subscribe.class);
+        final MethodsFinder finder = new MethodsFinder();
+        finder.map(new AnnotatedFinder.Map<Method>() {
+            @Override
+            public boolean accept(Method method) {
+                return method.isAnnotationPresent(Subscribe.class);
+            }
+        });
+        final List<Method> annotatedMethods = finder.find(targetHost.getClass());
         timeLogging("SCAN[@Subscribe]", startScan);
         final long startRegister = System.nanoTime();
         for (Iterator<Method> iterator = annotatedMethods.iterator(); iterator.hasNext();){
@@ -109,6 +119,7 @@ public class NextEvents {
      * @param targetHost 需要反注册的目标对象
      */
     final public void unregister(final Object targetHost) {
+        notNull(targetHost, "Target host must not be null !");
         // Logging events statistics
         printEventsStatistics();
         final Runnable task = new Runnable() {
@@ -147,9 +158,8 @@ public class NextEvents {
      * @throws NullPointerException 如果事件对象或者事件名为空，将抛出 NullPointerException
      */
     public void emit(final Object eventObject, final String eventName, final boolean allowDeviate) {
-        if (eventObject == null || eventName == null || eventName.isEmpty()) {
-            throw new NullPointerException("Event OBJECT or NAME must not be null or empty !");
-        }
+        notNull(eventObject, "Event object must not be null !");
+        notEmpty(eventName, "Event name must not be null !");
         final List<Reactor.Trigger> trigger = mReactor.emit(eventName, eventObject, allowDeviate);
         mSubmitCounter.addAndGet(trigger.size());
         for (final Reactor.Trigger item : trigger){

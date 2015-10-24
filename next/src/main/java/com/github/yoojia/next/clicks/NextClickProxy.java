@@ -6,11 +6,14 @@ import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.UIThreadEvents;
+import com.github.yoojia.next.lang.AnnotatedFinder;
 import com.github.yoojia.next.lang.FieldsFinder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+
+import static com.github.yoojia.next.lang.Preconditions.notNull;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
@@ -28,9 +31,17 @@ public class NextClickProxy {
     }
 
     public void register(final Object host){
+        notNull(host, "Host must not be null !");
+        final FieldsFinder finder = new FieldsFinder();
+        finder.map(new AnnotatedFinder.Map<Field>() {
+            @Override
+            public boolean accept(Field field) {
+                return field.isAnnotationPresent(EmitClick.class);
+            }
+        });
         final Runnable task = new Runnable() {
             @Override public void run() {
-                final List<Field> fields = new FieldsFinder(host.getClass()).filter(EmitClick.class);
+                final List<Field> fields = finder.find(host.getClass());
                 if (fields.isEmpty()){
                     Log.d(TAG, "- Empty Handlers(with @EmitClick) ! ");
                     Warning.show(TAG);
@@ -78,6 +89,8 @@ public class NextClickProxy {
 
     @SuppressWarnings("unchecked")
     public <T extends View> void emitClick(T view, String event){
+        notNull(view, "View must not be null !");
+        notNull(event, "Event must not be null !");
         mEvents.emit(new ClickEvent(view), event, false/*Not allow deviate*/);
     }
 

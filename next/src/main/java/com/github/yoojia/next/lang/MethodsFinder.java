@@ -1,7 +1,6 @@
 package com.github.yoojia.next.lang;
 
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
@@ -10,18 +9,14 @@ import java.lang.reflect.Method;
  */
 public class MethodsFinder extends AnnotatedFinder<Method> {
 
-    public MethodsFinder(Class<?> currentHostType) {
-        super(currentHostType);
-    }
-
-    @Override
-    protected boolean acceptResource(Method method, Class<? extends Annotation> annotationType) {
-        if (method.isBridge() || method.isSynthetic()) {
-            return false;
-        }else{
-            // Super will check annotation
-            return super.acceptResource(method, annotationType);
-        }
+    public MethodsFinder() {
+        super.mResourceMap = new Map<Method>() {
+            @Override
+            public boolean accept(Method method) {
+                // Not bridge or synthetic methods
+                return !method.isBridge() || !method.isSynthetic();
+            }
+        };
     }
 
     @Override

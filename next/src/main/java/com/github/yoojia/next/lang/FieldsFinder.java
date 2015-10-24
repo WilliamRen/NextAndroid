@@ -9,10 +9,6 @@ import java.lang.reflect.Field;
  */
 public class FieldsFinder extends AnnotatedFinder<Field> {
 
-    public FieldsFinder(Class<?> currentHostType) {
-        super(currentHostType);
-    }
-
     @Override
     protected Field[] resourcesFromType(Class<?> type) {
         return type.getDeclaredFields();

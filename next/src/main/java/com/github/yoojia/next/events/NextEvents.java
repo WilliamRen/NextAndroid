@@ -43,9 +43,9 @@ public class NextEvents {
      * 将目标对象实例注册到 NextEvents 中，NextEvents 将扫描目标对象及其超类中所有添加 @Subscribe 注解的方法，并注册管理。
      * 注意：目标对象实例及 @Subscribe 注解的方法将被强引用。
      * @param targetHost 需要被注册的目标对象实例
-     * @param methodFilter 对扫描后的Method作过滤处理. 通过此接口,可以过滤掉一些方法参数类型不匹配的方法.
+     * @param filter 对扫描后的Method作过滤处理. 通过此接口,可以过滤掉一些方法参数类型不匹配的方法.
      */
-    public void register(Object targetHost, MethodFilter methodFilter) {
+    public void register(Object targetHost, Filter<Method> filter) {
         final long startScan = System.nanoTime();
         final MethodsFinder finder = new MethodsFinder();
         finder.filter(new Filter<Method>() {
@@ -54,13 +54,13 @@ public class NextEvents {
                 return method.isAnnotationPresent(Subscribe.class);
             }
         });
-        final List<Method> annotatedMethods = finder.find(targetHost.getClass());
+        final List<Method> annotated = finder.find(targetHost.getClass());
         timeLogging("SCAN[@Subscribe]", startScan);
         final long startRegister = System.nanoTime();
         final Register reg = new Register(mTag, mReactor, targetHost);
-        reg.register(annotatedMethods, methodFilter);
+        reg.register(annotated, filter);
         timeLogging("REGISTER", startRegister);
-        if (annotatedMethods.isEmpty()){
+        if (annotated.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
             Warning.show(mTag);
         }
@@ -140,12 +140,12 @@ public class NextEvents {
     /**
      * 异步扫描
      * @param targetHost 需要被注册的目标对象实例
-     * @param methodFilter 扫描结果过滤
+     * @param filter 扫描结果过滤
      */
-    public void registerAsync(final Object targetHost, final MethodFilter methodFilter) {
+    public void registerAsync(final Object targetHost, final Filter<Method> filter) {
         final Runnable task = new Runnable() {
             @Override public void run() {
-                register(targetHost, methodFilter);
+                register(targetHost, filter);
             }
         };
         mThreads.execute(task);
@@ -208,15 +208,4 @@ public class NextEvents {
         Log.d(mTag, "[" + time + "](>5ms)\t" + message);
     }
 
-    /**
-     * 过滤方法类型
-     */
-    public interface MethodFilter {
-        /**
-         * 如果Method类型匹配, 返回True则被NextEvent管理起来.
-         * @param method Method对象
-         * @return 是否匹配
-         */
-        boolean accept(Method method);
-    }
 }

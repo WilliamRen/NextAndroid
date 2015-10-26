@@ -2,6 +2,8 @@ package com.github.yoojia.next.events;
 
 import android.util.Log;
 
+import com.github.yoojia.next.lang.Filter;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Iterator;
@@ -23,7 +25,7 @@ class Register {
         mTargetHost = targetHost;
     }
 
-    public void register(List<Method> annotatedMethods, NextEvents.MethodFilter methodFilter) {
+    public void register(List<Method> annotatedMethods, Filter<Method> filter) {
         for (Iterator<Method> iterator = annotatedMethods.iterator(); iterator.hasNext();){
             final Method method = iterator.next();
             // BASIC CHECK: Check if return type is Void
@@ -35,7 +37,7 @@ class Register {
                 throw new IllegalArgumentException("@Subscribe methods must require at less one arguments.");
             }
             // Filter
-            if (methodFilter != null && !methodFilter.accept(method)) {
+            if (filter != null && !filter.accept(method)) {
                 iterator.remove();
                 continue;
             }

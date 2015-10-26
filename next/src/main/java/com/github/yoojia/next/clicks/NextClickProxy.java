@@ -66,7 +66,7 @@ public class NextClickProxy {
                         }
                     }
                     // 只注册管理参数为ClickEvent类型的方法
-                    final NextEvents.MethodFilter methodFilter = new NextEvents.MethodFilter() {
+                    final Filter<Method> filter = new Filter<Method>() {
                         @Override public boolean accept(Method method) {
                             // 点击只接受一个事件,并且只能是ClickEvent类型
                             final Class<?>[] types = method.getParameterTypes();
@@ -76,7 +76,7 @@ public class NextClickProxy {
                             return ClickEvent.class.equals(types[0]);
                         }
                     };
-                    mEvents.registerAsync(host, methodFilter);
+                    mEvents.registerAsync(host, filter);
                 }
             }
         };

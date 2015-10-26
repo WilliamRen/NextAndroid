@@ -6,15 +6,12 @@ import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.Schedulers;
-import com.github.yoojia.next.events.UIThreadEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
@@ -30,7 +27,7 @@ public class NextClickProxy {
     private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new UIThreadEvents(Schedulers.CPUs, TAG);
+        mEvents = new NextEvents(Schedulers.CPUs, TAG);
     }
 
     public void register(final Object host){
@@ -76,7 +73,7 @@ public class NextClickProxy {
                             return ClickEvent.class.equals(types[0]);
                         }
                     };
-                    mEvents.registerAsync(host, filter);
+                    mEvents.register(host, filter);
                 }
             }
         };

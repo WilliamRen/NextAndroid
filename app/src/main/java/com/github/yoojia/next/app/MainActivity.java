@@ -41,8 +41,7 @@ public class MainActivity extends AppCompatActivity {
         // Flux
         mStore = new TestStore(mDispatcher, this);
         mStore.register();
-        // mDispatcher.register(this);
-        mDispatcher.registerAsync(this);
+         mDispatcher.register(this);
 
     }
 
@@ -64,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         mStore.unregister();
         mDispatcher.unregister(this);
-        mDispatcher.shutdown();
+        mDispatcher.destroy();
         //
         Debug.stopMethodTracing();
     }

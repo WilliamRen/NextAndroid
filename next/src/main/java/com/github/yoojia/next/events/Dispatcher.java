@@ -24,12 +24,12 @@ class Dispatcher {
         mOnErrorsListener = onErrorsListener;
     }
 
-    public void dispatch(List<Reactor.Trigger> triggers){
-        for (final Reactor.Trigger trigger : triggers){
-            final Callable<Void> task = new Callable<Void>() {
+    public void dispatch(List<Reactor.HotTarget> hotTargets){
+        for (final Reactor.HotTarget hotTarget : hotTargets){
+            final Callable<Void> finalTask = new Callable<Void>() {
                 @Override public Void call() throws Exception {
                     try {
-                        trigger.invoke();
+                        hotTarget.invoke();
                     } catch (Exception error) {
                         if (mOnErrorsListener.watch()) {
                             mOnErrorsListener.get().onErrors(error);
@@ -40,12 +40,16 @@ class Dispatcher {
                     return null;
                 }
             };
-            if (trigger.async) {
-                invokeInMainThread(task);
+            if (hotTarget.async) {
+                invokeInMainThread(finalTask);
             }else{
-                invokeInThreads(task);
+                invokeInThreads(finalTask);
             }
         }
+    }
+
+    public void shutdown(){
+        mThreads.shutdown();
     }
 
     private void invokeInThreads(Callable<Void> task) {

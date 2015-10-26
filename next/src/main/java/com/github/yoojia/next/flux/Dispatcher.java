@@ -2,13 +2,10 @@ package com.github.yoojia.next.flux;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.Schedulers;
-import com.github.yoojia.next.events.UIThreadEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author 陈小锅 (yoojiachen@gmail.com)
@@ -23,7 +20,7 @@ public final class Dispatcher {
     private final NextEvents mEvents;
 
     public Dispatcher() {
-        mEvents = new UIThreadEvents(Schedulers.CPUs, "FluxDispatcher");
+        mEvents = new NextEvents(Schedulers.CPUs, "FluxDispatcher");
     }
 
     /**
@@ -35,14 +32,6 @@ public final class Dispatcher {
     }
 
     /**
-     * 异步地扫描并注册
-     * @param host 目标对象实例
-     */
-    public void registerAsync(Object host){
-        mEvents.registerAsync(host, new ActionMethodFilter());
-    }
-
-    /**
      * 反注册目标
      * @param host 目标对象实例
      */
@@ -51,17 +40,18 @@ public final class Dispatcher {
     }
 
     /**
+     * 安全销毁
+     */
+    public void destroy(){
+        mEvents.shutdown();
+    }
+
+    /**
      * 提交Action事件, 不允许事件没有目标
      * @param action Action 事件
      */
     public void emit(Action action){
-        // 记录回调方法栈
-        if (mDebugEnabled) {
-            final String callStackInfo = CallStack.collect();
-            action.setSenderStack(callStackInfo);
-        }else{
-            action.setSenderStack(STACK_WARNING);
-        }
+        logCallStack(action);
         mEvents.emit(action, action.type, false/* not allow deviate*/);
     }
 
@@ -70,6 +60,15 @@ public final class Dispatcher {
      * @param action Action 事件
      */
     public void emitLeniently(Action action){
+        logCallStack(action);
+        mEvents.emit(action, action.type, true/* leniently */);
+    }
+
+    public void enabledDebug(boolean enabled) {
+        mDebugEnabled = enabled;
+    }
+
+    private void logCallStack(Action action) {
         // 记录回调方法栈
         if (mDebugEnabled) {
             final String callStackInfo = CallStack.collect();
@@ -77,15 +76,6 @@ public final class Dispatcher {
         }else{
             action.setSenderStack(STACK_WARNING);
         }
-        mEvents.emitLeniently(action, action.type);
-    }
-
-    public void shutdown(){
-        mEvents.shutdown();
-    }
-
-    public void enabledDebug(boolean enabled) {
-        mDebugEnabled = enabled;
     }
 
     private static class ActionMethodFilter implements Filter<Method> {

@@ -15,40 +15,40 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 final class Reactor {
 
-    private final Set<WrapTarget> mTargetSet = new LinkedHashSet<>();
+    private final Set<Target> mTargetSet = new LinkedHashSet<>();
     private final AtomicInteger mTriggeredCount = new AtomicInteger(0);
     private final AtomicInteger mOverrideCount = new AtomicInteger(0);
     private final AtomicInteger mDeadEventsCount = new AtomicInteger(0);
 
     public void register(Subscriber subscriber, boolean async, Meta... events) {
         synchronized (mTargetSet) {
-            mTargetSet.add(new WrapTarget(mOverrideCount, subscriber, async, events));
+            mTargetSet.add(new Target(mOverrideCount, subscriber, async, events));
         }
     }
 
     public void unregister(Object host) {
         synchronized (mTargetSet) {
-            for (Iterator<WrapTarget> it = mTargetSet.iterator(); it.hasNext();) {
-                final WrapTarget wrapTarget = it.next();
-                if (wrapTarget.subscriber.isSameHost(host)) {
+            for (Iterator<Target> it = mTargetSet.iterator(); it.hasNext();) {
+                final Target target = it.next();
+                if (target.subscriber.isSameHost(host)) {
                     it.remove();
                 }
             }
         }
     }
 
-    public List<Trigger> emit(String event, Object value, boolean lenient) {
-        final List<Trigger> output = new ArrayList<>();
+    public List<HotTarget> emit(String event, Object value, boolean lenient) {
+        final List<HotTarget> output = new ArrayList<>();
         synchronized (mTargetSet) {
             boolean accepted = false; // 事件是否被某一个目标接受
-            for (WrapTarget target : mTargetSet) {
+            for (Target target : mTargetSet) {
                 if( ! target.isMatched(event, value)) {
                     continue;
                 }
                 accepted = true;
-                final Trigger trigger = target.emit(event, value);
-                if (trigger != null) {
-                    output.add(trigger);
+                final HotTarget hotTarget = target.emit(event, value);
+                if (hotTarget != null) {
+                    output.add(hotTarget);
                     mTriggeredCount.addAndGet(1);
                 }
             }
@@ -74,7 +74,7 @@ final class Reactor {
         return mDeadEventsCount.get();
     }
 
-    private static class WrapTarget {
+    private static class Target {
 
         final Subscriber subscriber;
         final boolean async;
@@ -83,7 +83,7 @@ final class Reactor {
         private final Map<String, Object> mEvents;
         private final AtomicInteger mOverrideCountRef;
 
-        public WrapTarget(AtomicInteger overrideRef, Subscriber subscriber, boolean async, Meta... events) {
+        public Target(AtomicInteger overrideRef, Subscriber subscriber, boolean async, Meta... events) {
             mOverrideCountRef = overrideRef;
             mEvents = new HashMap<>(events.length);
             mWraps = new HashMap<>(events.length);
@@ -95,7 +95,7 @@ final class Reactor {
             }
         }
 
-        public Trigger emit(String event, Object value) {
+        public HotTarget emit(String event, Object value) {
             if (NULL_VALUE != mEvents.get(event)) {
                 mOverrideCountRef.addAndGet(1);
             }
@@ -119,8 +119,8 @@ final class Reactor {
             return ! mEvents.containsValue(NULL_VALUE);
         }
 
-        private Trigger getTriggered(){
-            final Trigger copy = new Trigger(subscriber, mEvents, async);
+        private HotTarget getTriggered(){
+            final HotTarget copy = new HotTarget(subscriber, mEvents, async);
             // reset after copy
             for (Meta item : mWraps.values()) {
                 mEvents.put(item.event, NULL_VALUE);
@@ -132,9 +132,9 @@ final class Reactor {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            final WrapTarget wrapTarget = (WrapTarget) o;
-            if (!mEvents.equals(wrapTarget.mEvents)) return false;
-            return subscriber.equals(wrapTarget.subscriber);
+            final Target target = (Target) o;
+            if (!mEvents.equals(target.mEvents)) return false;
+            return subscriber.equals(target.subscriber);
         }
 
         @Override
@@ -153,14 +153,14 @@ final class Reactor {
 
     }
 
-    public static class Trigger {
+    public static class HotTarget {
 
         private final Map<String, Object> mEvents = new HashMap<>();
         private final Subscriber mSubscriber;
 
         public final boolean async;
 
-        private Trigger(Subscriber subscriber, Map<String, Object> events, boolean async) {
+        private HotTarget(Subscriber subscriber, Map<String, Object> events, boolean async) {
             this.mSubscriber = subscriber;
             this.async = async;
             this.mEvents.putAll(events);

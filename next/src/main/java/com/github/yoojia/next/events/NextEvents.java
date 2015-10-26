@@ -47,8 +47,7 @@ public class NextEvents {
         final long startScan = System.nanoTime();
         final MethodsFinder finder = new MethodsFinder();
         finder.filter(new Filter<Method>() {
-            @Override
-            public boolean accept(Method method) {
+            @Override public boolean accept(Method method) {
                 return method.isAnnotationPresent(Subscribe.class);
             }
         });
@@ -68,7 +67,7 @@ public class NextEvents {
      * 反注册目标对象。所有被注册管理的目标对象和方法，如果其目标对象与 targetHost 内存地址相同，则被注销，解除对象和方法的强引用。
      * @param targetHost 需要反注册的目标对象
      */
-    public void unregister(final Object targetHost) {
+    public void unregister(Object targetHost) {
         notNull(targetHost, "Subscriber host must not be null !");
         mReactor.unregister(targetHost);
     }
@@ -91,21 +90,16 @@ public class NextEvents {
      * @param lenient 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
      * @throws NullPointerException 如果事件对象或者事件名为空，将抛出 NullPointerException
      */
-    public void emit(final Object eventObject, final String eventName, final boolean lenient) {
+    public void emit(Object eventObject, String eventName, boolean lenient) {
         notNull(eventObject, "Event object must not be null !");
         notEmpty(eventName, "Event name must not be null !");
-        final List<Reactor.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
-        mSubmitCount.addAndGet(triggers.size());
-        mDispatcher.dispatch(triggers);
+        final List<Reactor.HotTarget> hotTargets = mReactor.emit(eventName, eventObject, lenient);
+        mSubmitCount.addAndGet(hotTargets.size());
+        mDispatcher.dispatch(hotTargets);
     }
 
-    /**
-     * 允许事件没有目标
-     * @param eventObject 事件对象
-     * @param eventName 事件名
-     */
-    public void emitLeniently(final Object eventObject, final String eventName) {
-        emit(eventObject, eventName, true);
+    public void shutdown(){
+        mDispatcher.shutdown();
     }
 
     /**

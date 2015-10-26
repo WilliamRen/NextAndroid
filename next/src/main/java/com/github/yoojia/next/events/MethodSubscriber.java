@@ -9,14 +9,12 @@ import java.util.Map;
  */
 final class MethodSubscriber implements Subscriber {
 
-    public final boolean mAsync;
     private final Object mHost;
     private final Method mMethod;
     private final String[] mOrderedEvents;
 
-    MethodSubscriber(String[] orderedEvents, boolean async, Object host, Method method) {
+    MethodSubscriber(String[] orderedEvents, Object host, Method method) {
         mOrderedEvents = orderedEvents;
-        mAsync = async;
         mHost = host;
         mMethod = method;
     }

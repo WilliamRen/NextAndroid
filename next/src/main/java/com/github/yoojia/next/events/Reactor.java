@@ -20,9 +20,9 @@ final class Reactor {
     private final AtomicInteger mOverrideCount = new AtomicInteger(0);
     private final AtomicInteger mDeadEventsCount = new AtomicInteger(0);
 
-    public void register(Subscriber subscriber, Meta... events) {
+    public void register(Subscriber subscriber, boolean async, Meta... events) {
         synchronized (mTargetSet) {
-            mTargetSet.add(new WrapTarget(mOverrideCount, subscriber, events));
+            mTargetSet.add(new WrapTarget(mOverrideCount, subscriber, async, events));
         }
     }
 
@@ -30,7 +30,7 @@ final class Reactor {
         synchronized (mTargetSet) {
             for (Iterator<WrapTarget> it = mTargetSet.iterator(); it.hasNext();) {
                 final WrapTarget wrapTarget = it.next();
-                if (wrapTarget.mSubscriber.isSameHost(host)) {
+                if (wrapTarget.subscriber.isSameHost(host)) {
                     it.remove();
                 }
             }
@@ -53,7 +53,7 @@ final class Reactor {
                 }
             }
             if (!lenient && !accepted) {
-                throw new IllegalStateException("Event without a mSubscriber: " + event);
+                throw new IllegalStateException("Event without a subscriber: " + event);
             }
             if ( ! accepted) {
                 mDeadEventsCount.addAndGet(1);
@@ -76,17 +76,19 @@ final class Reactor {
 
     private static class WrapTarget {
 
-        final Subscriber mSubscriber;
+        final Subscriber subscriber;
+        final boolean async;
 
         private final Map<String, Meta> mWraps;
         private final Map<String, Object> mEvents;
         private final AtomicInteger mOverrideCountRef;
 
-        public WrapTarget(AtomicInteger overrideCountRef, Subscriber subscriber, Meta... events) {
-            mOverrideCountRef = overrideCountRef;
+        public WrapTarget(AtomicInteger overrideRef, Subscriber subscriber, boolean async, Meta... events) {
+            mOverrideCountRef = overrideRef;
             mEvents = new HashMap<>(events.length);
             mWraps = new HashMap<>(events.length);
-            this.mSubscriber = subscriber;
+            this.async = async;
+            this.subscriber = subscriber;
             for (Meta item : events) {
                 mWraps.put(item.event, item);
                 mEvents.put(item.event, NULL_VALUE);
@@ -118,7 +120,7 @@ final class Reactor {
         }
 
         private Trigger getTriggered(){
-            final Trigger copy = new Trigger(mSubscriber, mEvents);
+            final Trigger copy = new Trigger(subscriber, mEvents, async);
             // reset after copy
             for (Meta item : mWraps.values()) {
                 mEvents.put(item.event, NULL_VALUE);
@@ -132,13 +134,13 @@ final class Reactor {
             if (o == null || getClass() != o.getClass()) return false;
             final WrapTarget wrapTarget = (WrapTarget) o;
             if (!mEvents.equals(wrapTarget.mEvents)) return false;
-            return mSubscriber.equals(wrapTarget.mSubscriber);
+            return subscriber.equals(wrapTarget.subscriber);
         }
 
         @Override
         public int hashCode() {
             final int result = mEvents.hashCode();
-            return 31 * result + mSubscriber.hashCode();
+            return 31 * result + subscriber.hashCode();
         }
 
         private static class NullValue {
@@ -153,16 +155,19 @@ final class Reactor {
 
     public static class Trigger {
 
-        private final Map<String, Object> events = new HashMap<>();
+        private final Map<String, Object> mEvents = new HashMap<>();
         private final Subscriber mSubscriber;
 
-        private Trigger(Subscriber subscriber, Map<String, Object> events) {
+        public final boolean async;
+
+        private Trigger(Subscriber subscriber, Map<String, Object> events, boolean async) {
             this.mSubscriber = subscriber;
-            this.events.putAll(events);
+            this.async = async;
+            this.mEvents.putAll(events);
         }
 
         public void invoke() throws Exception {
-            mSubscriber.notify(events);
+            mSubscriber.notify(mEvents);
         }
 
     }

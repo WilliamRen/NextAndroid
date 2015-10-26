@@ -52,8 +52,8 @@ class Register {
             if (!origin) {
                 method.setAccessible(false);
             }
-            final MethodSubscriber target = new MethodSubscriber(orderedEvents, conf.async(), mTargetHost, method);
-            mReactor.register(target, events);
+            final MethodSubscriber target = new MethodSubscriber(orderedEvents, mTargetHost, method);
+            mReactor.register(target, conf.async(), events);
         }
     }
 

@@ -23,20 +23,19 @@ public class NextEvents {
 
     protected final String mTag;
 
-    private final AtomicInteger mSubmitCounter = new AtomicInteger(0);
-
-    private final ExecutorService mThreads;
+    private final AtomicInteger mSubmitCount = new AtomicInteger(0);
+    private final FinalInvokers mInvokers;
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
     /**
      * 使用指定线程池来处理事件。
-     * @param threads 线程池实现
+     * @param workerThreads 工作线程池
      * @param tag NextEvent 实例标签名
      */
-    public NextEvents(ExecutorService threads, String tag){
+    public NextEvents(ExecutorService workerThreads, String tag){
         mTag = tag;
-        mThreads = threads;
+        mInvokers = new FinalInvokers(workerThreads);
     }
 
     /**
@@ -76,15 +75,6 @@ public class NextEvents {
     }
 
     /**
-     * 允许事件没有目标
-     * @param eventObject 事件对象
-     * @param eventName 事件名
-     */
-    public void emitLeniently(final Object eventObject, final String eventName) {
-        emit(eventObject, eventName, true);
-    }
-
-    /**
      * 提交事件。
      * 被注册管理的方法中，如果 @Event(EVENT-NAME) 中的 EVENT-NAME 与提交的事件名相同，并且方法声明的全部事件都已提交，
      * 则该方法被触发并由线程池执行。
@@ -106,7 +96,7 @@ public class NextEvents {
         notNull(eventObject, "Event object must not be null !");
         notEmpty(eventName, "Event name must not be null !");
         final List<Reactor.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
-        mSubmitCounter.addAndGet(triggers.size());
+        mSubmitCount.addAndGet(triggers.size());
         for (final Reactor.Trigger trigger : triggers){
             final Callable<Void> task = new Callable<Void>() {
                 @Override public Void call() throws Exception {
@@ -122,65 +112,21 @@ public class NextEvents {
                     return null;
                 }
             };
-            trySubmitTask(task);
+            if (trigger.async) {
+                mInvokers.invokeInMainThread(task);
+            }else{
+                mInvokers.invokeInThreads(task);
+            }
         }
     }
 
     /**
-     * 关闭 NextEvents，销毁线程池。
+     * 允许事件没有目标
+     * @param eventObject 事件对象
+     * @param eventName 事件名
      */
-    public void shutdown() {
-        mThreads.shutdown();
-    }
-
-    protected void trySubmitTask(Callable<Void> task){
-        mThreads.submit(task);
-    }
-
-    /**
-     * 异步扫描
-     * @param targetHost 需要被注册的目标对象实例
-     * @param filter 扫描结果过滤
-     */
-    public void registerAsync(final Object targetHost, final Filter<Method> filter) {
-        final Runnable task = new Runnable() {
-            @Override public void run() {
-                register(targetHost, filter);
-            }
-        };
-        mThreads.execute(task);
-    }
-
-    /**
-     * 获取提交执行任务的次数
-     * @return 提交执行任务的次数
-     */
-    public int getSubmitCount() {
-        return mSubmitCounter.get();
-    }
-
-    /**
-     * 获取目标方法被触发的次数
-     * @return 目标方法被触发的次数
-     */
-    public int getTriggeredCount() {
-        return mReactor.getTriggeredCount();
-    }
-
-    /**
-     * 获取被覆盖的事件的次数
-     * @return 被覆盖的事件的次数
-     */
-    public int getOverrideCount() {
-        return mReactor.getOverrideCount();
-    }
-
-    /**
-     * 获取无执行目标方法的事件次数
-     * @return 无执行目标方法的事件次数
-     */
-    public int getDeadEventsCount() {
-        return mReactor.getDeadEventsCount();
+    public void emitLeniently(final Object eventObject, final String eventName) {
+        emit(eventObject, eventName, true);
     }
 
     /**
@@ -195,10 +141,10 @@ public class NextEvents {
      * 输出事件统计数据
      */
     public void printEventsStatistics() {
-        Log.d(mTag, "- Trigger events count: " + getTriggeredCount());
-        Log.d(mTag, "- Submit tasks count:   " + getSubmitCount());
-        Log.w(mTag, "- Override events count:" + getOverrideCount());
-        Log.e(mTag, "- [!!]Dead events count:" + getDeadEventsCount());
+        Log.d(mTag, "- Trigger events count: " + mReactor.getTriggeredCount());
+        Log.d(mTag, "- Submit tasks count:   " + mSubmitCount.get());
+        Log.w(mTag, "- Override events count:" + mReactor.getOverrideCount());
+        Log.e(mTag, "- [!!]Dead events count:" + mReactor.getDeadEventsCount());
     }
 
     private void timeLogging(String message, long start) {

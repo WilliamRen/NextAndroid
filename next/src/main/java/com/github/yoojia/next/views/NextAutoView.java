@@ -4,8 +4,8 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.View;
 
-import com.github.yoojia.next.lang.AnnotatedFinder;
 import com.github.yoojia.next.lang.FieldsFinder;
+import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.Objects;
 
 import java.lang.reflect.Field;
@@ -28,9 +28,9 @@ public class NextAutoView {
         mHostType = host.getClass();
     }
 
-    public void inject(Finder viweField){
+    public void inject(Finder viewField){
         final FieldsFinder fieldsFinder = new FieldsFinder();
-        fieldsFinder.map(new AnnotatedFinder.Map<Field>() {
+        fieldsFinder.filter(new Filter<Field>() {
             @Override
             public boolean accept(Field field) {
                 return field.isAnnotationPresent(AutoView.class);
@@ -49,7 +49,7 @@ public class NextAutoView {
                 if (!origin) {
                     field.setAccessible(false);
                 }
-                os.setField(field, viweField.find(ano.value(), ano.parents()));
+                os.setField(field, viewField.find(ano.value(), ano.parents()));
             }
         }
     }

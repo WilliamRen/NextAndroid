@@ -14,11 +14,13 @@ public class UIThreadEvents extends NextEvents{
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
+    /**
+     * 使用指定线程池来处理事件。
+     *
+     * @param threads 线程池实现
+     * @param tag     NextEvent 实例标签名
+     */
     public UIThreadEvents(ExecutorService threads, String tag) {
-        super(threads, tag);
-    }
-
-    public UIThreadEvents(int threads, String tag) {
         super(threads, tag);
     }
 

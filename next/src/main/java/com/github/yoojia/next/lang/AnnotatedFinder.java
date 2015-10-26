@@ -12,20 +12,20 @@ import static com.github.yoojia.next.lang.Preconditions.notNull;
  */
 public abstract class AnnotatedFinder<T extends AnnotatedElement> {
 
-    protected Map<T> mResourceMap = new Map<T>() {
+    protected Filter<T> mResourceFilter = new Filter<T>() {
         @Override
         public boolean accept(T res) {
             return true;
         }
     };
 
-    protected Filter mTypeFilter = new Filter() {
+    protected Filter<Class<?>> mTypeFilter = new Filter<Class<?>>() {
         @Override
         public boolean accept(Class<?> type) {
-            final String className = type.getName();
-            if (className.startsWith("java.")
-                    || className.startsWith("javax.")
-                    || className.startsWith("android.")) {
+            final String name = type.getName();
+            if (name.startsWith("java.")
+                    || name.startsWith("javax.")
+                    || name.startsWith("android.")) {
                 return false;
             }else{
                 return true;
@@ -33,18 +33,33 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
         }
     };
 
-    public AnnotatedFinder<T> map(Map<T> map) {
-        notNull(map, "Resource map must not be null !");
-        mResourceMap = map;
+    /**
+     * 设置注解目标对象的过滤处理接口
+     * @param filter 过滤处理接口
+     * @return AnnotatedFinder
+     */
+    public AnnotatedFinder<T> filter(Filter<T> filter) {
+        notNull(filter, "Resource filter must not be null !");
+        mResourceFilter = filter;
         return this;
     }
 
-    public AnnotatedFinder<T> filter(Filter filter) {
-        notNull(filter, "Resource map must not be null !");
+    /**
+     * 设置注解目标类型过滤的处理接口
+     * @param filter 过滤处理接口
+     * @return AnnotatedFinder
+     */
+    public AnnotatedFinder<T> types(Filter<Class<?>> filter) {
+        notNull(filter, "Type filter must not be null !");
         mTypeFilter = filter;
         return this;
     }
 
+    /**
+     * 从目标类型中查找注解内容
+     * @param targetType 目标类型
+     * @return 注解内容列表
+     */
     public List<T> find(Class<?> targetType) {
         notNull(targetType, "Target type must not be null !");
         final List<T> output = new ArrayList<>();
@@ -56,7 +71,7 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
             }
             final T[] resources = resourcesFromType(type);
             for (T res : resources){
-                if(mResourceMap.accept(res)){
+                if(mResourceFilter.accept(res)){
                     output.add(res);
                 }
             }
@@ -67,17 +82,4 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
 
     protected abstract T[] resourcesFromType(Class<?> type);
 
-    public interface Map<T> {
-        /**
-         * return TRUE if accept this RESOURCE
-         */
-        boolean accept(T res);
-    }
-
-    public interface Filter {
-        /**
-         * return TRUE if accept this TYPE
-         */
-        boolean accept(Class<?> type);
-    }
 }

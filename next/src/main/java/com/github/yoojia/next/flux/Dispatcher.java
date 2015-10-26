@@ -5,6 +5,8 @@ import com.github.yoojia.next.events.UIThreadEvents;
 import com.github.yoojia.next.lang.CallStack;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author 陈小锅 (yoojiachen@gmail.com)
@@ -22,7 +24,8 @@ public final class Dispatcher {
      * 构建Dispatcher,指定扫描停止类型
      */
     public Dispatcher() {
-        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(), "FluxDispatcher");
+        final ExecutorService threads = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        mEvents = new UIThreadEvents(threads, "FluxDispatcher");
     }
 
     /**

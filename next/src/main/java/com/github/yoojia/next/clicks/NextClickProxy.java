@@ -6,12 +6,14 @@ import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.UIThreadEvents;
-import com.github.yoojia.next.lang.AnnotatedFinder;
 import com.github.yoojia.next.lang.FieldsFinder;
+import com.github.yoojia.next.lang.Filter;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
@@ -27,13 +29,14 @@ public class NextClickProxy {
     private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new UIThreadEvents(Runtime.getRuntime().availableProcessors(), TAG);
+        final ExecutorService threads = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        mEvents = new UIThreadEvents(threads, TAG);
     }
 
     public void register(final Object host){
         notNull(host, "Host must not be null !");
         final FieldsFinder finder = new FieldsFinder();
-        finder.map(new AnnotatedFinder.Map<Field>() {
+        finder.filter(new Filter<Field>() {
             @Override
             public boolean accept(Field field) {
                 return field.isAnnotationPresent(EmitClick.class);
@@ -91,7 +94,7 @@ public class NextClickProxy {
     public <T extends View> void emitClick(T view, String event){
         notNull(view, "View must not be null !");
         notNull(event, "Event must not be null !");
-        mEvents.emitLeniently(new ClickEvent(view), event, false/*Not allow deviate*/);
+        mEvents.emit(new ClickEvent(view), event, false/*Not allow deviate*/);
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {

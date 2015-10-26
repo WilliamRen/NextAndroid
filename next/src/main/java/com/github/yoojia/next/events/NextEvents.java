@@ -2,7 +2,7 @@ package com.github.yoojia.next.events;
 
 import android.util.Log;
 
-import com.github.yoojia.next.lang.AnnotatedFinder;
+import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.ImmutableObject;
 import com.github.yoojia.next.lang.MethodsFinder;
 
@@ -48,7 +48,7 @@ public class NextEvents {
     public void register(Object targetHost, MethodFilter methodFilter) {
         final long startScan = System.nanoTime();
         final MethodsFinder finder = new MethodsFinder();
-        finder.map(new AnnotatedFinder.Map<Method>() {
+        finder.filter(new Filter<Method>() {
             @Override
             public boolean accept(Method method) {
                 return method.isAnnotationPresent(Subscribe.class);

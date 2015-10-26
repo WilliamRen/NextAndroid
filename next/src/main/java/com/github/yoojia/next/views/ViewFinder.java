@@ -18,18 +18,18 @@ public class ViewFinder implements NextAutoView.Finder{
     }
 
     @Override
-    public View find(int targetId, int[] route) {
+    public View find(int targetId, int[] parents) {
         if (targetId == mRootView.getId()){
             return mRootView;
         }
         View view = mRootView;
-        for (int viewId: route){
+        for (int viewId: parents){
             view = view.findViewById(viewId);
         }
         if (view != null){
             return view.findViewById(targetId);
         }else{
-            Log.e(TAG, "Found a NULL view: targetId=" + targetId + ", Route.size=" + route.length);
+            Log.e(TAG, "Found a NULL view: targetId=" + targetId + ", Route.size=" + parents.length);
             return null;
         }
     }

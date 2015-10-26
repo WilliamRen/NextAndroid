@@ -88,7 +88,7 @@ public final class Dispatcher {
         mDebugEnabled = enabled;
     }
 
-    private class ActionMethodFilter implements Filter<Method> {
+    private static class ActionMethodFilter implements Filter<Method> {
 
         @Override public boolean accept(Method method) {
             // 全部类型都只能是Action类型

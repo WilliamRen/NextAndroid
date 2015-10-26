@@ -43,7 +43,7 @@ public final class Dispatcher {
      * 安全销毁
      */
     public void destroy(){
-        mEvents.shutdown();
+        mEvents.destroy();
     }
 
     /**

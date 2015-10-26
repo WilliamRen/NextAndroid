@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         // Flux
         mStore = new TestStore(mDispatcher, this);
         mStore.register();
-         mDispatcher.register(this);
+        mDispatcher.register(this);
 
     }
 

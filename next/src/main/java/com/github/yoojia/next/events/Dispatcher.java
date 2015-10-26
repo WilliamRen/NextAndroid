@@ -41,9 +41,9 @@ class Dispatcher {
                 }
             };
             if (hotTarget.async) {
-                invokeInMainThread(finalTask);
+                submitMainThread(finalTask);
             }else{
-                invokeInThreads(finalTask);
+                submitThreads(finalTask);
             }
         }
     }
@@ -52,11 +52,11 @@ class Dispatcher {
         mThreads.shutdown();
     }
 
-    private void invokeInThreads(Callable<Void> task) {
+    private void submitThreads(Callable<Void> task) {
         mThreads.submit(task);
     }
 
-    private void invokeInMainThread(final Callable<Void> task) {
+    private void submitMainThread(final Callable<Void> task) {
         mMainThread.post(new Runnable() {
             @Override
             public void run() {

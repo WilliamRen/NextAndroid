@@ -8,8 +8,8 @@ import com.github.yoojia.next.lang.QuantumObject;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
 import static com.github.yoojia.next.lang.Preconditions.notNull;
@@ -22,8 +22,8 @@ public class NextEvents {
 
     protected final String mTag;
 
-    private final AtomicInteger mSubmitCount = new AtomicInteger(0);
     private final Dispatcher mDispatcher;
+    private final ExecutorService mCoreThreads;
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
@@ -34,6 +34,7 @@ public class NextEvents {
      */
     public NextEvents(ExecutorService workerThreads, String tag){
         mTag = tag;
+        mCoreThreads = workerThreads;
         mDispatcher = new Dispatcher(workerThreads, mOnErrorsListener);
     }
 
@@ -54,8 +55,8 @@ public class NextEvents {
         final List<Method> annotated = finder.find(targetHost.getClass());
         timeLog("SCAN[@Subscribe]", startScan);
         final long startRegister = System.nanoTime();
-        final Register reg = new Register(mTag, mReactor, targetHost);
-        reg.batch(annotated, filter);
+        final Register register = new Register(mTag, mReactor, targetHost);
+        register.batch(annotated, filter);
         timeLog("REGISTER", startRegister);
         if (annotated.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
@@ -73,13 +74,12 @@ public class NextEvents {
     }
 
     /**
-     * 提交事件。
      * 被注册管理的方法中，如果 @Event(EVENT-NAME) 中的 EVENT-NAME 与提交的事件名相同，并且方法声明的全部事件都已提交，
      * 则该方法被触发并由线程池执行。
      *
-     * ### 事件被触发的详细条件：
-     *   - 事件名相同
-     *   - 事件类型相同。如果是 Primitive 类型，则为封装类相同。
+     * ### 事件被触发的条件：
+     *   - 事件名相同；
+     *   - 事件类型相同，如果是 Primitive 类型，则为封装类相同；
      *
      * ### 注意：
      *   - 如果目标方法定义多个事件，仅当全部事件都提交后才会被触发执行；
@@ -90,15 +90,25 @@ public class NextEvents {
      * @param lenient 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
      * @throws NullPointerException 如果事件对象或者事件名为空，将抛出 NullPointerException
      */
-    public void emit(Object eventObject, String eventName, boolean lenient) {
+    public void emitImmediately(Object eventObject, String eventName, boolean lenient) {
         notNull(eventObject, "Event object must not be null !");
         notEmpty(eventName, "Event name must not be null !");
-        final List<Reactor.HotTarget> hotTargets = mReactor.emit(eventName, eventObject, lenient);
-        mSubmitCount.addAndGet(hotTargets.size());
-        mDispatcher.dispatch(hotTargets);
+        final List<Reactor.HotTarget> targets = mReactor.emit(eventName, eventObject, lenient);
+        mDispatcher.dispatch(targets);
     }
 
-    public void shutdown(){
+    public void emit(final Object eventObject, final String eventName, final boolean lenient) {
+        mCoreThreads.submit(new Runnable() {
+            @Override public void run() {
+                emitImmediately(eventObject, eventName, lenient);
+            }
+        });
+    }
+
+    /**
+     * 销毁 NextEvents
+     */
+    public void destroy(){
         mDispatcher.shutdown();
     }
 
@@ -115,7 +125,6 @@ public class NextEvents {
      */
     public void printEventsStatistics() {
         Log.d(mTag, "- Trigger events count: " + mReactor.getTriggeredCount());
-        Log.d(mTag, "- Submit tasks count:   " + mSubmitCount.get());
         Log.w(mTag, "- Override events count:" + mReactor.getOverrideCount());
         Log.e(mTag, "- [!!]Dead events count:" + mReactor.getDeadEventsCount());
     }

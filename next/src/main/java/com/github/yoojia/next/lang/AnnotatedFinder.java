@@ -61,7 +61,7 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
      * @return 注解内容列表
      */
     public List<T> find(Class<?> targetType) {
-        notNull(targetType, "Target type must not be null !");
+        notNull(targetType, "Subscriber type must not be null !");
         final List<T> output = new ArrayList<>();
         Class<?> type = targetType;
         while (! Object.class.equals(type)){

@@ -1,7 +1,9 @@
 package com.github.yoojia.next.flux;
 
-import com.github.yoojia.next.lang.ImmutableObject;
+import com.github.yoojia.next.lang.QuantumObject;
 import com.github.yoojia.next.lang.ObjectMap;
+
+import static com.github.yoojia.next.lang.Preconditions.notEmpty;
 
 /**
  * @author 陈小锅 (yoojiachen@gmail.com)
@@ -9,17 +11,15 @@ import com.github.yoojia.next.lang.ObjectMap;
  */
 public final class Action {
 
-    private final ImmutableObject<String> mSenderStack = new ImmutableObject<>();
+    private final QuantumObject<String> mSenderStack = new QuantumObject<>();
 
     public final String type;
     public final ObjectMap data;
 
     private Action(String type, ObjectMap data) {
+        notEmpty(type, "Action.type must not be null or empty !");
         this.type = type;
         this.data = data;
-        if (this.type == null || this.type.isEmpty()) {
-            throw new NullPointerException("Action.type must not be null or empty !");
-        }
     }
 
     /**
@@ -34,7 +34,7 @@ public final class Action {
      * hide for flux
      */
     void setSenderStack(String senderStack) {
-        mSenderStack.setOnce(senderStack);
+        mSenderStack.set(senderStack);
     }
 
     public static class Builder {

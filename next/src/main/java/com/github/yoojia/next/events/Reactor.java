@@ -20,9 +20,9 @@ final class Reactor {
     private final AtomicInteger mOverrideCount = new AtomicInteger(0);
     private final AtomicInteger mDeadEventsCount = new AtomicInteger(0);
 
-    public void register(Target target, Meta... events) {
+    public void register(Subscriber subscriber, Meta... events) {
         synchronized (mTargetSet) {
-            mTargetSet.add(new WrapTarget(mOverrideCount, target, events));
+            mTargetSet.add(new WrapTarget(mOverrideCount, subscriber, events));
         }
     }
 
@@ -30,7 +30,7 @@ final class Reactor {
         synchronized (mTargetSet) {
             for (Iterator<WrapTarget> it = mTargetSet.iterator(); it.hasNext();) {
                 final WrapTarget wrapTarget = it.next();
-                if (wrapTarget.target.isSameHost(host)) {
+                if (wrapTarget.mSubscriber.isSameHost(host)) {
                     it.remove();
                 }
             }
@@ -53,7 +53,7 @@ final class Reactor {
                 }
             }
             if (!lenient && !accepted) {
-                throw new IllegalStateException("Event without a target: " + event);
+                throw new IllegalStateException("Event without a mSubscriber: " + event);
             }
             if ( ! accepted) {
                 mDeadEventsCount.addAndGet(1);
@@ -76,17 +76,17 @@ final class Reactor {
 
     private static class WrapTarget {
 
-        final Target target;
+        final Subscriber mSubscriber;
 
         private final Map<String, Meta> mWraps;
         private final Map<String, Object> mEvents;
         private final AtomicInteger mOverrideCountRef;
 
-        public WrapTarget(AtomicInteger overrideCountRef, Target target, Meta... events) {
+        public WrapTarget(AtomicInteger overrideCountRef, Subscriber subscriber, Meta... events) {
             mOverrideCountRef = overrideCountRef;
             mEvents = new HashMap<>(events.length);
             mWraps = new HashMap<>(events.length);
-            this.target = target;
+            this.mSubscriber = subscriber;
             for (Meta item : events) {
                 mWraps.put(item.event, item);
                 mEvents.put(item.event, NULL_VALUE);
@@ -118,7 +118,7 @@ final class Reactor {
         }
 
         private Trigger getTriggered(){
-            final Trigger copy = new Trigger(target, mEvents);
+            final Trigger copy = new Trigger(mSubscriber, mEvents);
             // reset after copy
             for (Meta item : mWraps.values()) {
                 mEvents.put(item.event, NULL_VALUE);
@@ -132,13 +132,13 @@ final class Reactor {
             if (o == null || getClass() != o.getClass()) return false;
             final WrapTarget wrapTarget = (WrapTarget) o;
             if (!mEvents.equals(wrapTarget.mEvents)) return false;
-            return target.equals(wrapTarget.target);
+            return mSubscriber.equals(wrapTarget.mSubscriber);
         }
 
         @Override
         public int hashCode() {
             final int result = mEvents.hashCode();
-            return 31 * result + target.hashCode();
+            return 31 * result + mSubscriber.hashCode();
         }
 
         private static class NullValue {
@@ -154,15 +154,15 @@ final class Reactor {
     public static class Trigger {
 
         private final Map<String, Object> events = new HashMap<>();
-        private final Target target;
+        private final Subscriber mSubscriber;
 
-        private Trigger(Target target, Map<String, Object> events) {
-            this.target = target;
+        private Trigger(Subscriber subscriber, Map<String, Object> events) {
+            this.mSubscriber = subscriber;
             this.events.putAll(events);
         }
 
         public void invoke() throws Exception {
-            target.invoke(events);
+            mSubscriber.notify(events);
         }
 
     }

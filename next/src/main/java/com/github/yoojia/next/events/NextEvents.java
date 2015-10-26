@@ -3,12 +3,11 @@ package com.github.yoojia.next.events;
 import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.lang.QuantumObject;
 import com.github.yoojia.next.lang.MethodsFinder;
+import com.github.yoojia.next.lang.QuantumObject;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,7 +23,7 @@ public class NextEvents {
     protected final String mTag;
 
     private final AtomicInteger mSubmitCount = new AtomicInteger(0);
-    private final FinalInvokers mInvokers;
+    private final Dispatcher mDispatcher;
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
@@ -35,7 +34,7 @@ public class NextEvents {
      */
     public NextEvents(ExecutorService workerThreads, String tag){
         mTag = tag;
-        mInvokers = new FinalInvokers(workerThreads);
+        mDispatcher = new Dispatcher(workerThreads, mOnErrorsListener);
     }
 
     /**
@@ -54,11 +53,11 @@ public class NextEvents {
             }
         });
         final List<Method> annotated = finder.find(targetHost.getClass());
-        timeLogging("SCAN[@Subscribe]", startScan);
+        timeLog("SCAN[@Subscribe]", startScan);
         final long startRegister = System.nanoTime();
         final Register reg = new Register(mTag, mReactor, targetHost);
-        reg.register(annotated, filter);
-        timeLogging("REGISTER", startRegister);
+        reg.batch(annotated, filter);
+        timeLog("REGISTER", startRegister);
         if (annotated.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
             Warning.show(mTag);
@@ -97,27 +96,7 @@ public class NextEvents {
         notEmpty(eventName, "Event name must not be null !");
         final List<Reactor.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
         mSubmitCount.addAndGet(triggers.size());
-        for (final Reactor.Trigger trigger : triggers){
-            final Callable<Void> task = new Callable<Void>() {
-                @Override public Void call() throws Exception {
-                    try {
-                        trigger.invoke();
-                    } catch (Exception error) {
-                        if (mOnErrorsListener.watch()) {
-                            mOnErrorsListener.get().onErrors(error);
-                        }else{
-                            throw error;
-                        }
-                    }
-                    return null;
-                }
-            };
-            if (trigger.async) {
-                mInvokers.invokeInMainThread(task);
-            }else{
-                mInvokers.invokeInThreads(task);
-            }
-        }
+        mDispatcher.dispatch(triggers);
     }
 
     /**
@@ -147,7 +126,7 @@ public class NextEvents {
         Log.e(mTag, "- [!!]Dead events count:" + mReactor.getDeadEventsCount());
     }
 
-    private void timeLogging(String message, long start) {
+    private void timeLog(String message, long start) {
         final float delta = (System.nanoTime() - start) / 1000000.0f;
         if (delta < 5) return;
         final String time = String.format("%.3f", delta)  + "ms";

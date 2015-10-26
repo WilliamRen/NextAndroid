@@ -25,7 +25,7 @@ class Register {
         mTargetHost = targetHost;
     }
 
-    public void register(List<Method> annotatedMethods, Filter<Method> filter) {
+    public void batch(List<Method> annotatedMethods, Filter<Method> filter) {
         for (Iterator<Method> iterator = annotatedMethods.iterator(); iterator.hasNext();){
             final Method method = iterator.next();
             // BASIC CHECK: Check if return type is Void

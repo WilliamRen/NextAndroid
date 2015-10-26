@@ -120,8 +120,6 @@ public class NextEvents {
      */
     final public void unregister(final Object targetHost) {
         notNull(targetHost, "Target host must not be null !");
-        // Logging events statistics
-        printEventsStatistics();
         final Runnable task = new Runnable() {
             @Override public void run() {
                 mReactor.unregister(targetHost);
@@ -167,19 +165,19 @@ public class NextEvents {
             // 如果用Runnable的话, 异常会被线程捕获, 主线程不受影响,达不到强制要求开发者解决错误的目的.
             final Callable<Void> task = new Callable<Void>() {
                 @Override public Void call() throws Exception {
-                    try {
-                        item.invoke();
-                    } catch (Exception error) {
-                        if (mOnErrorsListener.has()) {
-                            mOnErrorsListener.get().onErrors(error);
-                        }else{
-                            throw error;
-                        }
-                    }
+                    item.invoke();
                     return null;
                 }
             };
-            trySubmitTask(task);
+            try {
+                trySubmitTask(task);
+            } catch (Exception error) {
+                if (mOnErrorsListener.has()) {
+                    mOnErrorsListener.get().onErrors(error);
+                }else{
+                    throw error;
+                }
+            }
         }
     }
 

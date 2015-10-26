@@ -19,7 +19,7 @@ public abstract class Store<T> {
     }
 
     public void register(){
-        mDispatcher.registerWithStopType(this, Store.class);
+        mDispatcher.register(this);
     }
 
     public void unregister(){

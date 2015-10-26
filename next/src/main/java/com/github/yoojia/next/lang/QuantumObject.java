@@ -4,22 +4,24 @@ package com.github.yoojia.next.lang;
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-public class ImmutableObject<T> {
+public class QuantumObject<T> {
 
     private final Object mLock = new Object();
     private T mObject;
 
-    public ImmutableObject() {
+    public QuantumObject() {
     }
 
-    public ImmutableObject(T initValue) {
-        setOnce(initValue);
+    public QuantumObject(T initValue) {
+        set(initValue);
     }
 
-    public void setOnce(T value) {
+    public void set(T value) {
         synchronized (mLock) {
             if (mObject == null) {
                 mObject = value;
+            }else{
+                throw new IllegalStateException("Value had set !");
             }
         }
     }
@@ -30,7 +32,7 @@ public class ImmutableObject<T> {
         }
     }
 
-    public boolean has() {
+    public boolean watch() {
         synchronized (mLock) {
             return null != mObject;
         }

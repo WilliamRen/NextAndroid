@@ -1,6 +1,7 @@
 package com.github.yoojia.next.flux;
 
 import com.github.yoojia.next.events.NextEvents;
+import com.github.yoojia.next.events.Schedulers;
 import com.github.yoojia.next.events.UIThreadEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
@@ -22,8 +23,7 @@ public final class Dispatcher {
     private final NextEvents mEvents;
 
     public Dispatcher() {
-        final ExecutorService threads = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        mEvents = new UIThreadEvents(threads, "FluxDispatcher");
+        mEvents = new UIThreadEvents(Schedulers.CPUs, "FluxDispatcher");
     }
 
     /**
@@ -88,7 +88,7 @@ public final class Dispatcher {
         mDebugEnabled = enabled;
     }
 
-    private class ActionMethodFilter implements Filter<Method> {
+    private static class ActionMethodFilter implements Filter<Method> {
 
         @Override public boolean accept(Method method) {
             // 全部类型都只能是Action类型

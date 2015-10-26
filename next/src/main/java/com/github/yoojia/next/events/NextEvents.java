@@ -3,7 +3,7 @@ package com.github.yoojia.next.events;
 import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.lang.ImmutableObject;
+import com.github.yoojia.next.lang.QuantumObject;
 import com.github.yoojia.next.lang.MethodsFinder;
 
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ public class NextEvents {
 
     private final ExecutorService mThreads;
     private final Reactor mReactor = new Reactor();
-    private final ImmutableObject<OnErrorsListener> mOnErrorsListener = new ImmutableObject<>();
+    private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
     /**
      * 使用指定线程池来处理事件。
@@ -71,7 +71,7 @@ public class NextEvents {
      * @param targetHost 需要反注册的目标对象
      */
     public void unregister(final Object targetHost) {
-        notNull(targetHost, "Target host must not be null !");
+        notNull(targetHost, "Subscriber host must not be null !");
         mReactor.unregister(targetHost);
     }
 
@@ -113,7 +113,7 @@ public class NextEvents {
                     try {
                         trigger.invoke();
                     } catch (Exception error) {
-                        if (mOnErrorsListener.has()) {
+                        if (mOnErrorsListener.watch()) {
                             mOnErrorsListener.get().onErrors(error);
                         }else{
                             throw error;
@@ -188,7 +188,7 @@ public class NextEvents {
      * @param listener 处理回调接口
      */
     public void setOnErrorsListener(OnErrorsListener listener) {
-        mOnErrorsListener.setOnce(listener);
+        mOnErrorsListener.set(listener);
     }
 
     /**

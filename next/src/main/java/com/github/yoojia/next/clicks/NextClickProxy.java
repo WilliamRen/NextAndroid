@@ -5,6 +5,7 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
+import com.github.yoojia.next.events.Schedulers;
 import com.github.yoojia.next.events.UIThreadEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
@@ -29,8 +30,7 @@ public class NextClickProxy {
     private final NextEvents mEvents;
 
     public NextClickProxy() {
-        final ExecutorService threads = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        mEvents = new UIThreadEvents(threads, TAG);
+        mEvents = new UIThreadEvents(Schedulers.CPUs, TAG);
     }
 
     public void register(final Object host){

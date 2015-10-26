@@ -6,13 +6,10 @@ import com.github.yoojia.next.lang.AnnotatedFinder;
 import com.github.yoojia.next.lang.ImmutableObject;
 import com.github.yoojia.next.lang.MethodsFinder;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
@@ -43,30 +40,12 @@ public class NextEvents {
     }
 
     /**
-     * 使用固定大小的线程池来处理事件。
-     * 注意： 固定大小线程池的处理策略是当线程池繁忙时，抛弃后续处理任务。
-     * @param threads 指定固定线程池大小
-     * @param tag NextEvent 实例标签名
-     */
-    public NextEvents(int threads, String tag) {
-        this(Executors.newFixedThreadPool(threads), tag);
-    }
-
-    /**
-     * 使用动态大小线程池来处理事件。
-     * @param tag NextEvent 实例标签名
-     */
-    public NextEvents(String tag) {
-        this(Executors.newCachedThreadPool(), tag);
-    }
-
-    /**
      * 将目标对象实例注册到 NextEvents 中，NextEvents 将扫描目标对象及其超类中所有添加 @Subscribe 注解的方法，并注册管理。
      * 注意：目标对象实例及 @Subscribe 注解的方法将被强引用。
      * @param targetHost 需要被注册的目标对象实例
-     * @param filter 对扫描后的Method作过滤处理. 通过此接口,可以过滤掉一些方法参数类型不匹配的方法.
+     * @param methodFilter 对扫描后的Method作过滤处理. 通过此接口,可以过滤掉一些方法参数类型不匹配的方法.
      */
-    final public void register(Object targetHost, Filter filter) {
+    public void register(Object targetHost, MethodFilter methodFilter) {
         final long startScan = System.nanoTime();
         final MethodsFinder finder = new MethodsFinder();
         finder.map(new AnnotatedFinder.Map<Method>() {
@@ -78,35 +57,8 @@ public class NextEvents {
         final List<Method> annotatedMethods = finder.find(targetHost.getClass());
         timeLogging("SCAN[@Subscribe]", startScan);
         final long startRegister = System.nanoTime();
-        for (Iterator<Method> iterator = annotatedMethods.iterator(); iterator.hasNext();){
-            final Method method = iterator.next();
-            // BASIC CHECK: Check if return type is Void
-            if (! Void.TYPE.equals(method.getReturnType())) {
-                Log.w(mTag, "Found @Subscribe method return a non-void type. We recommend a void type.");
-            }
-            // BASIC CHECK: Arguments count
-            if (method.getParameterTypes().length == 0) {
-                throw new IllegalArgumentException("@Subscribe methods must require at less one arguments.");
-            }
-            // Filter
-            if (filter != null && !filter.accept(method)) {
-                iterator.remove();
-                continue;
-            }
-            final EventWrap[] events = wrap(method);
-            final String[] orderedEvents = new String[events.length];
-            for (int i = 0; i < events.length; i++) {
-                orderedEvents[i] = events[i].event;
-            }
-            final boolean origin = method.isAccessible();
-            method.setAccessible(true);
-            final Subscribe conf = method.getAnnotation(Subscribe.class);
-            if (!origin) {
-                method.setAccessible(false);
-            }
-            final MethodTarget target = new MethodTarget(orderedEvents, conf.async(), targetHost, method);
-            mReactor.register(target, events);
-        }
+        final Register reg = new Register(mTag, mReactor, targetHost);
+        reg.register(annotatedMethods, methodFilter);
         timeLogging("REGISTER", startRegister);
         if (annotatedMethods.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
@@ -118,14 +70,9 @@ public class NextEvents {
      * 反注册目标对象。所有被注册管理的目标对象和方法，如果其目标对象与 targetHost 内存地址相同，则被注销，解除对象和方法的强引用。
      * @param targetHost 需要反注册的目标对象
      */
-    final public void unregister(final Object targetHost) {
+    public void unregister(final Object targetHost) {
         notNull(targetHost, "Target host must not be null !");
-        final Runnable task = new Runnable() {
-            @Override public void run() {
-                mReactor.unregister(targetHost);
-            }
-        };
-        mThreads.execute(task);
+        mReactor.unregister(targetHost);
     }
 
     /**
@@ -133,7 +80,7 @@ public class NextEvents {
      * @param eventObject 事件对象
      * @param eventName 事件名
      */
-    final public void emit(final Object eventObject, final String eventName) {
+    public void emitLeniently(final Object eventObject, final String eventName) {
         emit(eventObject, eventName, true);
     }
 
@@ -152,33 +99,38 @@ public class NextEvents {
      *
      * @param eventObject 事件对象
      * @param eventName 事件名
-     * @param allowDeviate 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
+     * @param lenient 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
      * @throws NullPointerException 如果事件对象或者事件名为空，将抛出 NullPointerException
      */
-    public void emit(final Object eventObject, final String eventName, final boolean allowDeviate) {
+    public void emit(final Object eventObject, final String eventName, final boolean lenient) {
         notNull(eventObject, "Event object must not be null !");
         notEmpty(eventName, "Event name must not be null !");
-        final List<Reactor.Trigger> trigger = mReactor.emit(eventName, eventObject, allowDeviate);
-        mSubmitCounter.addAndGet(trigger.size());
-        for (final Reactor.Trigger item : trigger){
-            // Fast-Fail: 使用Callable来捕获回调出错信息, 并抛出顶层, 通过引起App崩溃来强制要求开发者解决错误.
-            // 如果用Runnable的话, 异常会被线程捕获, 主线程不受影响,达不到强制要求开发者解决错误的目的.
+        final List<Reactor.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
+        mSubmitCounter.addAndGet(triggers.size());
+        for (final Reactor.Trigger trigger : triggers){
             final Callable<Void> task = new Callable<Void>() {
                 @Override public Void call() throws Exception {
-                    item.invoke();
+                    try {
+                        trigger.invoke();
+                    } catch (Exception error) {
+                        if (mOnErrorsListener.has()) {
+                            mOnErrorsListener.get().onErrors(error);
+                        }else{
+                            throw error;
+                        }
+                    }
                     return null;
                 }
             };
-            try {
-                trySubmitTask(task);
-            } catch (Exception error) {
-                if (mOnErrorsListener.has()) {
-                    mOnErrorsListener.get().onErrors(error);
-                }else{
-                    throw error;
-                }
-            }
+            trySubmitTask(task);
         }
+    }
+
+    /**
+     * 关闭 NextEvents，销毁线程池。
+     */
+    public void shutdown() {
+        mThreads.shutdown();
     }
 
     protected void trySubmitTask(Callable<Void> task){
@@ -186,32 +138,17 @@ public class NextEvents {
     }
 
     /**
-     * 关闭 NextEvents，销毁线程池。
-     */
-    final public void shutdown() {
-        mThreads.shutdown();
-    }
-
-    final public void register(Object targetHost) {
-        register(targetHost, null);
-    }
-
-    /**
      * 异步扫描
      * @param targetHost 需要被注册的目标对象实例
-     * @param filter 扫描结果过滤
+     * @param methodFilter 扫描结果过滤
      */
-    final public void registerAsync(final Object targetHost, final Filter filter) {
+    public void registerAsync(final Object targetHost, final MethodFilter methodFilter) {
         final Runnable task = new Runnable() {
             @Override public void run() {
-                register(targetHost, filter);
+                register(targetHost, methodFilter);
             }
         };
         mThreads.execute(task);
-    }
-
-    final public void registerAsync(final Object targetHost) {
-        registerAsync(targetHost, null);
     }
 
     /**
@@ -254,29 +191,14 @@ public class NextEvents {
         mOnErrorsListener.setOnce(listener);
     }
 
-    final public void printEventsStatistics() {
+    /**
+     * 输出事件统计数据
+     */
+    public void printEventsStatistics() {
         Log.d(mTag, "- Trigger events count: " + getTriggeredCount());
         Log.d(mTag, "- Submit tasks count:   " + getSubmitCount());
         Log.w(mTag, "- Override events count:" + getOverrideCount());
         Log.e(mTag, "- [!!]Dead events count:" + getDeadEventsCount());
-    }
-
-    private EventWrap[] wrap(Method method){
-        final Class<?>[] types = method.getParameterTypes();
-        if (types.length == 0) {
-            throw new IllegalArgumentException("Require ONE or MORE params in method: " + method);
-        }
-        final Annotation[][] matrix = method.getParameterAnnotations();
-        final EventWrap[] events = new EventWrap[types.length];
-        for (int i = 0; i < types.length; i++) {
-            final Annotation[] annotations = matrix[i];
-            if (annotations.length == 0) {
-                throw new IllegalArgumentException("All params must has a @Event annotation in method: " + method);
-            }
-            final Event event = (Event) annotations[0];
-            events[i] = new EventWrap(event.value(), types[i]);
-        }
-        return events;
     }
 
     private void timeLogging(String message, long start) {
@@ -289,7 +211,7 @@ public class NextEvents {
     /**
      * 过滤方法类型
      */
-    public interface Filter {
+    public interface MethodFilter {
         /**
          * 如果Method类型匹配, 返回True则被NextEvent管理起来.
          * @param method Method对象

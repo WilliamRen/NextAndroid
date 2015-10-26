@@ -63,7 +63,7 @@ public class NextClickProxy {
                         }
                     }
                     // 只注册管理参数为ClickEvent类型的方法
-                    final NextEvents.Filter filter = new NextEvents.Filter() {
+                    final NextEvents.MethodFilter methodFilter = new NextEvents.MethodFilter() {
                         @Override public boolean accept(Method method) {
                             // 点击只接受一个事件,并且只能是ClickEvent类型
                             final Class<?>[] types = method.getParameterTypes();
@@ -73,7 +73,7 @@ public class NextClickProxy {
                             return ClickEvent.class.equals(types[0]);
                         }
                     };
-                    mEvents.registerAsync(host, filter);
+                    mEvents.registerAsync(host, methodFilter);
                 }
             }
         };
@@ -91,7 +91,7 @@ public class NextClickProxy {
     public <T extends View> void emitClick(T view, String event){
         notNull(view, "View must not be null !");
         notNull(event, "Event must not be null !");
-        mEvents.emit(new ClickEvent(view), event, false/*Not allow deviate*/);
+        mEvents.emitLeniently(new ClickEvent(view), event, false/*Not allow deviate*/);
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {

@@ -76,7 +76,7 @@ public final class Dispatcher {
         }else{
             action.setSenderStack(STACK_WARNING);
         }
-        mEvents.emit(action, action.type);
+        mEvents.emitLeniently(action, action.type);
     }
 
     public void shutdown(){
@@ -87,7 +87,7 @@ public final class Dispatcher {
         mDebugEnabled = enabled;
     }
 
-    private class ActionMethodFilter implements NextEvents.Filter {
+    private class ActionMethodFilter implements NextEvents.MethodFilter {
 
         @Override public boolean accept(Method method) {
             // 全部类型都只能是Action类型

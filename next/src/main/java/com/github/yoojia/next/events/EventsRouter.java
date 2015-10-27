@@ -29,15 +29,15 @@ class EventsRouter {
         mOnErrorsListener = onErrorsListener;
     }
 
-    public void dispatch(List<Target.Trigger> triggers){
-        for (final Target.Trigger trigger : triggers){
+    public void dispatch(List<FuelTarget.Target> targets){
+        for (final FuelTarget.Target target : targets){
             final Callable<Void> finalTask = new Callable<Void>() {
                 @Override public Void call() throws Exception {
                     if (EventsFlags.PROCESSING) {
                         Log.d(TAG, "- Target run on thread.id= " + Thread.currentThread().getId());
                     }
                     try {
-                        trigger.invoke();
+                        target.invoke();
                     } catch (Exception error) {
                         if (mOnErrorsListener.watch()) {
                             mOnErrorsListener.get().onErrors(error);
@@ -48,7 +48,7 @@ class EventsRouter {
                     return null;
                 }
             };
-            if ( ! trigger.async) {
+            if ( ! target.async) {
                 submitMainThread(finalTask);
             }else{
                 submitThreads(finalTask);

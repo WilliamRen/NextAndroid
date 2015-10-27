@@ -7,35 +7,24 @@ import java.util.Map;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-10-11
  */
-final class MethodSubscriber extends Subscriber {
+final class MethodSubscriber extends Subscriber<Method> {
 
-    private final Object mHost;
-    private final Method mMethod;
-    private final String[] mOrderedEvents;
-
-    MethodSubscriber(String[] orderedEvents, Object host, Method method) {
-        mOrderedEvents = orderedEvents;
-        mHost = host;
-        mMethod = method;
+    protected MethodSubscriber(Object host, Meta[] events, Method invokable, boolean async) {
+        super(host, events, invokable, async);
     }
 
     @Override
-    public void invoke(Map<String, Object> events) throws Exception {
-        final Object[] params = new Object[mOrderedEvents.length];
-        for (int i = 0; i < mOrderedEvents.length; i++) {
-            params[i] = events.get(mOrderedEvents[i]);
+    public void invoke(Map<String, Object> params) throws Exception {
+        final Object[] args = new Object[events.length];
+        for (int i = 0; i < events.length; i++) {
+            args[i] = params.get(events[i].event);
         }
-        final boolean origin = mMethod.isAccessible();
-        mMethod.setAccessible(true);
-        mMethod.invoke(mHost, params);
+        final boolean origin = invokable.isAccessible();
+        invokable.setAccessible(true);
+        invokable.invoke(host, args);
         if (!origin) {
-            mMethod.setAccessible(false);
+            invokable.setAccessible(false);
         }
-    }
-
-    @Override
-    public boolean isSameHost(Object host) {
-        return mHost == host;
     }
 
 }

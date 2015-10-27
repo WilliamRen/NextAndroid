@@ -13,21 +13,21 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 final class Reactor {
 
-    private final Set<Target> mTargetSet = new LinkedHashSet<>();
+    private final Set<FuelTarget> mTargetCached = new LinkedHashSet<>();
     private final AtomicInteger mTriggeredCount = new AtomicInteger(0);
     private final AtomicInteger mOverrideCount = new AtomicInteger(0);
     private final AtomicInteger mDeadEventsCount = new AtomicInteger(0);
 
-    public void register(Subscriber subscriber, boolean async, Meta... events) {
-        synchronized (mTargetSet) {
-            mTargetSet.add(new Target(subscriber, async, mOverrideCount, events));
+    public void add(Subscriber subscriber) {
+        synchronized (mTargetCached) {
+            mTargetCached.add(new FuelTarget(subscriber, mOverrideCount));
         }
     }
 
-    public void unregister(Object host) {
-        synchronized (mTargetSet) {
-            for (Iterator<Target> it = mTargetSet.iterator(); it.hasNext();) {
-                final Target target = it.next();
+    public void removeByHost(Object host) {
+        synchronized (mTargetCached) {
+            for (Iterator<FuelTarget> it = mTargetCached.iterator(); it.hasNext();) {
+                final FuelTarget target = it.next();
                 if (target.subscriber.isSameHost(host)) {
                     it.remove();
                 }
@@ -35,18 +35,18 @@ final class Reactor {
         }
     }
 
-    public List<Target.Trigger> emit(String event, Object value, boolean lenient) {
-        final List<Target.Trigger> output = new ArrayList<>();
-        synchronized (mTargetSet) {
+    public List<FuelTarget.Target> emit(String event, Object value, boolean lenient) {
+        final List<FuelTarget.Target> triggers = new ArrayList<>();
+        synchronized (mTargetCached) {
             boolean accepted = false; // 事件是否被某一个目标接受
-            for (Target target : mTargetSet) {
-                if( ! target.isMatched(event, value)) {
+            for (FuelTarget target : mTargetCached) {
+                if( ! target.accept(event, value)) {
                     continue;
                 }
                 accepted = true;
-                final Target.Trigger trigger = target.emit(event, value);
+                final FuelTarget.Target trigger = target.emit(event, value);
                 if (trigger != null) {
-                    output.add(trigger);
+                    triggers.add(trigger);
                     mTriggeredCount.addAndGet(1);
                 }
             }
@@ -57,7 +57,7 @@ final class Reactor {
                 mDeadEventsCount.addAndGet(1);
             }
         }
-        return output;
+        return triggers;
     }
 
     public int getTriggeredCount(){

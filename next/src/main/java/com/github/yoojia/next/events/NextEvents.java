@@ -27,14 +27,14 @@ public class NextEvents {
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
-    public NextEvents(ExecutorService threads, ExecutorService emitThreads, String tag){
+    public NextEvents(ExecutorService workThreads, ExecutorService emitThreads, String tag){
         mTag = tag;
         mEmitThreads = emitThreads;
-        mEventsRouter = new EventsRouter(threads, mOnErrorsListener);
+        mEventsRouter = new EventsRouter(workThreads, mOnErrorsListener);
     }
 
-    public NextEvents(ExecutorService workerThreads, String tag) {
-        this(workerThreads, Schedulers.processors(), tag);
+    public NextEvents(ExecutorService workThreads, String tag) {
+        this(workThreads, Threads.CPU(), tag);
     }
 
     /**
@@ -54,7 +54,7 @@ public class NextEvents {
         final List<Method> annotated = finder.find(targetHost.getClass());
         timeLog(mTag, "EVENTS-SCAN", startScan);
         final long startRegister = System.nanoTime();
-        final Register register = new Register(mTag, mReactor, targetHost);
+        final Register register = new Register(mReactor, targetHost);
         register.batch(annotated, filter);
         timeLog(mTag, "EVENTS-REGISTER", startRegister);
         if (annotated.isEmpty()){
@@ -69,7 +69,7 @@ public class NextEvents {
      */
     public void unregister(Object targetHost) {
         notNull(targetHost, "Subscriber host must not be null !");
-        mReactor.unregister(targetHost);
+        mReactor.removeByHost(targetHost);
     }
 
     /**
@@ -85,7 +85,7 @@ public class NextEvents {
             Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
         }
         final long emitStart = System.nanoTime();
-        final List<Target.Trigger> targets = mReactor.emit(eventName, eventObject, lenient);
+        final List<FuelTarget.Target> targets = mReactor.emit(eventName, eventObject, lenient);
         timeLog(mTag, "EVENTS-EMIT", emitStart);
         final long dispatchStart = System.nanoTime();
         mEventsRouter.dispatch(targets);

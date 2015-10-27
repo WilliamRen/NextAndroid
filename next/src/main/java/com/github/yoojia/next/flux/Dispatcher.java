@@ -1,7 +1,7 @@
 package com.github.yoojia.next.flux;
 
 import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.events.Schedulers;
+import com.github.yoojia.next.events.Threads;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
 
@@ -25,7 +25,7 @@ public final class Dispatcher {
     }
 
     public Dispatcher() {
-        this(Schedulers.processors());
+        this(Threads.CPUx2());
     }
 
     /**

@@ -5,7 +5,7 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.events.Schedulers;
+import com.github.yoojia.next.events.Threads;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
 
@@ -27,7 +27,7 @@ public class NextClickProxy {
     private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents(Schedulers.processors(), TAG);
+        mEvents = new NextEvents(Threads.single(), TAG);
     }
 
     public void register(final Object host){
@@ -45,36 +45,36 @@ public class NextClickProxy {
                 if (fields.isEmpty()){
                     Log.d(TAG, "- Empty Handlers(with @EmitClick) ! ");
                     Warning.show(TAG);
-                }else{
-                    for (Field field : fields){
-                        final boolean origin = field.isAccessible();
-                        field.setAccessible(true);
-                        final EmitClick evt = field.getAnnotation(EmitClick.class);
-                        if (!origin) {
-                            field.setAccessible(false);
-                        }
-                        try {
-                            final View view = bindClickView(host, field, evt.event());
-                            if (Integer.MIN_VALUE != evt.keyCode()) {
-                                mKeyCodeMapping.append(evt.keyCode(), view);
-                            }
-                        } catch (Exception error) {
-                            throw new IllegalStateException(error);
-                        }
-                    }
-                    // 只注册管理参数为ClickEvent类型的方法
-                    final Filter<Method> filter = new Filter<Method>() {
-                        @Override public boolean accept(Method method) {
-                            // 点击只接受一个事件,并且只能是ClickEvent类型
-                            final Class<?>[] types = method.getParameterTypes();
-                            if (types.length != 1) {
-                                return false;
-                            }
-                            return ClickEvent.class.equals(types[0]);
-                        }
-                    };
-                    mEvents.register(host, filter);
+                    return;
                 }
+                for (Field field : fields){
+                    final boolean origin = field.isAccessible();
+                    field.setAccessible(true);
+                    final EmitClick evt = field.getAnnotation(EmitClick.class);
+                    if (!origin) {
+                        field.setAccessible(false);
+                    }
+                    try {
+                        final View view = bindClickView(host, field, evt.event());
+                        if (Integer.MIN_VALUE != evt.keyCode()) {
+                            mKeyCodeMapping.append(evt.keyCode(), view);
+                        }
+                    } catch (Exception error) {
+                        throw new IllegalStateException(error);
+                    }
+                }
+                // 只注册管理参数为ClickEvent类型的方法
+                final Filter<Method> filter = new Filter<Method>() {
+                    @Override public boolean accept(Method method) {
+                        // 点击只接受一个事件,并且只能是ClickEvent类型
+                        final Class<?>[] types = method.getParameterTypes();
+                        if (types.length != 1) {
+                            return false;
+                        }
+                        return ClickEvent.class.equals(types[0]);
+                    }
+                };
+                mEvents.register(host, filter);
             }
         };
         new Thread(task).start();

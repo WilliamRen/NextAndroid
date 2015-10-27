@@ -7,7 +7,7 @@ import java.util.Map;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-10-11
  */
-final class MethodSubscriber implements Subscriber {
+final class MethodSubscriber extends Subscriber {
 
     private final Object mHost;
     private final Method mMethod;

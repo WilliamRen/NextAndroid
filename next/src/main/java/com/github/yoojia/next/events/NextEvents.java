@@ -93,7 +93,7 @@ public class NextEvents {
     public void emitImmediately(Object eventObject, String eventName, boolean lenient) {
         notNull(eventObject, "Event object must not be null !");
         notEmpty(eventName, "Event name must not be null !");
-        final List<Reactor.HotTarget> targets = mReactor.emit(eventName, eventObject, lenient);
+        final List<Target.Trigger> targets = mReactor.emit(eventName, eventObject, lenient);
         mDispatcher.dispatch(targets);
     }
 

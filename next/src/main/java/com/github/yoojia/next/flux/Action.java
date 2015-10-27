@@ -1,7 +1,7 @@
 package com.github.yoojia.next.flux;
 
-import com.github.yoojia.next.lang.QuantumObject;
 import com.github.yoojia.next.lang.ObjectMap;
+import com.github.yoojia.next.lang.QuantumObject;
 
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
 

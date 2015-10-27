@@ -8,9 +8,9 @@ import com.github.yoojia.next.lang.QuantumObject;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
+import static com.github.yoojia.next.events.Logger.timeLog;
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
@@ -23,7 +23,7 @@ public class NextEvents {
     protected final String mTag;
 
     private final Dispatcher mDispatcher;
-    private final ExecutorService mCoreThreads;
+    private final ExecutorService mCoreThreads = Schedulers.Processor;
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
@@ -34,7 +34,6 @@ public class NextEvents {
      */
     public NextEvents(ExecutorService workerThreads, String tag){
         mTag = tag;
-        mCoreThreads = workerThreads;
         mDispatcher = new Dispatcher(workerThreads, mOnErrorsListener);
     }
 
@@ -53,11 +52,11 @@ public class NextEvents {
             }
         });
         final List<Method> annotated = finder.find(targetHost.getClass());
-        timeLog("SCAN[@Subscribe]", startScan);
+        timeLog(mTag, "EVENTS-SCAN", startScan);
         final long startRegister = System.nanoTime();
         final Register register = new Register(mTag, mReactor, targetHost);
         register.batch(annotated, filter);
-        timeLog("REGISTER", startRegister);
+        timeLog(mTag, "EVENTS-REGISTER", startRegister);
         if (annotated.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
             Warning.show(mTag);
@@ -93,13 +92,21 @@ public class NextEvents {
     public void emitImmediately(Object eventObject, String eventName, boolean lenient) {
         notNull(eventObject, "Event object must not be null !");
         notEmpty(eventName, "Event name must not be null !");
-        final List<Reactor.HotTarget> targets = mReactor.emit(eventName, eventObject, lenient);
+        if (EventsFlags.PROCESSING) {
+            Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
+        }
+        final long emitStart = System.nanoTime();
+        final List<Target.Trigger> targets = mReactor.emit(eventName, eventObject, lenient);
+        timeLog(mTag, "EVENTS-EMIT", emitStart);
+        final long dispatchStart = System.nanoTime();
         mDispatcher.dispatch(targets);
+        timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
     }
 
     public void emit(final Object eventObject, final String eventName, final boolean lenient) {
         mCoreThreads.submit(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 emitImmediately(eventObject, eventName, lenient);
             }
         });
@@ -109,6 +116,7 @@ public class NextEvents {
      * 销毁 NextEvents
      */
     public void destroy(){
+        mCoreThreads.shutdown();
         mDispatcher.shutdown();
     }
 
@@ -127,13 +135,6 @@ public class NextEvents {
         Log.d(mTag, "- Trigger events count: " + mReactor.getTriggeredCount());
         Log.w(mTag, "- Override events count:" + mReactor.getOverrideCount());
         Log.e(mTag, "- [!!]Dead events count:" + mReactor.getDeadEventsCount());
-    }
-
-    private void timeLog(String message, long start) {
-        final float delta = (System.nanoTime() - start) / 1000000.0f;
-        if (delta < 5) return;
-        final String time = String.format("%.3f", delta)  + "ms";
-        Log.d(mTag, "[" + time + "](>5ms)\t" + message);
     }
 
 }

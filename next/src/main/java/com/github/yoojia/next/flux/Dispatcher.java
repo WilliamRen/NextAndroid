@@ -20,7 +20,7 @@ public final class Dispatcher {
     private final NextEvents mEvents;
 
     public Dispatcher() {
-        mEvents = new NextEvents(Schedulers.CPUs, "FluxDispatcher");
+        mEvents = new NextEvents(Schedulers.Processor, "FluxDispatcher");
     }
 
     /**

@@ -23,7 +23,7 @@ public class TestStore extends Store<Activity>{
     @Subscribe(async = true)
     private void onClick(@Event(TestActions.REQ_CLICK) Action evt) {
         final long data = evt.data.getLong("data");
-        Log.d("TestStore", "Received request, data: " + data);
+//        Log.d("TestStore", "Received request, data: " + data);
         // Emit result, notify View to update
         emit(TestActions.newNotifyClick(data));
     }

@@ -40,7 +40,7 @@ class EventsRouter {
                         target.invoke();
                     } catch (Exception error) {
                         if (mOnErrorsListener.watch()) {
-                            mOnErrorsListener.get().onErrors(error);
+                            mOnErrorsListener.get().onErrors(target.eventNames, error);
                         }else{
                             throw error;
                         }

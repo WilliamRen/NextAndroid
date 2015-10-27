@@ -1,7 +1,10 @@
 package com.github.yoojia.next.events;
 
+import com.github.yoojia.next.lang.Joiner;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -73,12 +76,14 @@ class FuelTarget {
         private final Map<String, Object> mEvents = new HashMap<>();
         private final Subscriber mSubscriber;
 
+        public final Set<String> eventNames;
         public final boolean async;
 
         private Target(Subscriber subscriber, Map<String, Object> events, boolean async) {
             this.mSubscriber = subscriber;
             this.async = async;
             this.mEvents.putAll(events);
+            this.eventNames = events.keySet();
         }
 
         public void invoke() throws Exception {

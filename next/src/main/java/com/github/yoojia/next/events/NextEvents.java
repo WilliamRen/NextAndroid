@@ -22,15 +22,15 @@ public class NextEvents {
 
     protected final String mTag;
 
-    private final Dispatcher mDispatcher;
-    private final ExecutorService mCoreThreads;
+    private final EventsRouter mEventsRouter;
+    private final ExecutorService mEmitThreads;
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
-    public NextEvents(ExecutorService workerThreads, ExecutorService coreThreads, String tag){
+    public NextEvents(ExecutorService threads, ExecutorService emitThreads, String tag){
         mTag = tag;
-        mCoreThreads = coreThreads;
-        mDispatcher = new Dispatcher(workerThreads, mOnErrorsListener);
+        mEmitThreads = emitThreads;
+        mEventsRouter = new EventsRouter(threads, mOnErrorsListener);
     }
 
     public NextEvents(ExecutorService workerThreads, String tag) {
@@ -73,21 +73,10 @@ public class NextEvents {
     }
 
     /**
-     * 被注册管理的方法中，如果 @Event(EVENT-NAME) 中的 EVENT-NAME 与提交的事件名相同，并且方法声明的全部事件都已提交，
-     * 则该方法被触发并由线程池执行。
-     *
-     * ### 事件被触发的条件：
-     *   - 事件名相同；
-     *   - 事件类型相同，如果是 Primitive 类型，则为封装类相同；
-     *
-     * ### 注意：
-     *   - 如果目标方法定义多个事件，仅当全部事件都提交后才会被触发执行；
-     *   - 如果目标方法定义多个事件，相同事件名的事件将覆盖已提交的事件；
-     *
+     * 提交事件并立即（阻塞）执行
      * @param eventObject 事件对象
      * @param eventName 事件名
      * @param lenient 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
-     * @throws NullPointerException 如果事件对象或者事件名为空，将抛出 NullPointerException
      */
     public void emitImmediately(Object eventObject, String eventName, boolean lenient) {
         notNull(eventObject, "Event object must not be null !");
@@ -99,12 +88,18 @@ public class NextEvents {
         final List<Target.Trigger> targets = mReactor.emit(eventName, eventObject, lenient);
         timeLog(mTag, "EVENTS-EMIT", emitStart);
         final long dispatchStart = System.nanoTime();
-        mDispatcher.dispatch(targets);
+        mEventsRouter.dispatch(targets);
         timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
     }
 
+    /**
+     * 提交事件, 异步地执行
+     * @param eventObject 事件对象
+     * @param eventName 事件名
+     * @param lenient 是否允许事件没有目标
+     */
     public void emit(final Object eventObject, final String eventName, final boolean lenient) {
-        mCoreThreads.submit(new Runnable() {
+        mEmitThreads.submit(new Runnable() {
             @Override
             public void run() {
                 emitImmediately(eventObject, eventName, lenient);
@@ -116,8 +111,8 @@ public class NextEvents {
      * 销毁 NextEvents
      */
     public void destroy(){
-        mCoreThreads.shutdown();
-        mDispatcher.shutdown();
+        mEmitThreads.shutdown();
+        mEventsRouter.shutdown();
     }
 
     /**

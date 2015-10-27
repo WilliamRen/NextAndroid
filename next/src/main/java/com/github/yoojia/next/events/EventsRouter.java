@@ -16,15 +16,15 @@ import static com.github.yoojia.next.events.Logger.timeLog;
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-class Dispatcher {
+class EventsRouter {
 
-    private static final String TAG = Dispatcher.class.getSimpleName();
+    private static final String TAG = EventsRouter.class.getSimpleName();
 
     private final Handler mMainThread = new Handler(Looper.getMainLooper());
     private final ExecutorService mThreads;
     private final QuantumObject<OnErrorsListener> mOnErrorsListener;
 
-    Dispatcher(ExecutorService threads, QuantumObject<OnErrorsListener> onErrorsListener) {
+    EventsRouter(ExecutorService threads, QuantumObject<OnErrorsListener> onErrorsListener) {
         mThreads = threads;
         mOnErrorsListener = onErrorsListener;
     }

@@ -92,7 +92,7 @@ class Target {
         }
 
         public void invoke() throws Exception {
-            mSubscriber.notify(mEvents);
+            mSubscriber.invoke(mEvents);
         }
 
     }

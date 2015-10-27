@@ -13,7 +13,7 @@ abstract class Subscriber {
      * @param events 事件参数列表，以 Event-Name: Event-Object 的键值对存在。
      * @throws Exception
      */
-    public abstract void notify(Map<String, Object> events) throws Exception;
+    public abstract void invoke(Map<String, Object> events) throws Exception;
 
     /**
      * 是否同一个目标对象实例

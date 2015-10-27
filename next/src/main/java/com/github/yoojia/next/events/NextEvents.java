@@ -23,18 +23,18 @@ public class NextEvents {
     protected final String mTag;
 
     private final Dispatcher mDispatcher;
-    private final ExecutorService mCoreThreads = Schedulers.Processor;
+    private final ExecutorService mCoreThreads;
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
-    /**
-     * 使用指定线程池来处理事件。
-     * @param workerThreads 工作线程池
-     * @param tag NextEvent 实例标签名
-     */
-    public NextEvents(ExecutorService workerThreads, String tag){
+    public NextEvents(ExecutorService workerThreads, ExecutorService coreThreads, String tag){
         mTag = tag;
+        mCoreThreads = coreThreads;
         mDispatcher = new Dispatcher(workerThreads, mOnErrorsListener);
+    }
+
+    public NextEvents(ExecutorService workerThreads, String tag) {
+        this(workerThreads, Schedulers.processors(), tag);
     }
 
     /**

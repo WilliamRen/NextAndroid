@@ -20,7 +20,7 @@ final class MethodSubscriber extends Subscriber {
     }
 
     @Override
-    public void notify(Map<String, Object> events) throws Exception {
+    public void invoke(Map<String, Object> events) throws Exception {
         final Object[] params = new Object[mOrderedEvents.length];
         for (int i = 0; i < mOrderedEvents.length; i++) {
             params[i] = events.get(mOrderedEvents[i]);

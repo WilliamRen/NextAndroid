@@ -27,7 +27,7 @@ public class NextClickProxy {
     private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents(Schedulers.Processor, TAG);
+        mEvents = new NextEvents(Schedulers.processors(), TAG);
     }
 
     public void register(final Object host){

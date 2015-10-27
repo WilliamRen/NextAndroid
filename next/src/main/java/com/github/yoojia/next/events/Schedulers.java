@@ -9,7 +9,16 @@ import java.util.concurrent.Executors;
  */
 public class Schedulers {
 
-    public static final ExecutorService Processor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    public static ExecutorService fixed(int count) {
+        int threads = count <= 0 ? 1 : count;
+        return Executors.newFixedThreadPool(threads * 2);
+    }
 
-    public static final ExecutorService Cached = Executors.newCachedThreadPool();
+    public static ExecutorService processors(){
+        return fixed(Runtime.getRuntime().availableProcessors());
+    }
+
+    public static ExecutorService cached(){
+        return Executors.newCachedThreadPool();
+    }
 }

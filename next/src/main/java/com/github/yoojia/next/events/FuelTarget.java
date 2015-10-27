@@ -1,7 +1,5 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.lang.Joiner;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;

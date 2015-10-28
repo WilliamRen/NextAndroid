@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <integer name="NextVehicleKeyboardColumns">6</integer>
-
-    <color name="NextVehicleKeyboardItem.Selected">#29a0dc</color>
-    <color name="NextVehicleKeyboardItem.Normal">#DDDDDD</color>
-
-</resources>

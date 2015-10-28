@@ -1,9 +1,10 @@
 package com.github.yoojia.next.events;
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -15,11 +16,9 @@ class FuelTarget {
 
     private final Map<String, Meta> mMeta;
     private final Map<String, Object> mValues;
-    private final AtomicInteger mOverrides;
 
-    FuelTarget(Subscriber subscriber, AtomicInteger count) {
+    FuelTarget(Subscriber subscriber) {
         this.subscriber = subscriber;
-        mOverrides = count;
         mMeta = new HashMap<>(subscriber.events.length);
         mValues = new HashMap<>(subscriber.events.length);
         // init
@@ -31,15 +30,15 @@ class FuelTarget {
 
     public Target emit(String event, Object value) {
         if (NULL_VALUE != mValues.get(event)) {
-            mOverrides.addAndGet(1);
+            Log.w("FuelTarget", "- Override event: " + event);
         }
         mValues.put(event, value);
         if (mValues.containsValue(NULL_VALUE)) {
             return null;
         }else{
             final Target target = new Target(subscriber, mValues, subscriber.async);
+            // reset value
             for (Meta item : mMeta.values()) {
-                // reset value
                 mValues.put(item.event, NULL_VALUE);
             }
             return target;

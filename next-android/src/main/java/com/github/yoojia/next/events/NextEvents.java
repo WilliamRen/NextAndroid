@@ -24,6 +24,7 @@ public class NextEvents {
 
     private final EventsRouter mEventsRouter;
     private final ExecutorService mEmitThreads;
+
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
@@ -54,7 +55,11 @@ public class NextEvents {
         final List<Method> annotated = finder.find(targetHost.getClass());
         timeLog(mTag, "EVENTS-SCAN", startScan);
         final long startRegister = System.nanoTime();
-        final Register register = new Register(mReactor, targetHost);
+        final SubscriberRegister register = new SubscriberRegister(targetHost, new SubscriberAccess<MethodSubscriber>() {
+            @Override public void access(MethodSubscriber subscriber) {
+                mReactor.add(subscriber);
+            }
+        });
         register.batch(annotated, filter);
         timeLog(mTag, "EVENTS-REGISTER", startRegister);
         if (annotated.isEmpty()){
@@ -121,15 +126,6 @@ public class NextEvents {
      */
     public void setOnErrorsListener(OnErrorsListener listener) {
         mOnErrorsListener.set(listener);
-    }
-
-    /**
-     * 输出事件统计数据
-     */
-    public void printEventsStatistics() {
-        Log.d(mTag, "- Trigger events count: " + mReactor.getTriggeredCount());
-        Log.w(mTag, "- Override events count:" + mReactor.getOverrideCount());
-        Log.e(mTag, "- [!!]Dead events count:" + mReactor.getDeadEventsCount());
     }
 
 }

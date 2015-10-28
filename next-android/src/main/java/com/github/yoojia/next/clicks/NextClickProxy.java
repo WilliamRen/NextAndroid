@@ -77,6 +77,7 @@ public class NextClickProxy {
                 mEvents.register(host, filter);
             }
         };
+        // 使用匿名线程来处理点击代理的注册过程
         new Thread(task).start();
     }
 

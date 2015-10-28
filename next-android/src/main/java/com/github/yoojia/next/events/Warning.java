@@ -9,10 +9,12 @@ import android.util.Log;
 class Warning {
 
     public static void show(String tag){
-        Log.e(tag, "- Seems something wrong in release mode? Try add belows configs to your [proguard-rules.pro] file: ");
-        Log.e(tag, "\n-keepclassmembers class * {\n" +
-                "    @com.github.yoojia.next.events.Subscribe *;\n" +
-                "    @com.github.yoojia.next.events.Event *;\n" +
-                "}");
+        Log.e(tag, "- Seems something wrong in release mode? " +
+                "Try add the belows to your [proguard-rules.pro] file: " +
+                "-keepclassmembers class * {" +
+                "    @com.github.yoojia.next.events.Subscribe *;" +
+                "    @com.github.yoojia.next.events.Event *;" +
+                "}"
+        );
     }
 }

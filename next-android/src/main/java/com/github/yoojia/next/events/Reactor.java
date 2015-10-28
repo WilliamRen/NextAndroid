@@ -13,15 +13,15 @@ final class Reactor {
 
     private final Set<FuelTarget> mTargetCached = new CopyOnWriteArraySet<>();
 
-    public void add(Subscriber subscriber) {
-        mTargetCached.add(new FuelTarget(subscriber));
+    public void add(Invokable invokable) {
+        mTargetCached.add(new FuelTarget(invokable));
     }
 
-    public void removeByHost(Object host) {
+    public void remove(Object host) {
         // CopyOnWriteArraySet not support iterator.remove()
         final List<FuelTarget> removes = new ArrayList<>();
         for (FuelTarget target : mTargetCached) {
-            if (target.subscriber.isSameHost(host)) {
+            if (target.invokable.isRemovable(host)) {
                 removes.add(target);
             }
         }

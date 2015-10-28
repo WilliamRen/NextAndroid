@@ -1,16 +1,19 @@
 package com.github.yoojia.next.events;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-10-11
  */
-final class MethodSubscriber extends Subscriber<Method> {
+final class MethodInvokable extends Invokable<Method> {
 
-    protected MethodSubscriber(Object host, Meta[] events, Method invokable, boolean async) {
-        super(host, events, invokable, async);
+    private final Object mHost;
+    protected MethodInvokable(Object host, Meta[] events, Method invokable, boolean async) {
+        super(events, invokable, async);
+        mHost = host;
     }
 
     @Override
@@ -21,10 +24,15 @@ final class MethodSubscriber extends Subscriber<Method> {
         }
         final boolean origin = invokable.isAccessible();
         invokable.setAccessible(true);
-        invokable.invoke(host, args);
+        invokable.invoke(mHost, args);
         if (!origin) {
             invokable.setAccessible(false);
         }
+    }
+
+    @Override
+    public boolean isRemovable(Object other) {
+        return mHost == other;
     }
 
 }

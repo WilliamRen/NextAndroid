@@ -39,7 +39,7 @@ class EventsRouter {
                     try {
                         target.invoke();
                     } catch (Exception error) {
-                        if (mOnErrorsListener.watch()) {
+                        if (mOnErrorsListener.has()) {
                             mOnErrorsListener.get().onErrors(target.eventNames, error);
                         }else{
                             throw error;
@@ -48,7 +48,7 @@ class EventsRouter {
                     return null;
                 }
             };
-            if ( ! target.async) {
+            if ( ! target.runAsync) {
                 submitMainThread(finalTask);
             }else{
                 submitThreads(finalTask);

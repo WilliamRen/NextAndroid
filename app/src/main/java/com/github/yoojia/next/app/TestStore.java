@@ -19,7 +19,7 @@ public class TestStore extends Store<Activity>{
         super(dispatcher, contextHost);
     }
 
-    // Run on async
+    // Run runAsync
     @Subscribe(async = true)
     private void onClick(@Event(TestActions.REQ_CLICK) Action evt) {
         final long data = evt.data.getLong("data");

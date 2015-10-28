@@ -32,7 +32,7 @@ public class QuantumObject<T> {
         }
     }
 
-    public boolean watch() {
+    public boolean has() {
         synchronized (mLock) {
             return null != mObject;
         }

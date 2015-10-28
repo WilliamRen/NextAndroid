@@ -75,11 +75,11 @@ class FuelTarget {
         private final Subscriber mSubscriber;
 
         public final Set<String> eventNames;
-        public final boolean async;
+        public final boolean runAsync;
 
-        private Target(Subscriber subscriber, Map<String, Object> events, boolean async) {
+        private Target(Subscriber subscriber, Map<String, Object> events, boolean runAsync) {
             this.mSubscriber = subscriber;
-            this.async = async;
+            this.runAsync = runAsync;
             this.mEvents.putAll(events);
             this.eventNames = events.keySet();
         }

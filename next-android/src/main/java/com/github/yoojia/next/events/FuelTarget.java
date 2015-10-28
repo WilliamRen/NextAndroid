@@ -14,8 +14,8 @@ class FuelTarget {
 
     public final Subscriber subscriber;
 
-    private final Map<String, Meta> mMeta;
-    private final Map<String, Object> mValues;
+    private final HashMap<String, Meta> mMeta;
+    private final HashMap<String, Object> mValues;
 
     FuelTarget(Subscriber subscriber) {
         this.subscriber = subscriber;

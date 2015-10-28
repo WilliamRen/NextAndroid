@@ -12,14 +12,14 @@ import java.util.List;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @since 1.0
  */
-class Register {
+class SubscriberRegister {
 
-    private final Reactor mReactor;
     private final Object mHost;
+    private final SubscriberAccess<MethodSubscriber> mListener;
 
-    public Register(Reactor reactor, Object host) {
-        mReactor = reactor;
+    public SubscriberRegister(Object host, SubscriberAccess<MethodSubscriber> listener) {
         mHost = host;
+        mListener = listener;
     }
 
     public void batch(List<Method> annotatedMethods, Filter<Method> filter) {
@@ -42,7 +42,7 @@ class Register {
             if (!origin) {
                 method.setAccessible(false);
             }
-            mReactor.add(new MethodSubscriber(mHost, makeMeta(method), method, conf.async()));
+            mListener.access(new MethodSubscriber(mHost, makeMeta(method), method, conf.async()));
         }
     }
 
@@ -63,4 +63,5 @@ class Register {
         }
         return events;
     }
+
 }

@@ -1,11 +1,9 @@
 package com.github.yoojia.next.events;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -13,63 +11,40 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 final class Reactor {
 
-    private final Set<FuelTarget> mTargetCached = new LinkedHashSet<>();
-    private final AtomicInteger mTriggeredCount = new AtomicInteger(0);
-    private final AtomicInteger mOverrideCount = new AtomicInteger(0);
-    private final AtomicInteger mDeadEventsCount = new AtomicInteger(0);
+    private final Set<FuelTarget> mTargetCached = new CopyOnWriteArraySet<>();
 
     public void add(Subscriber subscriber) {
-        synchronized (mTargetCached) {
-            mTargetCached.add(new FuelTarget(subscriber, mOverrideCount));
-        }
+        mTargetCached.add(new FuelTarget(subscriber));
     }
 
     public void removeByHost(Object host) {
-        synchronized (mTargetCached) {
-            for (Iterator<FuelTarget> it = mTargetCached.iterator(); it.hasNext();) {
-                final FuelTarget target = it.next();
-                if (target.subscriber.isSameHost(host)) {
-                    it.remove();
-                }
+        // CopyOnWriteArraySet not support iterator.remove()
+        final List<FuelTarget> removes = new ArrayList<>();
+        for (FuelTarget target : mTargetCached) {
+            if (target.subscriber.isSameHost(host)) {
+                removes.add(target);
             }
         }
+        mTargetCached.removeAll(removes);
     }
 
     public List<FuelTarget.Target> emit(String event, Object value, boolean lenient) {
         final List<FuelTarget.Target> triggers = new ArrayList<>();
-        synchronized (mTargetCached) {
-            boolean accepted = false; // 事件是否被某一个目标接受
-            for (FuelTarget target : mTargetCached) {
-                if( ! target.accept(event, value)) {
-                    continue;
-                }
-                accepted = true;
-                final FuelTarget.Target trigger = target.emit(event, value);
-                if (trigger != null) {
-                    triggers.add(trigger);
-                    mTriggeredCount.addAndGet(1);
-                }
+        boolean accepted = false;
+        for (FuelTarget target : mTargetCached) {
+            if( ! target.accept(event, value)) {
+                continue;
             }
-            if (!lenient && !accepted) {
-                throw new IllegalStateException("Event without a subscriber: " + event);
-            }
-            if ( ! accepted) {
-                mDeadEventsCount.addAndGet(1);
+            accepted = true;
+            final FuelTarget.Target trigger = target.emit(event, value);
+            if (trigger != null) {
+                triggers.add(trigger);
             }
         }
+        if (!lenient && !accepted) {
+            throw new IllegalStateException("Event without a subscriber: " + event);
+        }
         return triggers;
-    }
-
-    public int getTriggeredCount(){
-        return mTriggeredCount.get();
-    }
-
-    public int getOverrideCount() {
-        return mOverrideCount.get();
-    }
-
-    public int getDeadEventsCount(){
-        return mDeadEventsCount.get();
     }
 
 }

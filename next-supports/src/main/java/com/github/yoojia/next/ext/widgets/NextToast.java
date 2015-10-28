@@ -58,24 +58,33 @@ public class NextToast {
         showShot(message);
     }
 
-    public void showShort(int message){
-        cancelPre();
-        this.message.setText(message);
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.show();
+    public void showShort(@StringRes int message){
+        show(message, Toast.LENGTH_SHORT);
     }
 
     public void showShot(String message){
-        cancelPre();
-        this.message.setText(message);
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.show();
+        show(message, Toast.LENGTH_SHORT);
     }
 
     public void showLong(@StringRes int message){
+        show(message, Toast.LENGTH_LONG);
+    }
+
+    public void showLong(String message){
+        show(message, Toast.LENGTH_LONG);
+    }
+
+    private void show(int message, int duration) {
         cancelPre();
         this.message.setText(message);
-        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setDuration(duration);
+        toast.show();
+    }
+
+    private void show(String message, int duration) {
+        cancelPre();
+        this.message.setText(message);
+        toast.setDuration(duration);
         toast.show();
     }
 

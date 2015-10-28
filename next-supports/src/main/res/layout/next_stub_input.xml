@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<EditText xmlns:android="http://schemas.android.com/apk/res/android"
-          android:id="@+id/next_labelinput_input"
-          android:hint="HINT-NOT-SET"
-          android:background="@null"
-          android:enabled="true"
-          style="@style/NextLabel.Text">
-</EditText>

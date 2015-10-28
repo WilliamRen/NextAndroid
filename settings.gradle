@@ -1,1 +1,1 @@
-include ':app', ':next-android', ':next-android-supports', ':next-android-http'
+include ':app', ':next-android'

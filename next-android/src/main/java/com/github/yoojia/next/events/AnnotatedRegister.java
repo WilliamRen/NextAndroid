@@ -12,12 +12,12 @@ import java.util.List;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @since 1.0
  */
-class SubscriberRegister {
+class AnnotatedRegister {
 
     private final Object mHost;
-    private final SubscriberAccess<MethodSubscriber> mListener;
+    private final InvokableAccess<MethodInvokable> mListener;
 
-    public SubscriberRegister(Object host, SubscriberAccess<MethodSubscriber> listener) {
+    public AnnotatedRegister(Object host, InvokableAccess<MethodInvokable> listener) {
         mHost = host;
         mListener = listener;
     }
@@ -42,7 +42,7 @@ class SubscriberRegister {
             if (!origin) {
                 method.setAccessible(false);
             }
-            mListener.access(new MethodSubscriber(mHost, makeMeta(method), method, conf.async()));
+            mListener.access(new MethodInvokable(mHost, makeMeta(method), method, conf.async()));
         }
     }
 

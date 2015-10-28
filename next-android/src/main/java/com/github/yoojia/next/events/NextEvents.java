@@ -55,8 +55,8 @@ public class NextEvents {
         final List<Method> annotated = finder.find(targetHost.getClass());
         timeLog(mTag, "EVENTS-SCAN", startScan);
         final long startRegister = System.nanoTime();
-        final SubscriberRegister register = new SubscriberRegister(targetHost, new SubscriberAccess<MethodSubscriber>() {
-            @Override public void access(MethodSubscriber subscriber) {
+        final AnnotatedRegister register = new AnnotatedRegister(targetHost, new InvokableAccess<MethodInvokable>() {
+            @Override public void access(MethodInvokable subscriber) {
                 mReactor.add(subscriber);
             }
         });
@@ -68,13 +68,31 @@ public class NextEvents {
         }
     }
 
+    public void register(Subscriber subscriber, boolean async, Object...events) {
+        final IllegalArgumentException err = new IllegalArgumentException(
+                "Events must be String-Class<?> pairs. e.g: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class) ");
+        if (events.length == 0 || events.length % 2 != 0) {
+            throw err;
+        }
+        final Meta[] meta = new Meta[events.length/2];
+        for (int i = 0; i < events.length / 2; i++) {
+            final Object event = events[i*2];
+            final Object type = events[i*2 + 1];
+            if (!(event instanceof String) || !(type instanceof Class<?>)) {
+                throw err;
+            }
+            meta[i] = new Meta((String)event, (Class<?>)type);
+        }
+        mReactor.add(new SubscriberInvokable(meta, subscriber, async));
+    }
+
     /**
      * 反注册目标对象。所有被注册管理的目标对象和方法，如果其目标对象与 targetHost 内存地址相同，则被注销，解除对象和方法的强引用。
      * @param targetHost 需要反注册的目标对象
      */
     public void unregister(Object targetHost) {
         notNull(targetHost, "Subscriber host must not be null !");
-        mReactor.removeByHost(targetHost);
+        mReactor.remove(targetHost);
     }
 
     /**

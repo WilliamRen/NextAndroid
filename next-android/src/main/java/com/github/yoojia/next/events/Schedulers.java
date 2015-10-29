@@ -21,19 +21,27 @@ public class Schedulers {
     }
 
     /**
-     * 非异步的操作在主线程中执行, 异步操作在线程池中执行. 异步线程池大小为 CPU 的2倍
+     * 非异步的回调操作在主线程中执行, 异步回调操作由线程池来执行. 异步线程池大小为 CPU 的2倍
      */
     public static Schedulers main() {
         return main(Runtime.getRuntime().availableProcessors() * 2);
     }
 
     /**
-     * 非异步的操作在主线程中执行, 异步操作在线程池中执行.
+     * 非异步的回调操作在主线程中执行, 异步回调操作由线程池来执行.
      * @param threads 指定异步线程池的线程数量
      */
     public static Schedulers main(int threads) {
+        return main(Executors.newFixedThreadPool(threads));
+    }
+
+    /**
+     * 非异步的回调操作在主线程中执行, 异步回调操作由线程池来执行.
+     * @param threads 指定线程池
+     */
+    public static Schedulers main(ExecutorService threads) {
         return
-        new Schedulers(Executors.newFixedThreadPool(threads)) {
+        new Schedulers(threads) {
 
             private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
@@ -48,7 +56,7 @@ public class Schedulers {
                             try {
                                 task.call();
                             } catch (Exception e) {
-                                throw new IllegalArgumentException(e);
+                                throw new RuntimeException(e);
                             }
                         }
                     });

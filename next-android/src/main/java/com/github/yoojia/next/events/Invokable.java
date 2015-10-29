@@ -8,14 +8,16 @@ import java.util.Map;
  */
 abstract class Invokable<T> {
 
+    // exports
     public final Meta[] events;
-    public final T invokable;
-    public final boolean async;
+    public final boolean runAsync;
 
-    public Invokable(Meta[] events, T invokable, boolean async) {
+    public final T invokable;
+
+    public Invokable(Meta[] events, T invokable, boolean runAsync) {
         this.events = events;
         this.invokable = invokable;
-        this.async = async;
+        this.runAsync = runAsync;
     }
 
     /**

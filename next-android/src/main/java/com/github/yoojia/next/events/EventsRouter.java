@@ -48,7 +48,7 @@ class EventsRouter {
                     return null;
                 }
             };
-            if ( ! target.runAsync) {
+            if ( ! target.runAsync()) {
                 submitMainThread(finalTask);
             }else{
                 submitThreads(finalTask);

@@ -42,15 +42,16 @@ public class Schedulers {
                 if (async) {
                     threads.submit(task);
                 }else{
-                    submit(new Runnable() {
-                        @Override public void run() {
+                    mMainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
                             try {
                                 task.call();
                             } catch (Exception e) {
                                 throw new IllegalArgumentException(e);
                             }
                         }
-                    }, false);
+                    });
                 }
             }
 

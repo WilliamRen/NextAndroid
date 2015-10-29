@@ -1,12 +1,11 @@
 package com.github.yoojia.next.flux;
 
 import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.events.Threads;
+import com.github.yoojia.next.events.Schedulers;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author 陈小锅 (yoojiachen@gmail.com)
@@ -20,12 +19,12 @@ public final class Dispatcher {
 
     private final NextEvents mEvents;
 
-    public Dispatcher(ExecutorService threads) {
-        mEvents = new NextEvents(threads, "FluxDispatcher");
+    public Dispatcher(Schedulers schedulers) {
+        mEvents = new NextEvents(schedulers, "FluxDispatcher");
     }
 
     public Dispatcher() {
-        this(Threads.CPUx2());
+        this(Schedulers.main());
     }
 
     /**

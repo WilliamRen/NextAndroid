@@ -5,7 +5,7 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.events.Threads;
+import com.github.yoojia.next.events.Schedulers;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
 
@@ -27,7 +27,7 @@ public class NextClickProxy {
     private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents(Threads.single(), TAG);
+        mEvents = new NextEvents(Schedulers.main(), TAG);
     }
 
     public void register(final Object host){

@@ -36,7 +36,7 @@ class FuelTarget {
         if (mValues.containsValue(NULL_VALUE)) {
             return null;
         }else{
-            final Target target = new Target(invokable, mValues, invokable.async);
+            final Target target = new Target(invokable, mValues);
             // reset value
             for (Meta item : mMeta.values()) {
                 mValues.put(item.event, NULL_VALUE);
@@ -74,17 +74,19 @@ class FuelTarget {
         private final Invokable mInvokable;
 
         public final Set<String> eventNames;
-        public final boolean runAsync;
 
-        private Target(Invokable invokable, Map<String, Object> events, boolean runAsync) {
+        private Target(Invokable invokable, Map<String, Object> events) {
             this.mInvokable = invokable;
-            this.runAsync = runAsync;
             this.mEvents.putAll(events);
             this.eventNames = events.keySet();
         }
 
         public void invoke() throws Exception {
             mInvokable.invoke(mEvents);
+        }
+
+        public boolean runAsync() {
+            return mInvokable.runAsync;
         }
 
     }

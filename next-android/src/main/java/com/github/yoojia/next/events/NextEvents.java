@@ -8,13 +8,13 @@ import com.github.yoojia.next.lang.QuantumObject;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import static com.github.yoojia.next.events.Logger.timeLog;
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
 /**
+ * Next Events
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-10-11
  */
@@ -23,26 +23,25 @@ public class NextEvents {
     protected final String mTag;
 
     private final EventsRouter mEventsRouter;
-    private final ExecutorService mEmitThreads;
+    private final Schedulers mEmitSchedulers;
 
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
-    public NextEvents(ExecutorService workThreads, ExecutorService emitThreads, String tag){
+    public NextEvents(Schedulers work, Schedulers emit, String tag){
         mTag = tag;
-        mEmitThreads = emitThreads;
-        mEventsRouter = new EventsRouter(workThreads, mOnErrorsListener);
+        mEmitSchedulers = emit;
+        mEventsRouter = new EventsRouter(work, mOnErrorsListener);
     }
 
-    public NextEvents(ExecutorService workThreads, String tag) {
-        this(workThreads, Threads.CPU(), tag);
+    public NextEvents(Schedulers work, String tag) {
+        this(work, Schedulers.single(), tag);
     }
 
     /**
-     * 将目标对象实例注册到 NextEvents 中，NextEvents 将扫描目标对象及其超类中所有添加 @Subscribe 注解的方法，并注册管理。
-     * 注意：目标对象实例及 @Subscribe 注解的方法将被强引用。
-     * @param targetHost 需要被注册的目标对象实例
-     * @param filter 对扫描后的Method作过滤处理. 通过此接口,可以过滤掉一些方法参数类型不匹配的方法.
+     * 从指定对象中扫描添加了 @Subscribe 注解的事件订阅方法. 这些事件订阅方法将在发生匹配事件时被回调执行.
+     * @param targetHost 指定被扫描的对象
+     * @param filter 过滤扫描后的方法的接口;
      */
     public void register(Object targetHost, Filter<Method> filter) {
         final long startScan = System.nanoTime();
@@ -68,6 +67,12 @@ public class NextEvents {
         }
     }
 
+    /**
+     * 指定事件订阅接口及其匹配的事件. 当发生匹配事件时,接口被回调执行.
+     * @param subscriber 指定的回调接口
+     * @param async 是否异步执行
+     * @param events 事件名及类型对, 格式如: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class)
+     */
     public void register(Subscriber subscriber, boolean async, Object...events) {
         final IllegalArgumentException err = new IllegalArgumentException(
                 "Events must be String-Class<?> pairs. e.g: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class) ");
@@ -87,12 +92,21 @@ public class NextEvents {
     }
 
     /**
-     * 反注册目标对象。所有被注册管理的目标对象和方法，如果其目标对象与 targetHost 内存地址相同，则被注销，解除对象和方法的强引用。
-     * @param targetHost 需要反注册的目标对象
+     * 反注册将指定对象的全部事件订阅方法
+     * @param targetHost 指定对象
      */
     public void unregister(Object targetHost) {
-        notNull(targetHost, "Subscriber host must not be null !");
+        notNull(targetHost, "Target host host must not be null !");
         mReactor.remove(targetHost);
+    }
+
+    /**
+     * 反注册指定事件订阅接口
+     * @param subscriber 指定事件订阅接口
+     */
+    public void unregister(Subscriber subscriber) {
+        notNull(subscriber, "Subscriber host must not be null !");
+        mReactor.remove(subscriber);
     }
 
     /**
@@ -122,19 +136,19 @@ public class NextEvents {
      * @param lenient 是否允许事件没有目标
      */
     public void emit(final Object eventObject, final String eventName, final boolean lenient) {
-        mEmitThreads.submit(new Runnable() {
+        mEmitSchedulers.submit(new Runnable() {
             @Override
             public void run() {
                 emitImmediately(eventObject, eventName, lenient);
             }
-        });
+        }, true);
     }
 
     /**
      * 销毁 NextEvents
      */
     public void destroy(){
-        mEmitThreads.shutdown();
+        mEmitSchedulers.close();
         mEventsRouter.shutdown();
     }
 

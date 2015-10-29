@@ -1,16 +1,11 @@
 package com.github.yoojia.next.events;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.github.yoojia.next.lang.QuantumObject;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-
-import static com.github.yoojia.next.events.Logger.timeLog;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
@@ -20,11 +15,10 @@ class EventsRouter {
 
     private static final String TAG = EventsRouter.class.getSimpleName();
 
-    private final Handler mMainThread = new Handler(Looper.getMainLooper());
-    private final ExecutorService mThreads;
+    private final Schedulers mThreads;
     private final QuantumObject<OnErrorsListener> mOnErrorsListener;
 
-    EventsRouter(ExecutorService threads, QuantumObject<OnErrorsListener> onErrorsListener) {
+    EventsRouter(Schedulers threads, QuantumObject<OnErrorsListener> onErrorsListener) {
         mThreads = threads;
         mOnErrorsListener = onErrorsListener;
     }
@@ -48,34 +42,20 @@ class EventsRouter {
                     return null;
                 }
             };
-            if ( ! target.runAsync()) {
-                submitMainThread(finalTask);
-            }else{
-                submitThreads(finalTask);
+            try{
+                mThreads.submit(finalTask, target.runAsync());
+            }catch (Exception error) {
+                if (mOnErrorsListener.has()) {
+                    mOnErrorsListener.get().onErrors(target.eventNames, error);
+                }else{
+                    throw new IllegalStateException(error);
+                }
             }
         }
     }
 
     public void shutdown(){
-        mThreads.shutdown();
+        mThreads.close();
     }
 
-    private void submitThreads(Callable<Void> task) {
-        mThreads.submit(task);
-    }
-
-    private void submitMainThread(final Callable<Void> task) {
-        final long submitStart = System.nanoTime();
-        mMainThread.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    timeLog(TAG, "WAIT-FOR-MAIN-THREAD", submitStart);
-                    task.call();
-                } catch (Exception error) {
-                    throw new IllegalStateException(error);
-                }
-            }
-        });
-    }
 }

@@ -43,7 +43,7 @@ public class NextEvents {
      * @param targetHost 指定被扫描的对象
      * @param filter 过滤扫描后的方法的接口;
      */
-    public void register(Object targetHost, Filter<Method> filter) {
+    public void subscribe(Object targetHost, Filter<Method> filter) {
         final long startScan = System.nanoTime();
         final MethodsFinder finder = new MethodsFinder();
         finder.filter(new Filter<Method>() {
@@ -54,12 +54,14 @@ public class NextEvents {
         final List<Method> annotated = finder.find(targetHost.getClass());
         timeLog(mTag, "EVENTS-SCAN", startScan);
         final long startRegister = System.nanoTime();
-        final AnnotatedRegister register = new AnnotatedRegister(targetHost, new InvokableAccess<MethodInvokable>() {
-            @Override public void access(MethodInvokable subscriber) {
-                mReactor.add(subscriber);
-            }
+        final AnnotatedRegister register = new AnnotatedRegister(targetHost,
+                new AnnotatedRegister.Access<MethodInvoker>() {
+                    @Override
+                    public void on(MethodInvoker subscriber) {
+                        mReactor.add(subscriber);
+                }
         });
-        register.batch(annotated, filter);
+        register.from(annotated, filter);
         timeLog(mTag, "EVENTS-REGISTER", startRegister);
         if (annotated.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
@@ -73,22 +75,22 @@ public class NextEvents {
      * @param async 是否异步执行
      * @param events 事件名及类型对, 格式如: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class)
      */
-    public void register(Subscriber subscriber, boolean async, Object...events) {
-        final IllegalArgumentException err = new IllegalArgumentException(
+    public void subscribe(Subscriber subscriber, boolean async, Object... events) {
+        final IllegalArgumentException exception = new IllegalArgumentException(
                 "Events must be String-Class<?> pairs. e.g: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class) ");
         if (events.length == 0 || events.length % 2 != 0) {
-            throw err;
+            throw exception;
         }
-        final Meta[] meta = new Meta[events.length/2];
+        final Meta[] meta = new Meta[events.length / 2];
         for (int i = 0; i < events.length / 2; i++) {
-            final Object event = events[i*2];
-            final Object type = events[i*2 + 1];
+            final Object event = events[i * 2];
+            final Object type = events[i * 2 + 1];
             if (!(event instanceof String) || !(type instanceof Class<?>)) {
-                throw err;
+                throw exception;
             }
             meta[i] = new Meta((String)event, (Class<?>)type);
         }
-        mReactor.add(new SubscriberInvokable(meta, subscriber, async));
+        mReactor.add(new SubscriberInvoker(meta, subscriber, async));
     }
 
     /**
@@ -104,7 +106,7 @@ public class NextEvents {
      * 反注册指定事件订阅接口
      * @param subscriber 指定事件订阅接口
      */
-    public void unregister(Subscriber subscriber) {
+    public void unsubscribe(Subscriber subscriber) {
         notNull(subscriber, "Subscriber host must not be null !");
         mReactor.remove(subscriber);
     }

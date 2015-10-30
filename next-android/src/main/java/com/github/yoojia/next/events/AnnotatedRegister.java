@@ -15,14 +15,14 @@ import java.util.List;
 class AnnotatedRegister {
 
     private final Object mHost;
-    private final InvokableAccess<MethodInvokable> mListener;
+    private final Access<MethodInvoker> mAccess;
 
-    public AnnotatedRegister(Object host, InvokableAccess<MethodInvokable> listener) {
+    public AnnotatedRegister(Object host, Access<MethodInvoker> listener) {
         mHost = host;
-        mListener = listener;
+        mAccess = listener;
     }
 
-    public void batch(List<Method> annotatedMethods, Filter<Method> filter) {
+    public void from(List<Method> annotatedMethods, Filter<Method> filter) {
         for (Method method : annotatedMethods){
             // Filter
             if (filter != null && !filter.accept(method)) {
@@ -42,7 +42,7 @@ class AnnotatedRegister {
             if (!origin) {
                 method.setAccessible(false);
             }
-            mListener.access(new MethodInvokable(mHost, makeMeta(method), method, conf.async()));
+            mAccess.on(new MethodInvoker(mHost, makeMeta(method), method, conf.async()));
         }
     }
 
@@ -62,6 +62,11 @@ class AnnotatedRegister {
             events[i] = new Meta(event.value(), types[i]);
         }
         return events;
+    }
+
+    public interface Access<T extends Invokable> {
+
+        void on(T newSubscriber);
     }
 
 }

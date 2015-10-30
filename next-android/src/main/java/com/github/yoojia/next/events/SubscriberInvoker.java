@@ -6,9 +6,9 @@ import java.util.Map;
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-class SubscriberInvokable extends Invokable<Subscriber> {
+class SubscriberInvoker extends Invokable<Subscriber> {
 
-    public SubscriberInvokable(Meta[] events, Subscriber invokable, boolean async) {
+    public SubscriberInvoker(Meta[] events, Subscriber invokable, boolean async) {
         super(events, invokable, async);
     }
 

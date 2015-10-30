@@ -13,10 +13,14 @@ import com.github.yoojia.next.clicks.NextClickProxy;
 import com.github.yoojia.next.events.Event;
 import com.github.yoojia.next.events.EventsFlags;
 import com.github.yoojia.next.events.Subscribe;
+import com.github.yoojia.next.events.Subscriber;
 import com.github.yoojia.next.flux.Action;
+import com.github.yoojia.next.flux.ActionEvents;
 import com.github.yoojia.next.flux.Dispatcher;
 import com.github.yoojia.next.views.AutoView;
 import com.github.yoojia.next.views.NextAutoView;
+
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -38,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        EventsFlags.enabledPerformanceLog(true);
+//        EventsFlags.enabledPerformanceLog(true);
 //        EventsFlags.enabledProcessingLog(true);
 
         // Inject views
@@ -50,6 +54,14 @@ public class MainActivity extends AppCompatActivity {
         mStore.register();
         mDispatcher.register(this);
 
+        Subscriber subscriber = new Subscriber() {
+            @Override
+            public void call(Map<String, Object> values) throws Exception {
+                System.out.println(">>>> Subscriber: " + values);
+            }
+        };
+
+        mDispatcher.subscribe(subscriber, true, ActionEvents.events(TestActions.NOTIFY_CLICK));
     }
 
     @Subscribe
@@ -61,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             mDispatcher.emit(TestActions.newReqClick(genData));
         }
         long diff = System.currentTimeMillis() - emitStart;
-        Log.d(TAG, "- Emit 1000 event, takes: " + diff + "ms");
+        Log.d(TAG, "- Emit 1000 event, took: " + diff + "ms");
     }
 
 //    @Subscribe
@@ -69,46 +81,6 @@ public class MainActivity extends AppCompatActivity {
         final long data = evt.data.getLong("data");
 //        Log.d(TAG, "- Received data: " + data);
         mHelo.setText("Received data: " + data);
-    }
-
-    @Subscribe(async = true)
-    private void onData1(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData2(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData3(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData4(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData5(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData6(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData7(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData8(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData9(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData10(@Event(TestActions.NOTIFY_CLICK) Action evt) {
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.github.yoojia.next.flux;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.Schedulers;
+import com.github.yoojia.next.events.Subscriber;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
 
@@ -32,7 +33,17 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
-        mEvents.register(host, new ActionMethodFilter());
+        mEvents.subscribe(host, new ActionMethodFilter());
+    }
+
+    /**
+     * 设置事件订阅接口
+     * @param subscriber 事件订阅接口
+     * @param async 是否异步处理
+     * @param events Action事件列表
+     */
+    public void subscribe(Subscriber subscriber, boolean async, ActionEvents events) {
+        mEvents.subscribe(subscriber, async, events.events());
     }
 
     /**
@@ -41,6 +52,14 @@ public final class Dispatcher {
      */
     public void unregister(Object host){
         mEvents.unregister(host);
+    }
+
+    /**
+     * 将事件订阅接口取消订阅
+     * @param subscriber 要取消订阅事件的接口
+     */
+    public void unsubscribe(Subscriber subscriber) {
+        mEvents.unsubscribe(subscriber);
     }
 
     /**
@@ -56,7 +75,7 @@ public final class Dispatcher {
      */
     public void emit(Action action){
         logCallStack(action);
-        mEvents.emit(action, action.type, false/* not allow deviate*/);
+        mEvents.emit(action, action.type, false/* not leniently*/);
     }
 
     /**
@@ -68,6 +87,10 @@ public final class Dispatcher {
         mEvents.emit(action, action.type, true/* leniently */);
     }
 
+    /**
+     * 是否雇用Debug模式。雇用Debug模式时，所有Action都会记录接口调用栈，方便调试。
+     * @param enabled 是否开启Debug模式
+     */
     public void enabledDebug(boolean enabled) {
         mDebugEnabled = enabled;
     }

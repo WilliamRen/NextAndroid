@@ -22,10 +22,10 @@ class AnnotatedRegister {
         mListener = listener;
     }
 
-    public void batch(List<Method> annotatedMethods, Filter<Method> filter) {
+    public void batch(List<Method> annotatedMethods, Filter<Method> customFilter) {
         for (Method method : annotatedMethods){
             // Filter
-            if (filter != null && !filter.accept(method)) {
+            if (customFilter != null && !customFilter.accept(method)) {
                 continue;
             }
             // BASIC CHECK: Check if return type is Void

@@ -15,26 +15,26 @@ class EventsRouter {
 
     private static final String TAG = EventsRouter.class.getSimpleName();
 
-    private final Schedulers mThreads;
+    private final Schedulers mSchedulers;
     private final QuantumObject<OnErrorsListener> mOnErrorsListener;
 
-    EventsRouter(Schedulers threads, QuantumObject<OnErrorsListener> onErrorsListener) {
-        mThreads = threads;
+    EventsRouter(Schedulers schedulers, QuantumObject<OnErrorsListener> onErrorsListener) {
+        mSchedulers = schedulers;
         mOnErrorsListener = onErrorsListener;
     }
 
-    public void dispatch(List<FuelTarget.Target> targets){
-        for (final FuelTarget.Target target : targets){
+    public void dispatch(List<Target.Trigger> triggers){
+        for (final Target.Trigger trigger : triggers){
             final Callable<Void> finalTask = new Callable<Void>() {
                 @Override public Void call() throws Exception {
                     if (EventsFlags.PROCESSING) {
                         Log.d(TAG, "- Target run on thread.id= " + Thread.currentThread().getId());
                     }
                     try {
-                        target.invoke();
+                        trigger.invoke();
                     } catch (Exception error) {
                         if (mOnErrorsListener.has()) {
-                            mOnErrorsListener.get().onErrors(target.eventNames, error);
+                            mOnErrorsListener.get().onErrors(trigger.eventNames, error);
                         }else{
                             throw error;
                         }
@@ -43,10 +43,10 @@ class EventsRouter {
                 }
             };
             try{
-                mThreads.submit(finalTask, target.runAsync());
+                mSchedulers.submit(finalTask, trigger.runAsync());
             }catch (Exception error) {
                 if (mOnErrorsListener.has()) {
-                    mOnErrorsListener.get().onErrors(target.eventNames, error);
+                    mOnErrorsListener.get().onErrors(trigger.eventNames, error);
                 }else{
                     throw new IllegalStateException(error);
                 }
@@ -54,8 +54,8 @@ class EventsRouter {
         }
     }
 
-    public void shutdown(){
-        mThreads.close();
+    public void close(){
+        mSchedulers.close();
     }
 
 }

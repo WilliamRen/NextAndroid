@@ -122,10 +122,10 @@ public class NextEvents {
             Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
         }
         final long emitStart = System.nanoTime();
-        final List<FuelTarget.Target> targets = mReactor.emit(eventName, eventObject, lenient);
+        final List<Target.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
         timeLog(mTag, "EVENTS-EMIT", emitStart);
         final long dispatchStart = System.nanoTime();
-        mEventsRouter.dispatch(targets);
+        mEventsRouter.dispatch(triggers);
         timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
     }
 
@@ -149,7 +149,7 @@ public class NextEvents {
      */
     public void destroy(){
         mEmitSchedulers.close();
-        mEventsRouter.shutdown();
+        mEventsRouter.close();
     }
 
     /**

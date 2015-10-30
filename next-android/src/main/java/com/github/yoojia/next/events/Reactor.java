@@ -11,16 +11,16 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 final class Reactor {
 
-    private final Set<FuelTarget> mTargetCached = new CopyOnWriteArraySet<>();
+    private final Set<Target> mTargetCached = new CopyOnWriteArraySet<>();
 
     public void add(Invokable invokable) {
-        mTargetCached.add(new FuelTarget(invokable));
+        mTargetCached.add(new Target(invokable));
     }
 
     public void remove(Object host) {
         // CopyOnWriteArraySet not support iterator.remove()
-        final List<FuelTarget> removes = new ArrayList<>();
-        for (FuelTarget target : mTargetCached) {
+        final List<Target> removes = new ArrayList<>();
+        for (Target target : mTargetCached) {
             if (target.invokable.isRemovable(host)) {
                 removes.add(target);
             }
@@ -28,15 +28,15 @@ final class Reactor {
         mTargetCached.removeAll(removes);
     }
 
-    public List<FuelTarget.Target> emit(String event, Object value, boolean lenient) {
-        final List<FuelTarget.Target> triggers = new ArrayList<>();
+    public List<Target.Trigger> emit(String event, Object value, boolean lenient) {
+        final List<Target.Trigger> triggers = new ArrayList<>();
         boolean accepted = false;
-        for (FuelTarget target : mTargetCached) {
+        for (Target target : mTargetCached) {
             if( ! target.accept(event, value)) {
                 continue;
             }
             accepted = true;
-            final FuelTarget.Target trigger = target.emit(event, value);
+            final Target.Trigger trigger = target.emit(event, value);
             if (trigger != null) {
                 triggers.add(trigger);
             }

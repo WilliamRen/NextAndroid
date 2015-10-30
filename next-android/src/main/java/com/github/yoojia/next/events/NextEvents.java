@@ -73,7 +73,7 @@ public class NextEvents {
      * @param async 是否异步执行
      * @param events 事件名及类型对, 格式如: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class)
      */
-    public void register(Subscriber subscriber, boolean async, Object...events) {
+    public void subscribe(Subscriber subscriber, boolean async, Object... events) {
         final IllegalArgumentException err = new IllegalArgumentException(
                 "Events must be String-Class<?> pairs. e.g: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class) ");
         if (events.length == 0 || events.length % 2 != 0) {
@@ -104,7 +104,7 @@ public class NextEvents {
      * 反注册指定事件订阅接口
      * @param subscriber 指定事件订阅接口
      */
-    public void unregister(Subscriber subscriber) {
+    public void unsubscribe(Subscriber subscriber) {
         notNull(subscriber, "Subscriber host must not be null !");
         mReactor.remove(subscriber);
     }

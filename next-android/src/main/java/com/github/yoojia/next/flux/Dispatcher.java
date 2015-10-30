@@ -2,6 +2,7 @@ package com.github.yoojia.next.flux;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.Schedulers;
+import com.github.yoojia.next.events.Subscriber;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
 
@@ -41,6 +42,24 @@ public final class Dispatcher {
      */
     public void unregister(Object host){
         mEvents.unregister(host);
+    }
+
+    /**
+     * 设置事件订阅接口，并指定是否异步及订阅的事件
+     * @param subscriber 订阅接口
+     * @param async 是否异步执行
+     * @param actions 订阅事件
+     */
+    public void subscribe(Subscriber subscriber, boolean async, Actions actions) {
+        mEvents.subscribe(subscriber, async, actions.events());
+    }
+
+    /**
+     * 反注册事件订阅接口
+     * @param subscriber 事件订阅接口
+     */
+    public void unsubscribe(Subscriber subscriber) {
+        mEvents.unsubscribe(subscriber);
     }
 
     /**

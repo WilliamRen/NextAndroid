@@ -52,28 +52,51 @@ public class EventsTest {
 
     }
 
+    private final static int BASE_COUNT = 1000;
+    private final static int LARGE_COUNT = 10000 * 100;
+
     @Test
-    public void testSingleThreadStress(){
-        testStress(Schedulers.single(), "SingleThread");
+    public void testSingleThreadBase(){
+        testStress(BASE_COUNT, Schedulers.single(), "SingleThread-BASE");
     }
 
     @Test
-    public void testCPUx1ThreadsStress(){
-        testStress(Schedulers.threads(), "CPUx1Threads");
+    public void testCPUx1ThreadsBase(){
+        testStress(BASE_COUNT, Schedulers.threads(), "CPUx1Threads-BASE");
     }
 
     @Test
-    public void testCPUx2ThreadsStress(){
-        testStress(Schedulers.threads(Runtime.getRuntime().availableProcessors() * 2), "CPUx2Threads");
+    public void testCPUx2ThreadsBase(){
+        testStress(BASE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 2), "CPUx2Threads-BASE");
     }
 
     @Test
-    public void testCPUx4ThreadsStress(){
-        testStress(Schedulers.threads(Runtime.getRuntime().availableProcessors() * 4), "CPUx4Threads");
+    public void testCPUx4ThreadsBase(){
+        testStress(BASE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 4), "CPUx4Threads-BASE");
     }
 
-    private void testStress(Schedulers threads, String tag){
-        final int count = 10000 * 100;
+    @Test
+    public void testSingleThreadLarge(){
+        testStress(LARGE_COUNT, Schedulers.single(), "SingleThread-LARGE");
+    }
+
+    @Test
+    public void testCPUx1ThreadsLarge(){
+        testStress(LARGE_COUNT, Schedulers.threads(), "CPUx1Threads-LARGE");
+    }
+
+    @Test
+    public void testCPUx2ThreadsLarge(){
+        testStress(LARGE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 2), "CPUx2Threads-LARGE");
+    }
+
+    @Test
+    public void testCPUx4ThreadsLarge(){
+        testStress(LARGE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 4), "CPUx4Threads-LARGE");
+    }
+
+
+    private void testStress(int count, Schedulers threads, String tag){
         final NextEvents events = new NextEvents(threads, tag);
         final Subscriber subscriber = new Subscriber(count);
         events.register(subscriber, null);
@@ -100,11 +123,15 @@ public class EventsTest {
         assertThat(subscriber.intCalls.get(), equalTo(count));
         assertThat(subscriber.strCalls.get(), equalTo(count));
 
-        final long timeWhenAllFinish = NOW();
-        final long deliveredMicros = (timeWhenAllFinish - timeBeforeEmits) / 1000;
+        final long timeWhenAllFinished = NOW();
+        final long deliveredMicros = (timeWhenAllFinished - timeBeforeEmits) / 1000;
         int deliveryRate = (int) (subscriber.totalCalls / (deliveredMicros / 1000000d));
 
-        System.err.println(tag + " - Delivery Rate: " + deliveryRate + "/s");
+        System.err.println(tag + "\t- " +
+                        "RATE:" + deliveryRate + "/s" +
+                        "\t\tTIME:" + TimeUnit.MICROSECONDS.toMillis(deliveredMicros) + "ms" +
+                        "\t\tCOUNT:" + subscriber.totalCalls
+        );
     }
 
     private static long NOW() {

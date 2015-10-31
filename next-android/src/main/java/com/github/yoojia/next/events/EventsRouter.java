@@ -32,11 +32,12 @@ class EventsRouter {
                     }
                     try {
                         trigger.invoke();
-                    } catch (Exception error) {
+                    } catch (Exception exception) {
+                        final EventsException throwIt = EventsException.recatch(exception);
                         if (mOnErrorsListener.has()) {
-                            mOnErrorsListener.get().onErrors(trigger.eventNames, error);
+                            mOnErrorsListener.get().onErrors(trigger.eventNames, throwIt);
                         }else{
-                            throw error;
+                            throw throwIt;
                         }
                     }
                     return null;
@@ -44,11 +45,13 @@ class EventsRouter {
             };
             try{
                 mSchedulers.submit(finalTask, trigger.runAsync());
-            }catch (Exception error) {
+                // Not sync task will throws exceptions
+            }catch (Exception exception) {
+                final EventsException throwIt = EventsException.recatch(exception);
                 if (mOnErrorsListener.has()) {
-                    mOnErrorsListener.get().onErrors(trigger.eventNames, error);
+                    mOnErrorsListener.get().onErrors(trigger.eventNames, throwIt);
                 }else{
-                    throw new IllegalStateException(error);
+                    throw throwIt;
                 }
             }
         }

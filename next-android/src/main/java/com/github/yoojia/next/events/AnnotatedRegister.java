@@ -48,9 +48,6 @@ class AnnotatedRegister {
 
     private Meta[] makeMeta(Method method){
         final Class<?>[] types = method.getParameterTypes();
-        if (types.length == 0) {
-            throw new IllegalArgumentException("Require ONE or MORE params in method: " + method);
-        }
         final Annotation[][] as = method.getParameterAnnotations();
         final Meta[] events = new Meta[types.length];
         for (int i = 0; i < types.length; i++) {

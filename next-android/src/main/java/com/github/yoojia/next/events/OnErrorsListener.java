@@ -12,5 +12,5 @@ public interface OnErrorsListener {
      * @param errors 事件名
      * @param exception 错误
      */
-    void onErrors(Set<String> errors, Exception exception);
+    void onErrors(Set<String> errors, EventsException exception);
 }

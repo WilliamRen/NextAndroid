@@ -112,8 +112,8 @@ public class Schedulers {
     public void submitSilently(Callable<Void> task, boolean async) {
         try {
             submit(task, async);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (Exception exception) {
+            throw EventsException.recatch(exception);
         }
     }
 

@@ -2,6 +2,7 @@ package com.github.yoojia.next.flux;
 
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.events.Schedulers;
+import com.github.yoojia.next.events.Subscriber;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
 
@@ -13,7 +14,7 @@ import java.lang.reflect.Method;
  */
 public final class Dispatcher {
 
-    private static final String STACK_WARNING = "Set dispatcher.enabledDebug(true) to collect methods stack !";
+    private static final String STACK_WARNING = "Set dispatcher.setDebugEnabled(true) to collect methods stack !";
 
     private boolean mDebugEnabled = false;
 
@@ -44,6 +45,24 @@ public final class Dispatcher {
     }
 
     /**
+     * 设置事件订阅接口，并指定是否异步及订阅的事件
+     * @param subscriber 订阅接口
+     * @param async 是否异步执行
+     * @param actions 订阅事件
+     */
+    public void subscribe(Subscriber subscriber, boolean async, Actions actions) {
+        mEvents.subscribe(subscriber, async, actions.events());
+    }
+
+    /**
+     * 反注册事件订阅接口
+     * @param subscriber 事件订阅接口
+     */
+    public void unsubscribe(Subscriber subscriber) {
+        mEvents.unsubscribe(subscriber);
+    }
+
+    /**
      * 安全销毁
      */
     public void destroy(){
@@ -68,7 +87,11 @@ public final class Dispatcher {
         mEvents.emit(action, action.type, true/* leniently */);
     }
 
-    public void enabledDebug(boolean enabled) {
+    /**
+     * 设置是否开启调试模式。如果开启调试模式，Dispatcher 会在Action中记录提交事件的调用栈
+     * @param enabled 是否开启调试模式
+     */
+    public void setDebugEnabled(boolean enabled) {
         mDebugEnabled = enabled;
     }
 

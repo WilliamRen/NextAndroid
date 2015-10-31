@@ -21,10 +21,14 @@ public class Schedulers {
     }
 
     /**
-     * 非异步的回调操作在主线程中执行, 异步回调操作由线程池来执行. 异步线程池大小为 CPU 的2倍
+     * 非异步的回调操作在主线程中执行, 异步回调操作由线程池来执行.
      */
     public static Schedulers main() {
-        return main(Runtime.getRuntime().availableProcessors() * 2);
+        return main(Runtime.getRuntime().availableProcessors());
+    }
+
+    public static Schedulers mainSingle() {
+        return main(Executors.newSingleThreadExecutor());
     }
 
     /**
@@ -62,13 +66,30 @@ public class Schedulers {
                     });
                 }
             }
+        };
+    }
 
+    public static Schedulers threads() {
+        return threads(Runtime.getRuntime().availableProcessors());
+    }
+
+    public static Schedulers threads(int threads) {
+        return threads(Executors.newFixedThreadPool(threads));
+    }
+
+    public static Schedulers threads(ExecutorService threads) {
+        return
+        new Schedulers(threads) {
             @Override
-            public void submit(Runnable task, boolean async) {
+            public void submit(final Callable<Void> task, boolean async) throws Exception {
                 if (async) {
                     threads.submit(task);
                 }else{
-                    mMainHandler.post(task);
+                    try {
+                        task.call();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         };
@@ -88,11 +109,11 @@ public class Schedulers {
         }
     }
 
-    public void submit(Runnable task, boolean async){
-        if (async) {
-            threads.submit(task);
-        }else{
-            task.run();
+    public void submitSilently(Callable<Void> task, boolean async) {
+        try {
+            submit(task, async);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

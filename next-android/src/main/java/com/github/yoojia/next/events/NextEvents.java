@@ -8,6 +8,7 @@ import com.github.yoojia.next.lang.QuantumObject;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.github.yoojia.next.events.Logger.timeLog;
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
@@ -71,20 +72,20 @@ public class NextEvents {
      * 指定事件订阅接口及其匹配的事件. 当发生匹配事件时,接口被回调执行.
      * @param subscriber 指定的回调接口
      * @param async 是否异步执行
-     * @param events 事件名及类型对, 格式如: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class)
+     * @param events 事件名及类型对, 格式如: ('event-1', Event1.class, 'event-2', Event2.class)
      */
     public void subscribe(Subscriber subscriber, boolean async, Object... events) {
-        final IllegalArgumentException err = new IllegalArgumentException(
-                "Events must be String-Class<?> pairs. e.g: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class) ");
+        final IllegalArgumentException exception = new IllegalArgumentException(
+                "Events must be String-Class<?> pairs. e.g: ('event-1', Event1.class, 'event-2', Event2.class) ");
         if (events.length == 0 || events.length % 2 != 0) {
-            throw err;
+            throw exception;
         }
-        final Meta[] meta = new Meta[events.length/2];
+        final Meta[] meta = new Meta[events.length / 2];
         for (int i = 0; i < events.length / 2; i++) {
-            final Object event = events[i*2];
-            final Object type = events[i*2 + 1];
+            final Object event = events[i * 2];
+            final Object type = events[i * 2 + 1];
             if (!(event instanceof String) || !(type instanceof Class<?>)) {
-                throw err;
+                throw exception;
             }
             meta[i] = new Meta((String)event, (Class<?>)type);
         }
@@ -136,10 +137,11 @@ public class NextEvents {
      * @param lenient 是否允许事件没有目标
      */
     public void emit(final Object eventObject, final String eventName, final boolean lenient) {
-        mEmitSchedulers.submit(new Runnable() {
+        mEmitSchedulers.submitSilently(new Callable<Void>() {
             @Override
-            public void run() {
+            public Void call() throws Exception {
                 emitImmediately(eventObject, eventName, lenient);
+                return null;
             }
         }, true);
     }

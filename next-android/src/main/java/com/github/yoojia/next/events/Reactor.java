@@ -42,7 +42,7 @@ final class Reactor {
             }
         }
         if (!lenient && !accepted) {
-            throw new IllegalStateException("Event without a subscriber: " + event);
+            throw new IllegalStateException("No subscribers handle the event: " + event);
         }
         return triggers;
     }

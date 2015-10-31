@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  */
 public final class Dispatcher {
 
-    private static final String STACK_WARNING = "Set dispatcher.enabledDebug(true) to collect methods stack !";
+    private static final String STACK_WARNING = "Set dispatcher.setDebugEnabled(true) to collect methods stack !";
 
     private boolean mDebugEnabled = false;
 
@@ -87,7 +87,11 @@ public final class Dispatcher {
         mEvents.emit(action, action.type, true/* leniently */);
     }
 
-    public void enabledDebug(boolean enabled) {
+    /**
+     * 设置是否开启调试模式。如果开启调试模式，Dispatcher 会在Action中记录提交事件的调用栈
+     * @param enabled 是否开启调试模式
+     */
+    public void setDebugEnabled(boolean enabled) {
         mDebugEnabled = enabled;
     }
 

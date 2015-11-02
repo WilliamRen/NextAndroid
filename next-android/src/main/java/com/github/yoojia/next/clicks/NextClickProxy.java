@@ -74,7 +74,7 @@ public class NextClickProxy {
                         return ClickEvent.class.equals(types[0]);
                     }
                 };
-                mEvents.register(host, filter);
+                mEvents.subscribe(host, filter);
             }
         };
         // 使用匿名线程来处理点击代理的注册过程

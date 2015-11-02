@@ -33,7 +33,7 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
-        mEvents.register(host, new ActionMethodFilter());
+        mEvents.subscribe(host, new ActionMethodFilter());
     }
 
     /**
@@ -41,7 +41,7 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void unregister(Object host){
-        mEvents.unregister(host);
+        mEvents.unsubscribe(host);
     }
 
     /**

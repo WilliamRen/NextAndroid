@@ -5,7 +5,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -36,9 +35,9 @@ public class ExceptionTest {
     public void test() throws InterruptedException {
         EventsFlags.enabledPerformanceLog(true);
         EventsFlags.enabledProcessingLog(true);
-        NextEvents events = new NextEvents(Schedulers.mainSingle(), "Test");
+        NextEvents events = new NextEvents(Schedulers.single(), "Test");
         Subscriber subscriber = new Subscriber();
-        events.register(subscriber, null);
+        events.subscribe(subscriber, null);
         events.setOnErrorsListener(new OnErrorsListener() {
             @Override
             public void onErrors(EventsException exception) {

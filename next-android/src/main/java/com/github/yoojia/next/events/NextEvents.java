@@ -40,7 +40,7 @@ public class NextEvents {
      * @param targetHost 指定被扫描的对象
      * @param filter 过滤扫描后的方法的接口;
      */
-    public void register(Object targetHost, Filter<Method> filter) {
+    public void subscribe(Object targetHost, Filter<Method> filter) {
         final long startScan = System.nanoTime();
         final MethodsFinder finder = new MethodsFinder();
         finder.filter(new Filter<Method>() {
@@ -92,7 +92,7 @@ public class NextEvents {
      * 反注册将指定对象的全部事件订阅方法
      * @param targetHost 指定对象
      */
-    public void unregister(Object targetHost) {
+    public void unsubscribe(Object targetHost) {
         notNull(targetHost, "Target host host must not be null !");
         mReactor.remove(targetHost);
     }

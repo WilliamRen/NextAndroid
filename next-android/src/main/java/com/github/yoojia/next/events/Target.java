@@ -89,6 +89,14 @@ class Target {
             return mInvokable.runAsync;
         }
 
+        @Override
+        public String toString() {
+            return "{" +
+                    "events=" + mEvents +
+                    ", invokable=" + mInvokable +
+                    ", eventNames=" + eventNames +
+                    '}';
+        }
     }
 
     private static class NullValue {

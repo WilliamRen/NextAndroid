@@ -111,6 +111,8 @@ public class EventsTest {
             events.emit(strEvent, "str", false);
         }
 
+        final long timeAfterEmits = NOW();
+
         try {
             subscriber.await();
         } catch (InterruptedException e) {
@@ -124,12 +126,14 @@ public class EventsTest {
         assertThat(subscriber.strCalls.get(), equalTo(count));
 
         final long timeWhenAllFinished = NOW();
+        final long emitMicros = (timeAfterEmits - timeBeforeEmits) / 1000;
         final long deliveredMicros = (timeWhenAllFinished - timeBeforeEmits) / 1000;
         int deliveryRate = (int) (subscriber.totalCalls / (deliveredMicros / 1000000d));
 
-        System.err.println(tag + "\t- " +
+        System.err.println(tag + "\tDelivered - " +
                         "RATE:" + deliveryRate + "/s" +
-                        "\t\tTIME:" + TimeUnit.MICROSECONDS.toMillis(deliveredMicros) + "ms" +
+                        "\t\tEMIT:" + TimeUnit.MICROSECONDS.toMillis(emitMicros) + "ms" +
+                        "\t\tRUNS:" + TimeUnit.MICROSECONDS.toMillis(deliveredMicros) + "ms" +
                         "\t\tCOUNT:" + subscriber.totalCalls
         );
     }

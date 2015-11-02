@@ -3,7 +3,7 @@ package com.github.yoojia.next.events;
 import android.util.Log;
 
 /**
- * @author 陈永佳 (chengyongjia@parkingwang.com)
+ * @author @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
 class Logger {

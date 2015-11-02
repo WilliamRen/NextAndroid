@@ -34,12 +34,14 @@ public class ExceptionTest {
 
     @Test
     public void test() throws InterruptedException {
-        NextEvents events = new NextEvents(Schedulers.single(), "Test");
+        EventsFlags.enabledPerformanceLog(true);
+        EventsFlags.enabledProcessingLog(true);
+        NextEvents events = new NextEvents(Schedulers.mainSingle(), "Test");
         Subscriber subscriber = new Subscriber();
         events.register(subscriber, null);
         events.setOnErrorsListener(new OnErrorsListener() {
             @Override
-            public void onErrors(Set<String> errors, EventsException exception) {
+            public void onErrors(EventsException exception) {
                 exception.printStackTrace();
             }
         });

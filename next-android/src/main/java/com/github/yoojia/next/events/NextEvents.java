@@ -29,14 +29,10 @@ public class NextEvents {
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
-    public NextEvents(Schedulers work, Schedulers emit, String tag){
+    public NextEvents(Schedulers work, String tag){
         mTag = tag;
-        mEmitSchedulers = emit;
-        mEventsRouter = new EventsRouter(work, mOnErrorsListener);
-    }
-
-    public NextEvents(Schedulers work, String tag) {
-        this(work, Schedulers.single(), tag);
+        mEmitSchedulers = Schedulers.single();
+        mEventsRouter = new EventsRouter(work);
     }
 
     /**
@@ -117,17 +113,7 @@ public class NextEvents {
      * @param lenient 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
      */
     public void emitImmediately(Object eventObject, String eventName, boolean lenient) {
-        notNull(eventObject, "Event object must not be null !");
-        notEmpty(eventName, "Event name must not be null !");
-        if (EventsFlags.PROCESSING) {
-            Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
-        }
-        final long emitStart = System.nanoTime();
-        final List<Target.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
-        timeLog(mTag, "EVENTS-EMIT", emitStart);
-        final long dispatchStart = System.nanoTime();
-        mEventsRouter.dispatch(triggers);
-        timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
+        emitEvents(eventObject, eventName, lenient);
     }
 
     /**
@@ -139,11 +125,38 @@ public class NextEvents {
     public void emit(final Object eventObject, final String eventName, final boolean lenient) {
         mEmitSchedulers.submitSilently(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() {
                 emitImmediately(eventObject, eventName, lenient);
                 return null;
             }
         }, true);
+    }
+
+    private void emitEvents(Object eventObject, String eventName, boolean lenient){
+        try{
+            notNull(eventObject, "Event object must not be null !");
+            notEmpty(eventName, "Event name must not be null !");
+            if (EventsFlags.PROCESSING) {
+                Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
+            }
+            final long emitStart = System.nanoTime();
+            final List<Target.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
+            if (EventsFlags.PROCESSING) {
+                Log.d(mTag, "- Matched triggers: " + triggers);
+            }
+            timeLog(mTag, "EVENTS-EMIT", emitStart);
+            final long dispatchStart = System.nanoTime();
+            mEventsRouter.dispatch(triggers);
+            timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
+            // Not sync task will throws exceptions
+        }catch (Exception exception) {
+            final EventsException throwIt = EventsException.recatch(exception);
+            if (mOnErrorsListener.has()) {
+                mOnErrorsListener.get().onErrors(throwIt);
+            }else{
+                throw throwIt;
+            }
+        }
     }
 
     /**

@@ -66,6 +66,7 @@ public class Schedulers {
                     });
                 }
             }
+
         };
     }
 
@@ -78,21 +79,7 @@ public class Schedulers {
     }
 
     public static Schedulers threads(ExecutorService threads) {
-        return
-        new Schedulers(threads) {
-            @Override
-            public void submit(final Callable<Void> task, boolean async) throws Exception {
-                if (async) {
-                    threads.submit(task);
-                }else{
-                    try {
-                        task.call();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        };
+        return new Schedulers(threads);
     }
 
     protected Schedulers(ExecutorService threads) {

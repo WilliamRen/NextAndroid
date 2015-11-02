@@ -94,7 +94,7 @@ public class NextEvents {
      * 反注册将指定对象的全部事件订阅方法
      * @param targetHost 指定对象
      */
-    public void unregister(Object targetHost) {
+    public void unsubscribe(Object targetHost) {
         notNull(targetHost, "Target host host must not be null !");
         mReactor.remove(targetHost);
     }

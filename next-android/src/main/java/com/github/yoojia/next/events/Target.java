@@ -53,21 +53,6 @@ class Target {
         return meta.type.equals(value.getClass());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final Target target = (Target) o;
-        if (!mValues.equals(target.mValues)) return false;
-        return invokable.equals(target.invokable);
-    }
-
-    @Override
-    public int hashCode() {
-        final int result = mValues.hashCode();
-        return 31 * result + invokable.hashCode();
-    }
-
     public static class Trigger {
 
         private final Map<String, Object> mEvents = new HashMap<>();

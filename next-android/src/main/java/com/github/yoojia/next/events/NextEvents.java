@@ -23,7 +23,7 @@ public class NextEvents {
 
     protected final String mTag;
 
-    private final EventsRouter mEventsRouter;
+    private final Router mRouter;
     private final Schedulers mEmitSchedulers;
 
     private final Reactor mReactor = new Reactor();
@@ -32,7 +32,7 @@ public class NextEvents {
     public NextEvents(Schedulers work, String tag){
         mTag = tag;
         mEmitSchedulers = Schedulers.single();
-        mEventsRouter = new EventsRouter(work);
+        mRouter = new Router(work);
     }
 
     /**
@@ -85,7 +85,7 @@ public class NextEvents {
             }
             meta[i] = new Meta((String)event, (Class<?>)type);
         }
-        mReactor.add(new SubscriberInvokable(meta, subscriber, async));
+        mReactor.add(new InterfaceInvokable(meta, subscriber, async));
     }
 
     /**
@@ -146,7 +146,7 @@ public class NextEvents {
             }
             timeLog(mTag, "EVENTS-EMIT", emitStart);
             final long dispatchStart = System.nanoTime();
-            mEventsRouter.dispatch(triggers);
+            mRouter.dispatch(triggers);
             timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
             // Not sync task will throws exceptions
         }catch (Exception exception) {
@@ -164,7 +164,7 @@ public class NextEvents {
      */
     public void destroy(){
         mEmitSchedulers.close();
-        mEventsRouter.close();
+        mRouter.close();
     }
 
     /**

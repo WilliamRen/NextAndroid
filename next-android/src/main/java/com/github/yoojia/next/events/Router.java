@@ -9,13 +9,13 @@ import java.util.concurrent.Callable;
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-class EventsRouter {
+class Router {
 
-    private static final String TAG = EventsRouter.class.getSimpleName();
+    private static final String TAG = Router.class.getSimpleName();
 
     private final Schedulers mSchedulers;
 
-    EventsRouter(Schedulers schedulers) {
+    Router(Schedulers schedulers) {
         mSchedulers = schedulers;
     }
 

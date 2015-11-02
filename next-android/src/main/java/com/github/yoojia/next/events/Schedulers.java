@@ -6,6 +6,7 @@ import android.os.Looper;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author 陈永佳 (chengyongjia@parkingwang.com)
@@ -84,6 +85,9 @@ public class Schedulers {
 
     protected Schedulers(ExecutorService threads) {
         this.threads = threads;
+        // set default reject handler
+        final ThreadPoolExecutor executor = (ThreadPoolExecutor) threads;
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     protected final ExecutorService threads;

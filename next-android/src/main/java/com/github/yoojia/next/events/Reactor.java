@@ -1,9 +1,8 @@
 package com.github.yoojia.next.events;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -11,27 +10,26 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 final class Reactor {
 
-    private final Set<Target> mTargetCached = new CopyOnWriteArraySet<>();
+    private final List<Target> mTargets = new ArrayList<>();
 
     public void add(Invokable invokable) {
-        mTargetCached.add(new Target(invokable));
+        mTargets.add(new Target(invokable));
     }
 
     public void remove(Object host) {
-        // CopyOnWriteArraySet not support iterator.remove()
-        final List<Target> removes = new ArrayList<>();
-        for (Target target : mTargetCached) {
-            if (target.invokable.isRemovable(host)) {
-                removes.add(target);
+        synchronized (mTargets) {
+            for (Iterator<Target> iterator = mTargets.iterator(); iterator.hasNext();) {
+                if (iterator.next().invokable.isRemovable(host)) {
+                    iterator.remove();
+                }
             }
         }
-        mTargetCached.removeAll(removes);
     }
 
     public List<Target.Trigger> emit(String event, Object value, boolean lenient) {
         final List<Target.Trigger> triggers = new ArrayList<>();
         boolean accepted = false;
-        for (Target target : mTargetCached) {
+        for (Target target : mTargets) {
             if( ! target.accept(event, value)) {
                 continue;
             }

@@ -22,10 +22,10 @@ class AnnotatedRegister {
         mAccess = listener;
     }
 
-    public void from(List<Method> annotatedMethods, Filter<Method> filter) {
+    public void batch(List<Method> annotatedMethods, Filter<Method> customFilter) {
         for (Method method : annotatedMethods){
             // Filter
-            if (filter != null && !filter.accept(method)) {
+            if (customFilter != null && !customFilter.accept(method)) {
                 continue;
             }
             // BASIC CHECK: Check if return type is Void
@@ -48,9 +48,6 @@ class AnnotatedRegister {
 
     private Meta[] makeMeta(Method method){
         final Class<?>[] types = method.getParameterTypes();
-        if (types.length == 0) {
-            throw new IllegalArgumentException("Require ONE or MORE params in method: " + method);
-        }
         final Annotation[][] as = method.getParameterAnnotations();
         final Meta[] events = new Meta[types.length];
         for (int i = 0; i < types.length; i++) {

@@ -8,6 +8,7 @@ import com.github.yoojia.next.lang.QuantumObject;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.github.yoojia.next.events.Logger.timeLog;
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
@@ -28,14 +29,10 @@ public class NextEvents {
     private final Reactor mReactor = new Reactor();
     private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
 
-    public NextEvents(Schedulers work, Schedulers emit, String tag){
+    public NextEvents(Schedulers work, String tag){
         mTag = tag;
-        mEmitSchedulers = emit;
-        mEventsRouter = new EventsRouter(work, mOnErrorsListener);
-    }
-
-    public NextEvents(Schedulers work, String tag) {
-        this(work, Schedulers.single(), tag);
+        mEmitSchedulers = Schedulers.single();
+        mEventsRouter = new EventsRouter(work);
     }
 
     /**
@@ -61,7 +58,7 @@ public class NextEvents {
                         mReactor.add(subscriber);
                 }
         });
-        register.from(annotated, filter);
+        register.batch(annotated, filter);
         timeLog(mTag, "EVENTS-REGISTER", startRegister);
         if (annotated.isEmpty()){
             Log.e(mTag, "Empty Handlers(with @Subscribe) !");
@@ -73,11 +70,11 @@ public class NextEvents {
      * 指定事件订阅接口及其匹配的事件. 当发生匹配事件时,接口被回调执行.
      * @param subscriber 指定的回调接口
      * @param async 是否异步执行
-     * @param events 事件名及类型对, 格式如: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class)
+     * @param events 事件名及类型对, 格式如: ('event-1', Event1.class, 'event-2', Event2.class)
      */
     public void subscribe(Subscriber subscriber, boolean async, Object... events) {
         final IllegalArgumentException exception = new IllegalArgumentException(
-                "Events must be String-Class<?> pairs. e.g: ('my-event-1', MyEvent1.class, 'my-event-2', MyEvent2.class) ");
+                "Events must be String-Class<?> pairs. e.g: ('event-1', Event1.class, 'event-2', Event2.class) ");
         if (events.length == 0 || events.length % 2 != 0) {
             throw exception;
         }
@@ -118,17 +115,7 @@ public class NextEvents {
      * @param lenient 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
      */
     public void emitImmediately(Object eventObject, String eventName, boolean lenient) {
-        notNull(eventObject, "Event object must not be null !");
-        notEmpty(eventName, "Event name must not be null !");
-        if (EventsFlags.PROCESSING) {
-            Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
-        }
-        final long emitStart = System.nanoTime();
-        final List<FuelTarget.Target> targets = mReactor.emit(eventName, eventObject, lenient);
-        timeLog(mTag, "EVENTS-EMIT", emitStart);
-        final long dispatchStart = System.nanoTime();
-        mEventsRouter.dispatch(targets);
-        timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
+        emitEvents(eventObject, eventName, lenient);
     }
 
     /**
@@ -138,12 +125,40 @@ public class NextEvents {
      * @param lenient 是否允许事件没有目标
      */
     public void emit(final Object eventObject, final String eventName, final boolean lenient) {
-        mEmitSchedulers.submit(new Runnable() {
+        mEmitSchedulers.submitSilently(new Callable<Void>() {
             @Override
-            public void run() {
+            public Void call() {
                 emitImmediately(eventObject, eventName, lenient);
+                return null;
             }
         }, true);
+    }
+
+    private void emitEvents(Object eventObject, String eventName, boolean lenient){
+        try{
+            notNull(eventObject, "Event object must not be null !");
+            notEmpty(eventName, "Event name must not be null !");
+            if (EventsFlags.PROCESSING) {
+                Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
+            }
+            final long emitStart = System.nanoTime();
+            final List<Target.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
+            if (EventsFlags.PROCESSING) {
+                Log.d(mTag, "- Matched triggers: " + triggers);
+            }
+            timeLog(mTag, "EVENTS-EMIT", emitStart);
+            final long dispatchStart = System.nanoTime();
+            mEventsRouter.dispatch(triggers);
+            timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
+            // Not sync task will throws exceptions
+        }catch (Exception exception) {
+            final EventsException throwIt = EventsException.recatch(exception);
+            if (mOnErrorsListener.has()) {
+                mOnErrorsListener.get().onErrors(throwIt);
+            }else{
+                throw throwIt;
+            }
+        }
     }
 
     /**
@@ -151,7 +166,7 @@ public class NextEvents {
      */
     public void destroy(){
         mEmitSchedulers.close();
-        mEventsRouter.shutdown();
+        mEventsRouter.close();
     }
 
     /**

@@ -2,8 +2,6 @@ package com.github.yoojia.next.events;
 
 import android.util.Log;
 
-import com.github.yoojia.next.lang.QuantumObject;
-
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -15,47 +13,35 @@ class EventsRouter {
 
     private static final String TAG = EventsRouter.class.getSimpleName();
 
-    private final Schedulers mThreads;
-    private final QuantumObject<OnErrorsListener> mOnErrorsListener;
+    private final Schedulers mSchedulers;
 
-    EventsRouter(Schedulers threads, QuantumObject<OnErrorsListener> onErrorsListener) {
-        mThreads = threads;
-        mOnErrorsListener = onErrorsListener;
+    EventsRouter(Schedulers schedulers) {
+        mSchedulers = schedulers;
     }
 
-    public void dispatch(List<FuelTarget.Target> targets){
-        for (final FuelTarget.Target target : targets){
+    public void dispatch(List<Target.Trigger> triggers) throws Exception {
+        for (final Target.Trigger trigger : triggers){
             final Callable<Void> finalTask = new Callable<Void>() {
                 @Override public Void call() throws Exception {
                     if (EventsFlags.PROCESSING) {
                         Log.d(TAG, "- Target run on thread.id= " + Thread.currentThread().getId());
                     }
                     try {
-                        target.invoke();
-                    } catch (Exception error) {
-                        if (mOnErrorsListener.has()) {
-                            mOnErrorsListener.get().onErrors(target.eventNames, error);
-                        }else{
-                            throw error;
+                        trigger.invoke();
+                    } catch (Exception exception) {
+                        if (EventsFlags.PROCESSING) {
+                            Log.d(TAG, "- Target invoke throws exceptions", exception);
                         }
                     }
                     return null;
                 }
             };
-            try{
-                mThreads.submit(finalTask, target.runAsync());
-            }catch (Exception error) {
-                if (mOnErrorsListener.has()) {
-                    mOnErrorsListener.get().onErrors(target.eventNames, error);
-                }else{
-                    throw new IllegalStateException(error);
-                }
-            }
+            mSchedulers.submit(finalTask, trigger.runAsync());
         }
     }
 
-    public void shutdown(){
-        mThreads.close();
+    public void close(){
+        mSchedulers.close();
     }
 
 }

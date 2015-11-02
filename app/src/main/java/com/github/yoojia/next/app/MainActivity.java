@@ -1,7 +1,6 @@
 package com.github.yoojia.next.app;
 
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Button;
@@ -11,11 +10,10 @@ import com.github.yoojia.next.clicks.ClickEvent;
 import com.github.yoojia.next.clicks.EmitClick;
 import com.github.yoojia.next.clicks.NextClickProxy;
 import com.github.yoojia.next.events.Event;
-import com.github.yoojia.next.events.EventsFlags;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.events.Subscriber;
 import com.github.yoojia.next.flux.Action;
-import com.github.yoojia.next.flux.ActionEvents;
+import com.github.yoojia.next.flux.Actions;
 import com.github.yoojia.next.flux.Dispatcher;
 import com.github.yoojia.next.views.AutoView;
 import com.github.yoojia.next.views.NextAutoView;
@@ -61,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        mDispatcher.subscribe(subscriber, true, ActionEvents.events(TestActions.NOTIFY_CLICK));
+        mDispatcher.subscribe(subscriber, true, Actions.from(TestActions.NOTIFY_CLICK));
     }
 
     @Subscribe

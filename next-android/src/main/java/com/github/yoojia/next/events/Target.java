@@ -10,14 +10,14 @@ import java.util.Set;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @since 1.0
  */
-class FuelTarget {
+class Target {
 
     public final Invokable invokable;
 
     private final HashMap<String, Meta> mMeta;
     private final HashMap<String, Object> mValues;
 
-    FuelTarget(Invokable invokable) {
+    Target(Invokable invokable) {
         this.invokable = invokable;
         mMeta = new HashMap<>(invokable.events.length);
         mValues = new HashMap<>(invokable.events.length);
@@ -28,7 +28,7 @@ class FuelTarget {
         }
     }
 
-    public Target emit(String event, Object value) {
+    public Trigger emit(String event, Object value) {
         if (NULL_VALUE != mValues.get(event)) {
             Log.w("FuelTarget", "- Override event: " + event);
         }
@@ -36,12 +36,12 @@ class FuelTarget {
         if (mValues.containsValue(NULL_VALUE)) {
             return null;
         }else{
-            final Target target = new Target(invokable, mValues);
+            final Trigger trigger = new Trigger(invokable, mValues);
             // reset value
             for (Meta item : mMeta.values()) {
                 mValues.put(item.event, NULL_VALUE);
             }
-            return target;
+            return trigger;
         }
     }
 
@@ -57,7 +57,7 @@ class FuelTarget {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final FuelTarget target = (FuelTarget) o;
+        final Target target = (Target) o;
         if (!mValues.equals(target.mValues)) return false;
         return invokable.equals(target.invokable);
     }
@@ -68,14 +68,14 @@ class FuelTarget {
         return 31 * result + invokable.hashCode();
     }
 
-    public static class Target {
+    public static class Trigger {
 
         private final Map<String, Object> mEvents = new HashMap<>();
         private final Invokable mInvokable;
 
         public final Set<String> eventNames;
 
-        private Target(Invokable invokable, Map<String, Object> events) {
+        private Trigger(Invokable invokable, Map<String, Object> events) {
             this.mInvokable = invokable;
             this.mEvents.putAll(events);
             this.eventNames = events.keySet();
@@ -89,6 +89,14 @@ class FuelTarget {
             return mInvokable.runAsync;
         }
 
+        @Override
+        public String toString() {
+            return "{" +
+                    "events=" + mEvents +
+                    ", invokable=" + mInvokable +
+                    ", eventNames=" + eventNames +
+                    '}';
+        }
     }
 
     private static class NullValue {

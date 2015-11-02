@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  */
 public final class Dispatcher {
 
-    private static final String STACK_WARNING = "Set dispatcher.enabledDebug(true) to collect methods stack !";
+    private static final String STACK_WARNING = "Set dispatcher.setDebugEnabled(true) to collect methods stack !";
 
     private boolean mDebugEnabled = false;
 
@@ -37,16 +37,6 @@ public final class Dispatcher {
     }
 
     /**
-     * 设置事件订阅接口
-     * @param subscriber 事件订阅接口
-     * @param async 是否异步处理
-     * @param events Action事件列表
-     */
-    public void subscribe(Subscriber subscriber, boolean async, ActionEvents events) {
-        mEvents.subscribe(subscriber, async, events.events());
-    }
-
-    /**
      * 反注册目标
      * @param host 目标对象实例
      */
@@ -55,8 +45,18 @@ public final class Dispatcher {
     }
 
     /**
-     * 将事件订阅接口取消订阅
-     * @param subscriber 要取消订阅事件的接口
+     * 设置事件订阅接口，并指定是否异步及订阅的事件
+     * @param subscriber 订阅接口
+     * @param async 是否异步执行
+     * @param actions 订阅事件
+     */
+    public void subscribe(Subscriber subscriber, boolean async, Actions actions) {
+        mEvents.subscribe(subscriber, async, actions.events());
+    }
+
+    /**
+     * 反注册事件订阅接口
+     * @param subscriber 事件订阅接口
      */
     public void unsubscribe(Subscriber subscriber) {
         mEvents.unsubscribe(subscriber);
@@ -88,10 +88,10 @@ public final class Dispatcher {
     }
 
     /**
-     * 是否雇用Debug模式。雇用Debug模式时，所有Action都会记录接口调用栈，方便调试。
-     * @param enabled 是否开启Debug模式
+     * 设置是否开启调试模式。如果开启调试模式，Dispatcher 会在Action中记录提交事件的调用栈
+     * @param enabled 是否开启调试模式
      */
-    public void enabledDebug(boolean enabled) {
+    public void setDebugEnabled(boolean enabled) {
         mDebugEnabled = enabled;
     }
 

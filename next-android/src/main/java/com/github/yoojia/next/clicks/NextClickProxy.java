@@ -5,12 +5,11 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.events.Schedulers;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.react.Schedules;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
@@ -24,10 +23,11 @@ public class NextClickProxy {
     private static final String TAG = "CLICKS";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
-    private final NextEvents mEvents;
+    private final NextEvents<ClickEvent> mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents(Schedulers.main(), TAG);
+        mEvents = new NextEvents<>();
+        mEvents.subscribeOn(Schedules.singleThread());
     }
 
     public void register(final Object host){
@@ -63,18 +63,7 @@ public class NextClickProxy {
                         throw new IllegalStateException(error);
                     }
                 }
-                // 只注册管理参数为ClickEvent类型的方法
-                final Filter<Method> filter = new Filter<Method>() {
-                    @Override public boolean accept(Method method) {
-                        // 点击只接受一个事件,并且只能是ClickEvent类型
-                        final Class<?>[] types = method.getParameterTypes();
-                        if (types.length != 1) {
-                            return false;
-                        }
-                        return ClickEvent.class.equals(types[0]);
-                    }
-                };
-                mEvents.subscribe(host, filter);
+                mEvents.register(host);
             }
         };
         // 使用匿名线程来处理点击代理的注册过程
@@ -92,7 +81,7 @@ public class NextClickProxy {
     public <T extends View> void emitClick(T view, String event){
         notNull(view, "View must not be null !");
         notNull(event, "Event must not be null !");
-        mEvents.emit(new ClickEvent(view), event, false/*Not allow deviate*/);
+        mEvents.emit(event, new ClickEvent(view));
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {

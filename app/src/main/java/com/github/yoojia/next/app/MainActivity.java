@@ -1,7 +1,6 @@
 package com.github.yoojia.next.app;
 
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Button;
@@ -10,10 +9,8 @@ import android.widget.TextView;
 import com.github.yoojia.next.clicks.ClickEvent;
 import com.github.yoojia.next.clicks.EmitClick;
 import com.github.yoojia.next.clicks.NextClickProxy;
-import com.github.yoojia.next.events.Event;
-import com.github.yoojia.next.events.EventsFlags;
+import com.github.yoojia.next.events.E;
 import com.github.yoojia.next.events.Subscribe;
-import com.github.yoojia.next.flux.Action;
 import com.github.yoojia.next.flux.Dispatcher;
 import com.github.yoojia.next.views.AutoView;
 import com.github.yoojia.next.views.NextAutoView;
@@ -38,9 +35,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        EventsFlags.enabledPerformanceLog(true);
-//        EventsFlags.enabledProcessingLog(true);
-
         // Inject views
         NextAutoView.use(this).inject(this);
         // Click proxy
@@ -53,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe
-    private void onClick(@Event("click") ClickEvent<Button> evt) {
+    private void onClick(@E("click") ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {
             long genData = System.currentTimeMillis();
@@ -62,53 +56,6 @@ public class MainActivity extends AppCompatActivity {
         }
         long diff = System.currentTimeMillis() - emitStart;
         Log.d(TAG, "- Emit 1000 event, takes: " + diff + "ms");
-    }
-
-//    @Subscribe
-    private void onData(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-        final long data = evt.data.getLong("data");
-//        Log.d(TAG, "- Received data: " + data);
-        mHelo.setText("Received data: " + data);
-    }
-
-    @Subscribe(async = true)
-    private void onData1(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData2(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData3(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData4(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData5(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData6(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData7(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData8(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData9(@Event(TestActions.NOTIFY_CLICK) Action evt) {
-    }
-
-    @Subscribe(async = true)
-    private void onData10(@Event(TestActions.NOTIFY_CLICK) Action evt) {
     }
 
     @Override

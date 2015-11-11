@@ -1,9 +1,11 @@
 package com.github.yoojia.next.flux;
 
+import com.github.yoojia.next.events.MethodFinder;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.react.Schedule;
-import com.github.yoojia.next.react.Schedules;
+
+import java.lang.reflect.Method;
 
 /**
  * @author 陈小锅 (yoojiachen@gmail.com)
@@ -23,7 +25,7 @@ public final class Dispatcher {
     }
 
     public Dispatcher() {
-        this(Schedules.singleThread());
+        mEvents = new NextEvents<>();
     }
 
     /**
@@ -31,7 +33,17 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
-        mEvents.register(host);
+        mEvents.register(host, new MethodFinder.Filter() {
+            // Accept All types
+            @Override public boolean acceptType(Class<?> type) {
+                return true;
+            }
+            // Only accept Action type
+            @Override public boolean acceptMethod(Method method) {
+                final Class<?>[] types = method.getParameterTypes();
+                return Action.class.equals(types[0]);
+            }
+        });
     }
 
     /**
@@ -57,7 +69,6 @@ public final class Dispatcher {
         logCallStack(action);
         mEvents.emit(action.type, action);
     }
-
 
     /**
      * 设置是否开启调试模式。如果开启调试模式，Dispatcher 会在Action中记录提交事件的调用栈

@@ -21,7 +21,13 @@ public class NextEvents<T> {
     private final Reactor<Event<T>> mReactor = new Reactor<>();
     private final Map<Object, Subscriber<Event<T>>> mRefs = new ConcurrentHashMap<>();
 
-    public NextEvents register(final Object target) {
+    /**
+     * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.
+     * @param target 包含@Subscribe注解的目标对象
+     * @param customFilter 指定Method过滤接口
+     * @return NextEvent实例
+     */
+    public NextEvents register(final Object target, final MethodFinder.Filter customFilter) {
         // Find @Subscribe methods
         final List<Method> annotatedMethods = new MethodFinder(target).find(new MethodFinder.Filter(){
 
@@ -33,7 +39,8 @@ public class NextEvents<T> {
                         className.startsWith("android.")) {
                     return false;
                 }
-                return true;
+                // custom filter
+                return customFilter == null || customFilter.acceptType(type);
             }
 
             @Override
@@ -58,7 +65,8 @@ public class NextEvents<T> {
                         ! E.class.equals(annotations[0][0].annotationType())) {
                     throw new IllegalArgumentException("Parameter without @E annotation");
                 }
-                return true;
+                // custom filter
+                return customFilter == null || customFilter.acceptMethod(method);
             }
         });
 
@@ -82,27 +90,46 @@ public class NextEvents<T> {
                 }
                 final int scheduleFlags = subscribe.async() ? Schedule.ASYNC : Schedule.MAIN;
                 mRefs.put(target, subscriber);
-                mReactor.add(Subscription.create1(
-                        subscriber, scheduleFlags, new SubscriptionFilter<T>(defineName, defineType)));
+                this.subscribe(subscriber, scheduleFlags, defineName, defineType);
             }
         }
 
         return this;
     }
 
+    /**
+     * 反注册目标对象, 所有这个对象的@Subscribe注解方法将被移出管理
+     * @param target 目标对象
+     * @return NextEvents实例
+     */
     public synchronized NextEvents unregister(Object target) {
         final Subscriber<Event<T>> subscriber = mRefs.remove(target);
         if (subscriber != null) {
-            mReactor.remove(subscriber);
+            unsubscribe(subscriber);
         }
         return this;
     }
 
-    public NextEvents subscribe(Subscriber<Event<T>> subscriber, int scheduleFlags, String name, Class<?> type) {
-        mReactor.add(Subscription.create1(subscriber, scheduleFlags, new SubscriptionFilter<T>(name, type)));
+    /**
+     * 注册Subscriber, 并指定参数
+     * @param subscriber Subscriber
+     * @param scheduleFlags 触发回调方式标志
+     * @param defineName 接受触发的事件名
+     * @param defineType 接受触发的事件类型
+     * @return NextEvents
+     */
+    public NextEvents subscribe(Subscriber<Event<T>> subscriber, int scheduleFlags,
+                                String defineName, Class<?> defineType) {
+        mReactor.add(Subscription.create1(subscriber, scheduleFlags,
+                new AcceptFilter<T>(defineName, defineType)));
         return this;
     }
 
+    /**
+     * 返回注册Subscriber
+     * @param subscriber Subscriber
+     * @return NextEvents
+     */
     public NextEvents unsubscribe(Subscriber<Event<T>> subscriber) {
         mReactor.remove(subscriber);
         return this;
@@ -120,6 +147,11 @@ public class NextEvents<T> {
 
     public void close() {
         mReactor.close();
+    }
+
+    @Deprecated
+    public void destroy(){
+        close();
     }
 
 }

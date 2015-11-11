@@ -4,12 +4,13 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
+import com.github.yoojia.next.events.MethodFinder;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.react.Schedules;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
@@ -27,7 +28,6 @@ public class NextClickProxy {
 
     public NextClickProxy() {
         mEvents = new NextEvents<>();
-        mEvents.subscribeOn(Schedules.singleThread());
     }
 
     public void register(final Object host){
@@ -48,22 +48,26 @@ public class NextClickProxy {
                     return;
                 }
                 for (Field field : fields){
-                    final boolean origin = field.isAccessible();
                     field.setAccessible(true);
                     final EmitClick evt = field.getAnnotation(EmitClick.class);
-                    if (!origin) {
-                        field.setAccessible(false);
-                    }
                     try {
                         final View view = bindClickView(host, field, evt.event());
                         if (Integer.MIN_VALUE != evt.keyCode()) {
                             mKeyCodeMapping.append(evt.keyCode(), view);
                         }
                     } catch (Exception error) {
-                        throw new IllegalStateException(error);
+                        throw new RuntimeException(error);
                     }
                 }
-                mEvents.register(host);
+                mEvents.register(host, new MethodFinder.Filter() {
+                    // 全部类型,内置过滤器已过滤Java, JavaX, Android接口
+                    @Override public boolean acceptType(Class<?> type) { return true; }
+                    // 只接受ClickEvent类型的方法
+                    @Override public boolean acceptMethod(Method method) {
+                        final Class<?>[] types = method.getParameterTypes();
+                        return ClickEvent.class.equals(types[0]);
+                    }
+                });
             }
         };
         // 使用匿名线程来处理点击代理的注册过程

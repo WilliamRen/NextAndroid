@@ -69,7 +69,9 @@ public class Reactor<T> {
         return new Callable<Void>() {
             @Override public Void call() throws Exception {
                 for (Subscription<T> callable : mSubs) {
-                    if ( ! callable.filter(input)) continue;
+                    if ( ! callable.filter(input)) {
+                        continue;
+                    }
                     final Callable<Void> finalRunTask = newSubscribeTask(callable, input);
                     final Schedule schedule = mSubSchedule.get();
                     schedule.submit(finalRunTask, callable.targetScheduleFlags);

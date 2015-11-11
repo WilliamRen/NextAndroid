@@ -8,12 +8,11 @@ import java.lang.annotation.Target;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
- * @version 2015-11-06
+ * @version 2015-11-07
  */
 @Inherited
-@Target(ElementType.METHOD)
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Subscribe {
-
-    boolean async() default false;
+public @interface E {
+    String value();
 }

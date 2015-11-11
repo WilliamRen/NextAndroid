@@ -20,7 +20,7 @@ public class ExceptionTest {
         private final CountDownLatch mCountDownLatch = new CountDownLatch(1);
 
         @Subscribe
-        public void on(@Event("test") String evt) {
+        public void on(@E("test") String evt) {
             mCountDownLatch.countDown();
             System.err.println("- Test NPE");
             throw new NullPointerException("TEST NPE");
@@ -33,19 +33,11 @@ public class ExceptionTest {
 
     @Test
     public void test() throws InterruptedException {
-        EventsFlags.enabledPerformanceLog(true);
-        EventsFlags.enabledProcessingLog(true);
-        NextEvents events = new NextEvents(Schedulers.single(), "Test");
+        NextEvents<Object> events = new NextEvents<>();
         Subscriber subscriber = new Subscriber();
-        events.subscribe(subscriber, null);
-        events.setOnErrorsListener(new OnErrorsListener() {
-            @Override
-            public void onErrors(EventsException exception) {
-                exception.printStackTrace();
-            }
-        });
-        events.emit("HAHA", "test", false);
+        events.register(events, null);
+        events.emit("test", "HAHAHA");
         subscriber.await();
-        events.destroy();
+        events.close();
     }
 }

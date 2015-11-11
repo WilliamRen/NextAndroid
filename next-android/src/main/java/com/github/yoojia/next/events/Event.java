@@ -1,19 +1,19 @@
 package com.github.yoojia.next.events;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
- * @version 2015-09-19
+ * @version 2015-11-07
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface Event {
-    /**
-     * Event name
-     */
-    String value();
+public class Event<T> {
+
+    public final String name;
+    public final T value;
+    final Class<?> type;
+
+    Event(String name, T value) {
+        this.name = name;
+        this.value = value;
+        final Class<?> type = value.getClass();
+        this.type = type.isPrimitive() ? Primitives.getWrap(type) : type;
+    }
 }

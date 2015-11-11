@@ -5,7 +5,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,35 +29,19 @@ public class EventsTest {
 
         private final CountDownLatch mCountDownLatch;
 
-        private Subscriber intSubscriber = new Subscriber() {
-            @Override
-            public void call(Map<String, Object> values) throws Exception {
-                intCalls.addAndGet(1);
-                mCountDownLatch.countDown();
-            }
-        };
-
-        private Subscriber strSubscriber = new Subscriber() {
-            @Override
-            public void call(Map<String, Object> values) throws Exception {
-                strCalls.addAndGet(1);
-                mCountDownLatch.countDown();
-            }
-        };
-
         private SubscriberHost(int countsPerType) {
-            totalCalls = countsPerType * 4;
+            totalCalls = countsPerType * 2;
             mCountDownLatch = new CountDownLatch(totalCalls);
         }
 
         @Subscribe(async = true)
-        public void onEvents(@Event("str") String start){
+        public void onEvents(@E("str") String start){
             strCalls.addAndGet(1);
             mCountDownLatch.countDown();
         }
 
-        @Subscribe
-        public void onEvents1(@Event("int") long start){
+        @Subscribe(async = true)
+        public void onEvents1(@E("int") long start){
             intCalls.addAndGet(1);
             mCountDownLatch.countDown();
         }
@@ -69,65 +52,27 @@ public class EventsTest {
 
     }
 
-    private final static int BASE_COUNT = 1000;
-    private final static int LARGE_COUNT = 10000 * 100;
+    private final static int BASE_COUNT = 10000 * 100;
 
     @Test
     public void testSingleThreadBase(){
-        testStress(BASE_COUNT, Schedulers.single(), "SingleThread-BASE");
-    }
-
-    @Test
-    public void testCPUx1ThreadsBase(){
-        testStress(BASE_COUNT, Schedulers.threads(), "CPUx1Threads-BASE");
-    }
-
-    @Test
-    public void testCPUx2ThreadsBase(){
-        testStress(BASE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 2), "CPUx2Threads-BASE");
-    }
-
-    @Test
-    public void testCPUx4ThreadsBase(){
-        testStress(BASE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 4), "CPUx4Threads-BASE");
-    }
-
-    @Test
-    public void testSingleThreadLarge(){
-        testStress(LARGE_COUNT, Schedulers.single(), "SingleThread-LARGE");
-    }
-
-    @Test
-    public void testCPUx1ThreadsLarge(){
-        testStress(LARGE_COUNT, Schedulers.threads(), "CPUx1Threads-LARGE");
-    }
-
-    @Test
-    public void testCPUx2ThreadsLarge(){
-        testStress(LARGE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 2), "CPUx2Threads-LARGE");
-    }
-
-    @Test
-    public void testCPUx4ThreadsLarge(){
-        testStress(LARGE_COUNT, Schedulers.threads(Runtime.getRuntime().availableProcessors() * 4), "CPUx4Threads-LARGE");
+        testStress(BASE_COUNT, "SingleThread");
     }
 
 
-    private void testStress(int count, Schedulers threads, String tag){
-        final NextEvents events = new NextEvents(threads, tag);
+    private void testStress(int count, String tag){
+        final NextEvents<Object> events = new NextEvents<>();
         final SubscriberHost subscriberHost = new SubscriberHost(count);
-        events.subscribe(subscriberHost.intSubscriber, false, Events.on1("int", long.class));
-        events.subscribe(subscriberHost.strSubscriber, true, Events.on1("str", String.class));
-        events.subscribe(subscriberHost, null);
+        events.register(subscriberHost, null);
 
         final long timeBeforeEmits = NOW();
         for (int i = 0; i < count; i++) {
 
             final long intEvent = NOW();
-            events.emit(intEvent, "int", false);
+            events.emit("int", intEvent);
 
             final String strEvent = String.valueOf(NOW());
-            events.emit(strEvent, "str", false);
+            events.emit("str", strEvent);
         }
 
         final long timeAfterEmits = NOW();
@@ -138,11 +83,11 @@ public class EventsTest {
             fail(tag + ", Wait fail");
         }
 
-        events.unsubscribe(subscriberHost);
-        events.destroy();
+        events.unregister(subscriberHost);
+        events.close();
 
-        assertThat(subscriberHost.intCalls.get(), equalTo(count * 2));
-        assertThat(subscriberHost.strCalls.get(), equalTo(count * 2));
+        assertThat(subscriberHost.intCalls.get(), equalTo(count));
+        assertThat(subscriberHost.strCalls.get(), equalTo(count));
 
         final long timeWhenAllFinished = NOW();
         final long emitMicros = (timeAfterEmits - timeBeforeEmits) / 1000;

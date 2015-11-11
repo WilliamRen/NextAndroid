@@ -4,8 +4,8 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
+import com.github.yoojia.next.events.MethodFinder;
 import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.events.Schedulers;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
 
@@ -24,10 +24,10 @@ public class NextClickProxy {
     private static final String TAG = "CLICKS";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
-    private final NextEvents mEvents;
+    private final NextEvents<ClickEvent> mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents(Schedulers.main(), TAG);
+        mEvents = new NextEvents<>();
     }
 
     public void register(final Object host){
@@ -48,33 +48,26 @@ public class NextClickProxy {
                     return;
                 }
                 for (Field field : fields){
-                    final boolean origin = field.isAccessible();
                     field.setAccessible(true);
                     final EmitClick evt = field.getAnnotation(EmitClick.class);
-                    if (!origin) {
-                        field.setAccessible(false);
-                    }
                     try {
                         final View view = bindClickView(host, field, evt.event());
                         if (Integer.MIN_VALUE != evt.keyCode()) {
                             mKeyCodeMapping.append(evt.keyCode(), view);
                         }
                     } catch (Exception error) {
-                        throw new IllegalStateException(error);
+                        throw new RuntimeException(error);
                     }
                 }
-                // 只注册管理参数为ClickEvent类型的方法
-                final Filter<Method> filter = new Filter<Method>() {
-                    @Override public boolean accept(Method method) {
-                        // 点击只接受一个事件,并且只能是ClickEvent类型
+                mEvents.register(host, new MethodFinder.Filter() {
+                    // 全部类型,内置过滤器已过滤Java, JavaX, Android接口
+                    @Override public boolean acceptType(Class<?> type) { return true; }
+                    // 只接受ClickEvent类型的方法
+                    @Override public boolean acceptMethod(Method method) {
                         final Class<?>[] types = method.getParameterTypes();
-                        if (types.length != 1) {
-                            return false;
-                        }
                         return ClickEvent.class.equals(types[0]);
                     }
-                };
-                mEvents.subscribe(host, filter);
+                });
             }
         };
         // 使用匿名线程来处理点击代理的注册过程
@@ -92,7 +85,7 @@ public class NextClickProxy {
     public <T extends View> void emitClick(T view, String event){
         notNull(view, "View must not be null !");
         notNull(event, "Event must not be null !");
-        mEvents.emit(new ClickEvent(view), event, false/*Not allow deviate*/);
+        mEvents.emit(event, new ClickEvent(view));
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {

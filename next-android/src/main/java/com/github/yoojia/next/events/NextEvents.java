@@ -28,6 +28,10 @@ public class NextEvents<T> {
      * @return NextEvent实例
      */
     public NextEvents register(final Object target, final MethodFinder.Filter customFilter) {
+        if (mRefs.containsKey(target)) {
+            throw new IllegalStateException("Target object was REGISTERED! " +
+                    "Register(...) $ Unregister(...) must call in pairs !");
+        }
         // Find @Subscribe methods
         final List<Method> annotatedMethods = new MethodFinder(target).find(new MethodFinder.Filter(){
 

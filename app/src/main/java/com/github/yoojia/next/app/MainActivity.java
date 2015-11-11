@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private Button mButton;
 
     private final Dispatcher mDispatcher = new Dispatcher();
+    private final NextClickProxy mClickProxy = new NextClickProxy();
+
     private TestStore mStore;
 
     @Override
@@ -38,12 +40,11 @@ public class MainActivity extends AppCompatActivity {
         // Inject views
         NextAutoView.use(this).inject(this);
         // Click proxy
-        NextClickProxy.bind(this);
+        mClickProxy.register(this);
         // Flux
         mStore = new TestStore(mDispatcher, this);
         mStore.register();
         mDispatcher.register(this);
-
     }
 
     @Subscribe
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mClickProxy.unregister(this);
         mStore.unregister();
         mDispatcher.unregister(this);
         mDispatcher.destroy();

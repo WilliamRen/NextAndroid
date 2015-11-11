@@ -30,7 +30,7 @@ public class NextClickProxy {
         mEvents = new NextEvents<>();
     }
 
-    public void register(final Object host){
+    public NextClickProxy register(final Object host){
         notNull(host, "Host must not be null !");
         final FieldsFinder finder = new FieldsFinder();
         finder.filter(new Filter<Field>() {
@@ -72,6 +72,7 @@ public class NextClickProxy {
         };
         // 使用匿名线程来处理点击代理的注册过程
         new Thread(task).start();
+        return this;
     }
 
     public void emitKeyCode(int keyCode) {
@@ -86,6 +87,11 @@ public class NextClickProxy {
         notNull(view, "View must not be null !");
         notNull(event, "Event must not be null !");
         mEvents.emit(event, new ClickEvent(view));
+    }
+
+    public NextClickProxy unregister(Object host){
+        mEvents.unregister(host);
+        return this;
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {
@@ -109,10 +115,14 @@ public class NextClickProxy {
         }
     }
 
-    public static NextClickProxy bind(Object host){
-        NextClickProxy proxy = new NextClickProxy();
+    /**
+     * 由使用者确保只会调用一次的绑定处理
+     * @param host 目标对象
+     * @return NextClickProxy对象
+     */
+    public static NextClickProxy oneshotBind(Object host) {
+        final NextClickProxy proxy = new NextClickProxy();
         proxy.register(host);
         return proxy;
     }
-
 }

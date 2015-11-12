@@ -1,6 +1,7 @@
 package com.github.yoojia.next.flux;
 
-import com.github.yoojia.next.lang.ObjectMap;
+import android.os.Bundle;
+
 import com.github.yoojia.next.lang.QuantumObject;
 
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
@@ -14,9 +15,9 @@ public final class Action {
     private final QuantumObject<String> mSenderStack = new QuantumObject<>();
 
     public final String type;
-    public final ObjectMap data;
+    public final Bundle data;
 
-    private Action(String type, ObjectMap data) {
+    private Action(String type, Bundle data) {
         notEmpty(type, "Action.type must not be null or empty !");
         this.type = type;
         this.data = data;
@@ -39,21 +40,41 @@ public final class Action {
 
     public static class Builder {
 
+        public final Bundle data = new Bundle();
         private String mType;
-        private final ObjectMap mData = new ObjectMap();
 
         public Builder setType(String type){
             mType = type;
             return this;
         }
 
-        public Builder putData(String key, Object value){
-            mData.put(key, value);
+        public Builder putInt(String key, int value) {
+            data.putInt(key, value);
+            return this;
+        }
+
+        public Builder putLong(String key, long value) {
+            data.putLong(key, value);
+            return this;
+        }
+
+        public Builder putFloat(String key, float value) {
+            data.putFloat(key, value);
+            return this;
+        }
+
+        public Builder putDouble(String key, double value) {
+            data.putDouble(key, value);
+            return this;
+        }
+
+        public Builder putString(String key, String value) {
+            data.putString(key, value);
             return this;
         }
 
         public Action build(){
-            return new Action(mType, mData);
+            return new Action(mType, data);
         }
     }
 

@@ -16,14 +16,14 @@ public class TestActions {
     public static Action newReqClick(long data) {
         return new Builder()
                 .setType(REQ_CLICK)
-                .putData("data", data)
+                .putLong("data", data)
                 .build();
     }
 
     public static Action newNotifyClick(long data) {
         return new Builder()
                 .setType(NOTIFY_CLICK)
-                .putData("data", data)
+                .putLong("data", data)
                 .build();
     }
 }

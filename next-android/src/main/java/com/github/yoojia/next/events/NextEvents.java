@@ -30,7 +30,7 @@ public class NextEvents<T> {
     public NextEvents register(final Object target, final MethodFinder.Filter customFilter) {
         if (mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was REGISTERED! " +
-                    "Register(...) $ Unregister(...) must call in pairs !");
+                    "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
         }
         // Find @Subscribe methods
         final List<Method> annotatedMethods = new MethodFinder(target).find(new MethodFinder.Filter(){
@@ -55,12 +55,12 @@ public class NextEvents<T> {
                 }
                 // Return type: void
                 if (! Void.TYPE.equals(method.getReturnType())) {
-                    throw new IllegalArgumentException("Return type of @Subscribe methods must be VOID");
+                    throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID");
                 }
                 // Method params
                 final Class<?>[] params = method.getParameterTypes();
                 if (params.length != 1) {
-                    throw new IllegalArgumentException("@Subscribe methods must has single parameter");
+                    throw new IllegalArgumentException("@Subscribe annotated methods must has single parameter");
                 }
                 // Check annotation:
                 final Annotation[][] annotations = method.getParameterAnnotations();

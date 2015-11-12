@@ -34,6 +34,7 @@ public class ViewFinder implements NextAutoView.Finder{
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T find(int viewId) {
         return (T) mRootView.findViewById(viewId);
     }

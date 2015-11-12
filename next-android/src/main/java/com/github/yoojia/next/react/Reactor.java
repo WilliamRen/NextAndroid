@@ -12,14 +12,12 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class Reactor<T> {
 
-    private final List<Subscription<T>> mSubs;
-    private final Map<Subscriber<T>, Subscription> mRefs;
+    private final List<Subscription<T>> mSubs = new CopyOnWriteArrayList<>();
+    private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
     private final Schedule mEmitSchedule;
     private final AtomicReference<Schedule> mSubSchedule;
 
     public Reactor() {
-        mSubs = new CopyOnWriteArrayList<>();
-        mRefs = new ConcurrentHashMap<>();
         mEmitSchedule = Schedules.caller();
         mSubSchedule = new AtomicReference<>(Schedules.singleThread());
     }

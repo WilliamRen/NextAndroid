@@ -1,5 +1,6 @@
 package com.github.yoojia.next.flux;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 
@@ -85,6 +86,11 @@ public final class Action {
             return this;
         }
 
+        public Builder putBoolean(String key, boolean value) {
+            data.putBoolean(key, value);
+            return this;
+        }
+
         public Builder putString(String key, String value) {
             data.putString(key, value);
             return this;
@@ -110,7 +116,7 @@ public final class Action {
         }
 
         public int getInt(String key) {
-            return getInt(key, 0);
+            return data.getInt(key);
         }
 
         public long getLong(String key, long defaultValue) {
@@ -118,7 +124,7 @@ public final class Action {
         }
 
         public long getLong(String key) {
-            return getLong(key, 0L);
+            return data.getLong(key);
         }
 
         public float getFloat(String key, float defaultValue) {
@@ -126,7 +132,7 @@ public final class Action {
         }
 
         public float getFloat(String key) {
-            return getFloat(key, 0f);
+            return data.getFloat(key);
         }
 
         public double getDouble(String key, double defaultValue) {
@@ -134,16 +140,28 @@ public final class Action {
         }
 
         public double getDouble(String key) {
-            return getDouble(key, 0d);
+            return data.getDouble(key);
         }
 
         public String getString(String key, String defaultValue) {
-            final String value = data.getString(key);
-            return value == null ? defaultValue : value;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                return data.getString(key, defaultValue);
+            }else{
+                final String value = data.getString(key);
+                return value == null ? defaultValue : value;
+            }
         }
 
         public String getString(String key) {
-            return getString(key, null);
+            return data.getString(key);
+        }
+
+        public boolean getBoolean(String key, boolean defaultValue) {
+            return data.getBoolean(key, defaultValue);
+        }
+
+        public boolean getBoolean(String key){
+            return data.getBoolean(key);
         }
 
         public Bundle getBundle(String key, Bundle defaultValue) {
@@ -170,7 +188,7 @@ public final class Action {
         }
 
         public Serializable getSerializable(String key) {
-            return getSerializable(key, null);
+            return data.getSerializable(key);
         }
 
         public Action build(){

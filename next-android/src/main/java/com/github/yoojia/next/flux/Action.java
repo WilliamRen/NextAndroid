@@ -45,7 +45,7 @@ public final class Action {
     }
 
     ////////////////////// Fast getters for data
-    
+
     public int getInt(String key, int defaultValue) {
         return data.getInt(key, defaultValue);
     }

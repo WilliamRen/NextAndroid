@@ -12,6 +12,10 @@ public class NextKVDB extends BaseKVDB {
         super(dbName, context);
     }
 
+    public NextKVDB(String dbName, Context context, boolean writeAsync) {
+        super(dbName, context, writeAsync);
+    }
+
     public int get(String key, int defValue){
         return Integer.valueOf(get(key, String.valueOf(defValue)));
     }

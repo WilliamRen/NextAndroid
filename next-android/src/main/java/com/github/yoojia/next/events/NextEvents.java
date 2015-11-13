@@ -7,6 +7,7 @@ import com.github.yoojia.next.react.Subscription;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NextEvents<T> {
 
     private final Reactor<Event<T>> mReactor = new Reactor<>();
-    private final Map<Object, Subscriber<Event<T>>> mRefs = new ConcurrentHashMap<>();
+    private final Map<Object, ArrayList<Subscriber<Event<T>>>> mRefs = new ConcurrentHashMap<>();
 
     /**
      * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.
@@ -83,6 +84,13 @@ public class NextEvents<T> {
         };
 
         synchronized (mRefs) {
+            final ArrayList<Subscriber<Event<T>>> subscribers;
+            if ( ! mRefs.containsKey(target)) {
+                subscribers = new ArrayList<>();
+                mRefs.put(target, subscribers);
+            }else{
+                subscribers = mRefs.get(target);
+            }
             for (final Method method : annotatedMethods) {
                 final MethodSubscriber<Event<T>> subscriber = new MethodSubscriber<>(target, method, args);
                 final Class<?> defineType = method.getParameterTypes()[0];
@@ -93,7 +101,7 @@ public class NextEvents<T> {
                     throw new IllegalArgumentException("Illegal Event name");
                 }
                 final int scheduleFlags = subscribe.async() ? Schedule.ASYNC : Schedule.MAIN;
-                mRefs.put(target, subscriber);
+                subscribers.add(subscriber);
                 this.subscribe(subscriber, scheduleFlags, defineName, defineType);
             }
         }
@@ -107,9 +115,16 @@ public class NextEvents<T> {
      * @return NextEvents实例
      */
     public synchronized NextEvents unregister(Object target) {
-        final Subscriber<Event<T>> subscriber = mRefs.remove(target);
-        if (subscriber != null) {
-            unsubscribe(subscriber);
+        if (! mRefs.containsKey(target)) {
+            if (mRefs.containsKey(target)) {
+                throw new IllegalStateException("Target object was NOT REGISTERED! " +
+                        "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
+            }
+        }else{
+            final ArrayList<Subscriber<Event<T>>> subscribers = mRefs.remove(target);
+            for (Subscriber<Event<T>> subscriber : subscribers) {
+                unsubscribe(subscriber);
+            }
         }
         return this;
     }

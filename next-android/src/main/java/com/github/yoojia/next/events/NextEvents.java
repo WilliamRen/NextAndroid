@@ -19,8 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class NextEvents<T> {
 
-    private final Reactor<Event<T>> mReactor = new Reactor<>();
-    private final Map<Object, ArrayList<Subscriber<Event<T>>>> mRefs = new ConcurrentHashMap<>();
+    private final Reactor<EventMeta<T>> mReactor = new Reactor<>();
+    private final Map<Object, ArrayList<Subscriber<EventMeta<T>>>> mRefs = new ConcurrentHashMap<>();
 
     /**
      * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.
@@ -74,17 +74,19 @@ public class NextEvents<T> {
                 return customFilter == null || customFilter.acceptMethod(method);
             }
         });
-
+        // Check Annotations
+        if (annotatedMethods.isEmpty()) {
+            Warning.show("NextEvents");
+        }
         // Filter methods and register them
-        final MethodSubscriber.Args<Event<T>> args = new MethodSubscriber.Args<Event<T>>() {
+        final MethodSubscriber.Args<EventMeta<T>> args = new MethodSubscriber.Args<EventMeta<T>>() {
             @Override
-            public Object[] toInvokeArgs(Event<T> input) {
+            public Object[] toInvokeArgs(EventMeta<T> input) {
                 return new Object[]{input.value};
             }
         };
-
         synchronized (mRefs) {
-            final ArrayList<Subscriber<Event<T>>> subscribers;
+            final ArrayList<Subscriber<EventMeta<T>>> subscribers;
             if ( ! mRefs.containsKey(target)) {
                 subscribers = new ArrayList<>();
                 mRefs.put(target, subscribers);
@@ -92,7 +94,7 @@ public class NextEvents<T> {
                 subscribers = mRefs.get(target);
             }
             for (final Method method : annotatedMethods) {
-                final MethodSubscriber<Event<T>> subscriber = new MethodSubscriber<>(target, method, args);
+                final MethodSubscriber<EventMeta<T>> subscriber = new MethodSubscriber<>(target, method, args);
                 final Class<?> defineType = method.getParameterTypes()[0];
                 final Evt event = (Evt) method.getParameterAnnotations()[0][0];
                 final Subscribe subscribe = method.getAnnotation(Subscribe.class);
@@ -121,8 +123,8 @@ public class NextEvents<T> {
                         "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
             }
         }else{
-            final ArrayList<Subscriber<Event<T>>> subscribers = mRefs.remove(target);
-            for (Subscriber<Event<T>> subscriber : subscribers) {
+            final ArrayList<Subscriber<EventMeta<T>>> subscribers = mRefs.remove(target);
+            for (Subscriber<EventMeta<T>> subscriber : subscribers) {
                 unsubscribe(subscriber);
             }
         }
@@ -137,7 +139,7 @@ public class NextEvents<T> {
      * @param defineType 接受触发的事件类型
      * @return NextEvents
      */
-    public NextEvents subscribe(Subscriber<Event<T>> subscriber, int scheduleFlags,
+    public NextEvents subscribe(Subscriber<EventMeta<T>> subscriber, int scheduleFlags,
                                 String defineName, Class<?> defineType) {
         mReactor.add(Subscription.create1(subscriber, scheduleFlags,
                 new AcceptFilter<T>(defineName, defineType)));
@@ -149,13 +151,13 @@ public class NextEvents<T> {
      * @param subscriber Subscriber
      * @return NextEvents
      */
-    public NextEvents unsubscribe(Subscriber<Event<T>> subscriber) {
+    public NextEvents unsubscribe(Subscriber<EventMeta<T>> subscriber) {
         mReactor.remove(subscriber);
         return this;
     }
 
     public NextEvents emit(String name, T value) {
-        mReactor.emit(new Event<>(name, value));
+        mReactor.emit(new EventMeta<>(name, value));
         return this;
     }
 

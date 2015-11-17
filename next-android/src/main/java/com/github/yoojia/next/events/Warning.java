@@ -1,4 +1,4 @@
-package com.github.yoojia.next.clicks;
+package com.github.yoojia.next.events;
 
 import android.util.Log;
 
@@ -10,6 +10,6 @@ class Warning {
 
     public static void show(String tag){
         Log.e(tag, "- Seems something wrong in release mode? Try add belows configs to your [proguard-rules.pro] file: ");
-        Log.e(tag, "-keepclassmembers class * { @com.github.yoojia.next.clicks.EmitClick *; }");
+        Log.e(tag, "-keepclassmembers class * { @com.github.yoojia.next.events.Evt *; @com.github.yoojia.next.events.Subscribe *; }");
     }
 }

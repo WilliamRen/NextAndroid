@@ -1,180 +1,178 @@
 package com.github.yoojia.next.events;
 
-import android.util.Log;
+import com.github.yoojia.next.react.Reactor;
+import com.github.yoojia.next.react.Schedule;
+import com.github.yoojia.next.react.Subscriber;
+import com.github.yoojia.next.react.Subscription;
 
-import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.lang.MethodsFinder;
-import com.github.yoojia.next.lang.QuantumObject;
-
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static com.github.yoojia.next.events.Logger.timeLog;
-import static com.github.yoojia.next.lang.Preconditions.notEmpty;
-import static com.github.yoojia.next.lang.Preconditions.notNull;
 
 /**
- * Next Events
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
- * @version 2015-10-11
+ * @version 2015-11-07
  */
-public class NextEvents {
+public class NextEvents<T> {
 
-    protected final String mTag;
-
-    private final EventsRouter mEventsRouter;
-    private final Schedulers mEmitSchedulers;
-
-    private final Reactor mReactor = new Reactor();
-    private final QuantumObject<OnErrorsListener> mOnErrorsListener = new QuantumObject<>();
-
-    public NextEvents(Schedulers work, String tag){
-        mTag = tag;
-        mEmitSchedulers = Schedulers.single();
-        mEventsRouter = new EventsRouter(work);
-    }
+    private final Reactor<EventMeta<T>> mReactor = new Reactor<>();
+    private final Map<Object, ArrayList<Subscriber<EventMeta<T>>>> mRefs = new ConcurrentHashMap<>();
 
     /**
-     * 从指定对象中扫描添加了 @Subscribe 注解的事件订阅方法. 这些事件订阅方法将在发生匹配事件时被回调执行.
-     * @param targetHost 指定被扫描的对象
-     * @param filter 过滤扫描后的方法的接口;
+     * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.
+     * @param target 包含@Subscribe注解的目标对象
+     * @param customFilter 指定Method过滤接口
+     * @return NextEvent实例
      */
-    public void subscribe(Object targetHost, Filter<Method> filter) {
-        final long startScan = System.nanoTime();
-        final MethodsFinder finder = new MethodsFinder();
-        finder.filter(new Filter<Method>() {
-            @Override public boolean accept(Method method) {
-                return method.isAnnotationPresent(Subscribe.class);
-            }
-        });
-        final List<Method> annotated = finder.find(targetHost.getClass());
-        timeLog(mTag, "EVENTS-SCAN", startScan);
-        final long startRegister = System.nanoTime();
-        final AnnotatedRegister register = new AnnotatedRegister(targetHost,
-                new AnnotatedRegister.Access<MethodInvoker>() {
-                    @Override
-                    public void on(MethodInvoker subscriber) {
-                        mReactor.add(subscriber);
-                }
-        });
-        register.batch(annotated, filter);
-        timeLog(mTag, "EVENTS-REGISTER", startRegister);
-        if (annotated.isEmpty()){
-            Log.e(mTag, "Empty Handlers(with @Subscribe) !");
-            Warning.show(mTag);
+    public NextEvents register(final Object target, final MethodFinder.Filter customFilter) {
+        if (mRefs.containsKey(target)) {
+            throw new IllegalStateException("Target object was REGISTERED! " +
+                    "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
         }
-    }
+        // Find @Subscribe methods
+        final List<Method> annotatedMethods = new MethodFinder(target).find(new MethodFinder.Filter(){
 
-    /**
-     * 指定事件订阅接口及其匹配的事件. 当发生匹配事件时,接口被回调执行.
-     * @param subscriber 指定的回调接口
-     * @param async 是否异步执行
-     * @param events 事件名及类型对, 格式如: ('event-1', Event1.class, 'event-2', Event2.class)
-     */
-    public void subscribe(Subscriber subscriber, boolean async, Object... events) {
-        final IllegalArgumentException exception = new IllegalArgumentException(
-                "Events must be String-Class<?> pairs. e.g: ('event-1', Event1.class, 'event-2', Event2.class) ");
-        if (events.length == 0 || events.length % 2 != 0) {
-            throw exception;
-        }
-        final Meta[] meta = new Meta[events.length / 2];
-        for (int i = 0; i < events.length / 2; i++) {
-            final Object event = events[i * 2];
-            final Object type = events[i * 2 + 1];
-            if (!(event instanceof String) || !(type instanceof Class<?>)) {
-                throw exception;
-            }
-            meta[i] = new Meta((String)event, (Class<?>)type);
-        }
-        mReactor.add(new SubscriberInvoker(meta, subscriber, async));
-    }
-
-    /**
-     * 反注册将指定对象的全部事件订阅方法
-     * @param targetHost 指定对象
-     */
-    public void unsubscribe(Object targetHost) {
-        notNull(targetHost, "Target host host must not be null !");
-        mReactor.remove(targetHost);
-    }
-
-    /**
-     * 反注册指定事件订阅接口
-     * @param subscriber 指定事件订阅接口
-     */
-    public void unsubscribe(Subscriber subscriber) {
-        notNull(subscriber, "Subscriber host must not be null !");
-        mReactor.remove(subscriber);
-    }
-
-    /**
-     * 提交事件并立即（阻塞）执行
-     * @param eventObject 事件对象
-     * @param eventName 事件名
-     * @param lenient 是否允许事件没有目标. 如果为false, 当事件没有目标接受时,会抛出异常.
-     */
-    public void emitImmediately(Object eventObject, String eventName, boolean lenient) {
-        emitEvents(eventObject, eventName, lenient);
-    }
-
-    /**
-     * 提交事件, 异步地执行
-     * @param eventObject 事件对象
-     * @param eventName 事件名
-     * @param lenient 是否允许事件没有目标
-     */
-    public void emit(final Object eventObject, final String eventName, final boolean lenient) {
-        mEmitSchedulers.submitSilently(new Callable<Void>() {
             @Override
-            public Void call() {
-                emitImmediately(eventObject, eventName, lenient);
-                return null;
+            public boolean acceptType(Class<?> type) {
+                final String className = type.getName();
+                if (className.startsWith("java.") ||
+                        className.startsWith("javax.") ||
+                        className.startsWith("android.")) {
+                    return false;
+                }
+                // custom filter
+                return customFilter == null || customFilter.acceptType(type);
             }
-        }, true);
-    }
 
-    private void emitEvents(Object eventObject, String eventName, boolean lenient){
-        try{
-            notNull(eventObject, "Event object must not be null !");
-            notEmpty(eventName, "Event name must not be null !");
-            if (EventsFlags.PROCESSING) {
-                Log.d(mTag, "- Emit EVENT: NAME=" + eventName + ", OBJECT=" + eventObject + ", LENIENT=" + lenient);
+            @Override
+            public boolean acceptMethod(Method method) {
+                // With @Subscribe annotation
+                if (! method.isAnnotationPresent(Subscribe.class)) {
+                    return false;
+                }
+                // Return type: void
+                if (! Void.TYPE.equals(method.getReturnType())) {
+                    throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID");
+                }
+                // Method params
+                final Class<?>[] params = method.getParameterTypes();
+                if (params.length != 1) {
+                    throw new IllegalArgumentException("@Subscribe annotated methods must has single parameter");
+                }
+                // Check annotation:
+                final Annotation[][] annotations = method.getParameterAnnotations();
+                if (annotations.length == 0 ||
+                        annotations[0].length == 0 ||
+                        ! Evt.class.equals(annotations[0][0].annotationType())) {
+                    throw new IllegalArgumentException("Parameter without @Evt annotation");
+                }
+                // custom filter
+                return customFilter == null || customFilter.acceptMethod(method);
             }
-            final long emitStart = System.nanoTime();
-            final List<Target.Trigger> triggers = mReactor.emit(eventName, eventObject, lenient);
-            if (EventsFlags.PROCESSING) {
-                Log.d(mTag, "- Matched triggers: " + triggers);
+        });
+        // Check Annotations
+        if (annotatedMethods.isEmpty()) {
+            Warning.show("NextEvents");
+        }
+        // Filter methods and register them
+        final MethodSubscriber.Args<EventMeta<T>> args = new MethodSubscriber.Args<EventMeta<T>>() {
+            @Override
+            public Object[] toInvokeArgs(EventMeta<T> input) {
+                return new Object[]{input.value};
             }
-            timeLog(mTag, "EVENTS-EMIT", emitStart);
-            final long dispatchStart = System.nanoTime();
-            mEventsRouter.dispatch(triggers);
-            timeLog(mTag, "EVENTS-DISPATCH", dispatchStart);
-            // Not sync task will throws exceptions
-        }catch (Exception exception) {
-            final EventsException throwIt = EventsException.recatch(exception);
-            if (mOnErrorsListener.has()) {
-                mOnErrorsListener.get().onErrors(throwIt);
+        };
+        synchronized (mRefs) {
+            final ArrayList<Subscriber<EventMeta<T>>> subscribers;
+            if ( ! mRefs.containsKey(target)) {
+                subscribers = new ArrayList<>();
+                mRefs.put(target, subscribers);
             }else{
-                throw throwIt;
+                subscribers = mRefs.get(target);
+            }
+            for (final Method method : annotatedMethods) {
+                final MethodSubscriber<EventMeta<T>> subscriber = new MethodSubscriber<>(target, method, args);
+                final Class<?> defineType = method.getParameterTypes()[0];
+                final Evt event = (Evt) method.getParameterAnnotations()[0][0];
+                final Subscribe subscribe = method.getAnnotation(Subscribe.class);
+                final String defineName = event.value();
+                if (defineName == null || defineName.isEmpty()) {
+                    throw new IllegalArgumentException("Illegal Event name");
+                }
+                final int scheduleFlags = subscribe.async() ? Schedule.ASYNC : Schedule.MAIN;
+                subscribers.add(subscriber);
+                this.subscribe(subscriber, scheduleFlags, defineName, defineType);
             }
         }
+
+        return this;
     }
 
     /**
-     * 销毁 NextEvents
+     * 反注册目标对象, 所有这个对象的@Subscribe注解方法将被移出管理
+     * @param target 目标对象
+     * @return NextEvents实例
      */
+    public synchronized NextEvents unregister(Object target) {
+        if (! mRefs.containsKey(target)) {
+            if (mRefs.containsKey(target)) {
+                throw new IllegalStateException("Target object was NOT REGISTERED! " +
+                        "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
+            }
+        }else{
+            final ArrayList<Subscriber<EventMeta<T>>> subscribers = mRefs.remove(target);
+            for (Subscriber<EventMeta<T>> subscriber : subscribers) {
+                unsubscribe(subscriber);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * 注册Subscriber, 并指定参数
+     * @param subscriber Subscriber
+     * @param scheduleFlags 触发回调方式标志
+     * @param defineName 接受触发的事件名
+     * @param defineType 接受触发的事件类型
+     * @return NextEvents
+     */
+    public NextEvents subscribe(Subscriber<EventMeta<T>> subscriber, int scheduleFlags,
+                                String defineName, Class<?> defineType) {
+        mReactor.add(Subscription.create1(subscriber, scheduleFlags,
+                new AcceptFilter<T>(defineName, defineType)));
+        return this;
+    }
+
+    /**
+     * 返回注册Subscriber
+     * @param subscriber Subscriber
+     * @return NextEvents
+     */
+    public NextEvents unsubscribe(Subscriber<EventMeta<T>> subscriber) {
+        mReactor.remove(subscriber);
+        return this;
+    }
+
+    public NextEvents emit(String name, T value) {
+        mReactor.emit(new EventMeta<>(name, value));
+        return this;
+    }
+
+    public NextEvents subscribeOn(Schedule schedule) {
+        mReactor.subscribeOn(schedule);
+        return this;
+    }
+
+    public void close() {
+        mReactor.close();
+    }
+
+    @Deprecated
     public void destroy(){
-        mEmitSchedulers.close();
-        mEventsRouter.close();
-    }
-
-    /**
-     * 设置执行目标方法发生的错误的处理回调接口
-     * @param listener 处理回调接口
-     */
-    public void setOnErrorsListener(OnErrorsListener listener) {
-        mOnErrorsListener.set(listener);
+        close();
     }
 
 }

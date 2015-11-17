@@ -24,7 +24,6 @@ class BaseKVDB {
         this(dbName, context, false);
     }
 
-
     public BaseKVDB(String dbName, Context context, boolean writeAsync) {
         final String finalDBName = "com_github_yoojia_next_kvdb_" + dbName;
         mPreferences = context.getSharedPreferences(finalDBName, Context.MODE_PRIVATE);

@@ -13,6 +13,6 @@ import java.lang.annotation.Target;
 @Inherited
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface E {
+public @interface Evt {
     String value();
 }

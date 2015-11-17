@@ -67,8 +67,8 @@ public class NextEvents<T> {
                 final Annotation[][] annotations = method.getParameterAnnotations();
                 if (annotations.length == 0 ||
                         annotations[0].length == 0 ||
-                        ! E.class.equals(annotations[0][0].annotationType())) {
-                    throw new IllegalArgumentException("Parameter without @E annotation");
+                        ! Evt.class.equals(annotations[0][0].annotationType())) {
+                    throw new IllegalArgumentException("Parameter without @Evt annotation");
                 }
                 // custom filter
                 return customFilter == null || customFilter.acceptMethod(method);
@@ -94,7 +94,7 @@ public class NextEvents<T> {
             for (final Method method : annotatedMethods) {
                 final MethodSubscriber<Event<T>> subscriber = new MethodSubscriber<>(target, method, args);
                 final Class<?> defineType = method.getParameterTypes()[0];
-                final E event = (E) method.getParameterAnnotations()[0][0];
+                final Evt event = (Evt) method.getParameterAnnotations()[0][0];
                 final Subscribe subscribe = method.getAnnotation(Subscribe.class);
                 final String defineName = event.value();
                 if (defineName == null || defineName.isEmpty()) {

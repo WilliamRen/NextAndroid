@@ -35,13 +35,13 @@ public class EventsTest {
         }
 
         @Subscribe(async = true)
-        public void onEvents(@E("str") String start){
+        public void onEvents(@Evt("str") String start){
             strCalls.addAndGet(1);
             mCountDownLatch.countDown();
         }
 
         @Subscribe(async = true)
-        public void onEvents1(@E("int") long start){
+        public void onEvents1(@Evt("int") long start){
             intCalls.addAndGet(1);
             mCountDownLatch.countDown();
         }

@@ -9,6 +9,7 @@ import com.github.yoojia.next.lang.QuantumObject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static com.github.yoojia.next.lang.Preconditions.notEmpty;
 
@@ -108,13 +109,33 @@ public final class Action {
         return getBundle(key, new Bundle(0));
     }
 
+    @Deprecated
     public ArrayList<? extends Parcelable> getArrayList(String key, ArrayList<? extends Parcelable> defaultValue) {
+        return getParcelableArrayList(key, defaultValue);
+    }
+
+    public ArrayList<? extends Parcelable> getParcelableArrayList(String key, ArrayList<? extends Parcelable> defaultValue) {
         ArrayList<? extends Parcelable> value =  data.getParcelableArrayList(key);
         return value == null ? defaultValue : value;
     }
 
+    @Deprecated
     public ArrayList<? extends Parcelable> getArrayList(String key) {
+        return getParcelableArrayList(key);
+    }
+
+    public ArrayList<? extends Parcelable> getParcelableArrayList(String key) {
         return getArrayList(key, new ArrayList<Parcelable>(0));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Parcelable> ArrayList<T> getTypedParcelableArrayList(String key) {
+        return (ArrayList<T>) getParcelableArrayList(key, new ArrayList<Parcelable>(0));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Parcelable> ArrayList<T>  getTypedParcelableArrayList(String key, ArrayList<T> defaultValue) {
+        return (ArrayList<T>) getParcelableArrayList(key, defaultValue);
     }
 
     public Serializable getSerializable(String key, Serializable defaultValue) {
@@ -124,6 +145,29 @@ public final class Action {
 
     public Serializable getSerializable(String key) {
         return data.getSerializable(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Serializable> T getTypedSerializable(String key, T defaultValue) {
+        return (T) getSerializable(key, defaultValue);
+    }
+
+    public Parcelable getParcelable(String key, Parcelable defaultValue) {
+        final Parcelable value = data.getParcelable(key);
+        return value == null ? defaultValue : value;
+    }
+
+    public Parcelable getParcelable(String key) {
+        return data.getParcelable(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Parcelable> T getTypedParcelable(String key, T defaultValue) {
+        return (T) getParcelable(key, defaultValue);
+    }
+
+    public <T extends Parcelable> T getTypedParcelable(String key) {
+        return data.getParcelable(key);
     }
 
     @Override
@@ -145,6 +189,26 @@ public final class Action {
 
         public Builder setType(String type){
             mType = type;
+            return this;
+        }
+
+        public Builder putByte(String key, byte value) {
+            data.putByte(key, value);
+            return this;
+        }
+
+        public Builder putChar(String key, char value) {
+            data.putChar(key, value);
+            return this;
+        }
+
+        public Builder putShort(String key, short value) {
+            data.putShort(key, value);
+            return this;
+        }
+
+        public Builder putCharSequence(String key, CharSequence value) {
+            data.putCharSequence(key, value);
             return this;
         }
 
@@ -183,13 +247,28 @@ public final class Action {
             return this;
         }
 
-        public Builder putArrayList(String key, ArrayList<? extends Parcelable> value) {
-            data.putParcelableArrayList(key, value);
+        public Builder putSerializable(String key, Serializable value) {
+            data.putSerializable(key, value);
             return this;
         }
 
-        public Builder putSerializable(String key, Serializable value) {
-            data.putSerializable(key, value);
+        public Builder putParcelable(String key, Parcelable value) {
+            data.putParcelable(key, value);
+            return this;
+        }
+
+        public Builder putParcelableArray(String key, Parcelable[] values) {
+            data.putParcelableArray(key, values);
+            return this;
+        }
+
+        @Deprecated
+        public Builder putArrayList(String key, ArrayList<? extends Parcelable> value) {
+            return putParcelableArrayList(key, value);
+        }
+
+        public Builder putParcelableArrayList(String key, ArrayList<? extends Parcelable> value) {
+            data.putParcelableArrayList(key, value);
             return this;
         }
 

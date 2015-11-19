@@ -126,6 +126,15 @@ public final class Action {
         return data.getSerializable(key);
     }
 
+    public Parcelable getParcelable(String key, Parcelable defaultValue) {
+        final Parcelable value = data.getParcelable(key);
+        return value == null ? defaultValue : value;
+    }
+
+    public Parcelable getParcelable(String key) {
+        return data.getParcelable(key);
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -190,6 +199,11 @@ public final class Action {
 
         public Builder putSerializable(String key, Serializable value) {
             data.putSerializable(key, value);
+            return this;
+        }
+
+        public Builder putParcelable(String key, Parcelable value) {
+            data.putParcelable(key, value);
             return this;
         }
 

@@ -87,6 +87,7 @@ public class NextEvents<T> {
         };
         synchronized (mRefs) {
             final ArrayList<Subscriber<EventMeta<T>>> subscribers;
+            // if not registered, ad to Refs
             if ( ! mRefs.containsKey(target)) {
                 subscribers = new ArrayList<>();
                 mRefs.put(target, subscribers);
@@ -118,11 +119,9 @@ public class NextEvents<T> {
      */
     public synchronized NextEvents unregister(Object target) {
         if (! mRefs.containsKey(target)) {
-            if (mRefs.containsKey(target)) {
-                throw new IllegalStateException("Target object was NOT REGISTERED! " +
-                        "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
-            }
-        }else{
+            throw new IllegalStateException("Target object was NOT REGISTERED! " +
+                    "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
+        }else{// registered
             final ArrayList<Subscriber<EventMeta<T>>> subscribers = mRefs.remove(target);
             for (Subscriber<EventMeta<T>> subscriber : subscribers) {
                 unsubscribe(subscriber);
@@ -168,11 +167,6 @@ public class NextEvents<T> {
 
     public void close() {
         mReactor.close();
-    }
-
-    @Deprecated
-    public void destroy(){
-        close();
     }
 
 }

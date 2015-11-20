@@ -24,7 +24,7 @@ public @interface EmitClick {
      * 事件名
      * @return String
      */
-    String value();
+    String value() default "";
 
     /**
      * 按键码

@@ -42,7 +42,7 @@ public class Reactor<T> {
     public Reactor<T> emit(T input) {
         final Callable<Void> task = newEmitWrapTask(input);
         try {
-            mEmitSchedule.submit(task, Schedule.CALLER);
+            mEmitSchedule.submit(task, Schedule.FLAG_CALLER);
         } catch (Exception err) {
             throw new RuntimeException(err);
         }

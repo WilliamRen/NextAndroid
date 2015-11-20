@@ -15,8 +15,8 @@ public class Schedules {
     public static Schedule caller() {
         return new Schedule() {
             @Override public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                if (Schedule.CALLER != scheduleFlags) {
-                    throw new IllegalArgumentException("Unsupported flags(Schedule.MAIN/ASYNC) in CALLER Schedule !");
+                if (Schedule.FLAG_CALLER != scheduleFlags) {
+                    throw new IllegalArgumentException("Unsupported flags(Schedule.FLAG_MAIN/Schedule.FLAG_ASYNC) in CALLER Schedule !");
                 }
                 task.call();
             }
@@ -30,16 +30,16 @@ public class Schedules {
         return new Schedule() {
 
             private final Handler mMainHandler = new Handler(Looper.getMainLooper());
-            private final ExecutorService mThread = Executors.newSingleThreadExecutor();
+            private final ExecutorService mThreads = Executors.newSingleThreadExecutor();
 
             @Override
             public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                run(mThread, mMainHandler, task, scheduleFlags);
+                run(mThreads, mMainHandler, task, scheduleFlags);
             }
 
             @Override
             public void close() {
-                mThread.shutdown();
+                mThreads.shutdown();
             }
         };
     }
@@ -48,37 +48,41 @@ public class Schedules {
         return new Schedule() {
 
             private final Handler mMainHandler = new Handler(Looper.getMainLooper());
-            private final ExecutorService mThread = Executors.newFixedThreadPool(threads);
+            private final ExecutorService mThreads = Executors.newFixedThreadPool(threads);
 
             @Override
             public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                run(mThread, mMainHandler, task, scheduleFlags);
+                run(mThreads, mMainHandler, task, scheduleFlags);
             }
 
             @Override
             public void close() {
-                mThread.shutdown();
+                mThreads.shutdown();
             }
         };
     }
 
     private static void run(ExecutorService threads, Handler mainHandler, final Callable<Void> task, int scheduleFlags) throws Exception{
-        if (Schedule.ASYNC == scheduleFlags) {
-            threads.submit(task);
-        }else if (Schedule.CALLER == scheduleFlags){
-            task.call();
-        }else if (Schedule.MAIN == scheduleFlags){
-            mainHandler.post(new Runnable() {
-                @Override public void run() {
-                    try {
-                        task.call();
-                    } catch (Exception err) {
-                        throw new RuntimeException(err);
+        switch (scheduleFlags) {
+            case Schedule.FLAG_ASYNC:
+                threads.submit(task);
+                break;
+            case Schedule.FLAG_CALLER:
+                task.call();
+                break;
+            case Schedule.FLAG_MAIN:
+                mainHandler.post(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            task.call();
+                        } catch (Exception err) {
+                            throw new RuntimeException(err);
+                        }
                     }
-                }
-            });
-        }else {
-            throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);
+                });
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);
         }
     }
 }

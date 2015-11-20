@@ -1,5 +1,6 @@
 package com.github.yoojia.next.clicks;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
@@ -51,7 +52,8 @@ public class NextClickProxy {
                     field.setAccessible(true);
                     final EmitClick evt = field.getAnnotation(EmitClick.class);
                     try {
-                        final View view = bindClickView(host, field, evt.event());
+                        final String defineName = evt.value();
+                        final View view = bindClickView(host, field, TextUtils.isEmpty(defineName) ? evt.event() : defineName);
                         if (Integer.MIN_VALUE != evt.keyCode()) {
                             mKeyCodeMapping.append(evt.keyCode(), view);
                         }
@@ -95,6 +97,9 @@ public class NextClickProxy {
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {
+        if (TextUtils.isEmpty(event)) {
+            throw new IllegalArgumentException("Illegal click event name: " + event);
+        }
         final boolean origin = field.isAccessible();
         field.setAccessible(true);
         final Object viewField = field.get(host);

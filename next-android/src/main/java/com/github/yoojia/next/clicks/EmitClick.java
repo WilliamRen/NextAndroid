@@ -14,9 +14,17 @@ import java.lang.annotation.RetentionPolicy;
 @java.lang.annotation.Target(ElementType.FIELD)
 public @interface EmitClick {
     /**
-     * 事件名
+     * 事件名, 使用 value()
+     * @return String
      */
-    String event();
+    @Deprecated
+    String event() default "";
+
+    /**
+     * 事件名
+     * @return String
+     */
+    String value();
 
     /**
      * 按键码

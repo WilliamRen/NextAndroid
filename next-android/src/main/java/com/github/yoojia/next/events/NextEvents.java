@@ -1,5 +1,7 @@
 package com.github.yoojia.next.events;
 
+import android.text.TextUtils;
+
 import com.github.yoojia.next.react.Reactor;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Subscriber;
@@ -100,10 +102,10 @@ public class NextEvents<T> {
                 final Evt event = (Evt) method.getParameterAnnotations()[0][0];
                 final Subscribe subscribe = method.getAnnotation(Subscribe.class);
                 final String defineName = event.value();
-                if (defineName == null || defineName.isEmpty()) {
-                    throw new IllegalArgumentException("Illegal Event name");
+                if (TextUtils.isEmpty(defineName)) {
+                    throw new IllegalArgumentException("Event name must not empty");
                 }
-                final int scheduleFlags = subscribe.async() ? Schedule.ASYNC : Schedule.MAIN;
+                final int scheduleFlags = subscribe.async() ? Schedule.FLAG_ASYNC : Schedule.FLAG_MAIN;
                 subscribers.add(subscriber);
                 this.subscribe(subscriber, scheduleFlags, defineName, defineType);
             }

@@ -1,5 +1,6 @@
 package com.github.yoojia.next.events;
 
+import com.github.yoojia.next.lang.Primitives;
 import com.github.yoojia.next.react.Filter;
 
 /**
@@ -14,7 +15,7 @@ class AcceptFilter<T> implements Filter<EventMeta<T>> {
 
     AcceptFilter(String defineName, Class<?> defineType) {
         mDefineName = defineName;
-        mDefineType = defineType.isPrimitive() ? Primitives.getWrap(defineType) : defineType;
+        mDefineType = defineType.isPrimitive() ? Primitives.getWrapClass(defineType) : defineType;
     }
 
     @Override

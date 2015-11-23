@@ -1,5 +1,6 @@
 package com.github.yoojia.next.events;
 
+import com.github.yoojia.next.react.Reactor;
 import com.github.yoojia.next.react.Subscriber;
 
 import java.lang.reflect.Method;
@@ -14,7 +15,10 @@ class MethodSubscriber<T> implements Subscriber<T>{
     private final Method mMethod;
     private final Args<T> mArgs;
 
-    public MethodSubscriber(Object object, Method method, Args<T> args) {
+    private final Reactor mReactorRef;
+
+    public MethodSubscriber(Reactor reactorRef, Object object, Method method, Args<T> args) {
+        mReactorRef = reactorRef;
         mObject = object;
         mMethod = method;
         mArgs = args;
@@ -27,8 +31,10 @@ class MethodSubscriber<T> implements Subscriber<T>{
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onErrors(Exception errors) {
-        throw new RuntimeException(errors);
+        // @Subscribe 方法发生错误时，将错误包装成ExceptionEvent，再转发
+        mReactorRef.emit(new EventMeta<>(ExceptionEvent.NAME, new ExceptionEvent(errors)));
     }
 
     public interface Args<T> {

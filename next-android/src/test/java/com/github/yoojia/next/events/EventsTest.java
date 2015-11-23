@@ -34,13 +34,13 @@ public class EventsTest {
             mCountDownLatch = new CountDownLatch(totalCalls);
         }
 
-        @Subscribe(async = true)
+        @Subscribe(onThreads = true)
         public void onEvents(@Evt("str") String start){
             strCalls.addAndGet(1);
             mCountDownLatch.countDown();
         }
 
-        @Subscribe(async = true)
+        @Subscribe(onThreads = true)
         public void onEvents1(@Evt("int") long start){
             intCalls.addAndGet(1);
             mCountDownLatch.countDown();

@@ -97,7 +97,8 @@ public class NextEvents<T> {
                 subscribers = mRefs.get(target);
             }
             for (final Method method : annotatedMethods) {
-                final MethodSubscriber<EventMeta<T>> subscriber = new MethodSubscriber<>(target, method, args);
+                final MethodSubscriber<EventMeta<T>> subscriber =
+                        new MethodSubscriber<>(mReactor, target, method, args);
                 final Class<?> defineType = method.getParameterTypes()[0];
                 final Evt event = (Evt) method.getParameterAnnotations()[0][0];
                 final Subscribe subscribe = method.getAnnotation(Subscribe.class);
@@ -105,10 +106,9 @@ public class NextEvents<T> {
                 if (TextUtils.isEmpty(defineName)) {
                     throw new IllegalArgumentException("Event name must not empty");
                 }
-                final boolean runOnThreads = subscribe.onThreads() || subscribe.async();
-                final int scheduleFlags = runOnThreads ? Schedule.FLAG_ASYNC : Schedule.FLAG_MAIN;
+                final int flags = subscribe.onThreads() ? Schedule.FLAG_ON_THREADS : Schedule.FLAG_ON_MAIN;
                 subscribers.add(subscriber);
-                this.subscribe(subscriber, scheduleFlags, defineName, defineType);
+                this.subscribe(subscriber, flags, defineName, defineType);
             }
         }
 

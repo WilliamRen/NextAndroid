@@ -6,7 +6,7 @@ import com.github.yoojia.next.lang.Primitives;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
-public class EventMeta<T> {
+class EventMeta<T> {
 
     public final String name;
     public final T value;

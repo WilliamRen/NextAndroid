@@ -15,8 +15,8 @@ public class Schedules {
     public static Schedule caller() {
         return new Schedule() {
             @Override public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                if (Schedule.FLAG_CALLER != scheduleFlags) {
-                    throw new IllegalArgumentException("Unsupported flags(Schedule.FLAG_MAIN/Schedule.FLAG_ASYNC) in CALLER Schedule !");
+                if (Schedule.FLAG_ON_CALLER != scheduleFlags) {
+                    throw new IllegalArgumentException("Unsupported flags(Schedule.FLAG_ON_MAIN/Schedule.FLAG_ON_THREADS) in CALLER Schedule !");
                 }
                 task.call();
             }
@@ -64,13 +64,13 @@ public class Schedules {
 
     private static void run(ExecutorService threads, Handler mainHandler, final Callable<Void> task, int scheduleFlags) throws Exception{
         switch (scheduleFlags) {
-            case Schedule.FLAG_ASYNC:
+            case Schedule.FLAG_ON_THREADS:
                 threads.submit(task);
                 break;
-            case Schedule.FLAG_CALLER:
+            case Schedule.FLAG_ON_CALLER:
                 task.call();
                 break;
-            case Schedule.FLAG_MAIN:
+            case Schedule.FLAG_ON_MAIN:
                 mainHandler.post(new Runnable() {
                     @Override public void run() {
                         try {

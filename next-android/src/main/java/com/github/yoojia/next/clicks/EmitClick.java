@@ -28,6 +28,7 @@ public @interface EmitClick {
 
     /**
      * 按键码
+     * @return Int
      */
     int keyCode() default Integer.MIN_VALUE;
 }

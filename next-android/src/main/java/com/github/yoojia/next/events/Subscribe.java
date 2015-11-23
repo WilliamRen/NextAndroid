@@ -15,5 +15,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Subscribe {
 
+    /**
+     * 使用 onThreads 替代
+     * @return Boolean
+     */
+    @Deprecated
     boolean async() default false;
+
+    /**
+     * 是否在其它线程（非主线程）中回调
+     * @return Boolean
+     */
+    boolean onThreads() default false;
 }

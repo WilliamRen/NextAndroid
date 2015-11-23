@@ -17,15 +17,15 @@ public final class Dispatcher {
 
     private boolean mTraceEnabled = false;
 
-    private final NextEvents<Action> mEvents;
+    private final NextEvents mEvents;
 
     public Dispatcher(Schedule schedulers) {
-        mEvents = new NextEvents<>();
+        mEvents = new NextEvents();
         mEvents.subscribeOn(schedulers);
     }
 
     public Dispatcher() {
-        mEvents = new NextEvents<>();
+        mEvents = new NextEvents();
     }
 
     /**

@@ -25,10 +25,10 @@ public class NextClickProxy {
     private static final String TAG = "CLICKS";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
-    private final NextEvents<ClickEvent> mEvents;
+    private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents<>();
+        mEvents = new NextEvents();
     }
 
     public NextClickProxy register(final Object host){

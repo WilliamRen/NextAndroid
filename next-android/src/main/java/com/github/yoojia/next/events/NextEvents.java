@@ -19,10 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
-public class NextEvents<T> {
+public class NextEvents {
 
-    private final Reactor<EventMeta<T>> mReactor = new Reactor<>();
-    private final Map<Object, ArrayList<Subscriber<EventMeta<T>>>> mRefs = new ConcurrentHashMap<>();
+    private final Reactor<EventMeta> mReactor = new Reactor<>();
+    private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
 
     /**
      * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.
@@ -81,14 +81,14 @@ public class NextEvents<T> {
             Warning.show("NextEvents");
         }
         // Filter methods and register them
-        final MethodSubscriber.Args<EventMeta<T>> args = new MethodSubscriber.Args<EventMeta<T>>() {
+        final MethodSubscriber.Args<EventMeta> args = new MethodSubscriber.Args<EventMeta>() {
             @Override
-            public Object[] toInvokeArgs(EventMeta<T> input) {
+            public Object[] toInvokeArgs(EventMeta input) {
                 return new Object[]{input.value};
             }
         };
         synchronized (mRefs) {
-            final ArrayList<Subscriber<EventMeta<T>>> subscribers;
+            final ArrayList<Subscriber<EventMeta>> subscribers;
             // if not registered, ad to Refs
             if ( ! mRefs.containsKey(target)) {
                 subscribers = new ArrayList<>();
@@ -97,7 +97,7 @@ public class NextEvents<T> {
                 subscribers = mRefs.get(target);
             }
             for (final Method method : annotatedMethods) {
-                final MethodSubscriber<EventMeta<T>> subscriber =
+                final MethodSubscriber<EventMeta> subscriber =
                         new MethodSubscriber<>(mReactor, target, method, args);
                 final Class<?> defineType = method.getParameterTypes()[0];
                 final Evt event = (Evt) method.getParameterAnnotations()[0][0];
@@ -125,8 +125,8 @@ public class NextEvents<T> {
             throw new IllegalStateException("Target object was NOT REGISTERED! " +
                     "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
         }else{// registered
-            final ArrayList<Subscriber<EventMeta<T>>> subscribers = mRefs.remove(target);
-            for (Subscriber<EventMeta<T>> subscriber : subscribers) {
+            final ArrayList<Subscriber<EventMeta>> subscribers = mRefs.remove(target);
+            for (Subscriber<EventMeta> subscriber : subscribers) {
                 unsubscribe(subscriber);
             }
         }
@@ -141,10 +141,10 @@ public class NextEvents<T> {
      * @param defineType 接受触发的事件类型
      * @return NextEvents
      */
-    public NextEvents subscribe(Subscriber<EventMeta<T>> subscriber, int scheduleFlags,
+    public NextEvents subscribe(Subscriber<EventMeta> subscriber, int scheduleFlags,
                                 String defineName, Class<?> defineType) {
         mReactor.add(Subscription.create1(subscriber, scheduleFlags,
-                new AcceptFilter<T>(defineName, defineType)));
+                new AcceptFilter(defineName, defineType)));
         return this;
     }
 
@@ -153,13 +153,13 @@ public class NextEvents<T> {
      * @param subscriber Subscriber
      * @return NextEvents
      */
-    public NextEvents unsubscribe(Subscriber<EventMeta<T>> subscriber) {
+    public NextEvents unsubscribe(Subscriber<EventMeta> subscriber) {
         mReactor.remove(subscriber);
         return this;
     }
 
-    public NextEvents emit(String name, T value) {
-        mReactor.emit(new EventMeta<>(name, value));
+    public NextEvents emit(String name, Object value) {
+        mReactor.emit(new EventMeta(name, value));
         return this;
     }
 

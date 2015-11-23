@@ -37,7 +37,7 @@ public class ErrorsTest {
 
     @Test
     public void test(){
-        NextEvents<Object> events = new NextEvents<>();
+        NextEvents events = new NextEvents();
         events.register(this, null);
         events.emit("err", "HAHAHA-ERROR");
         events.emit("nonerr", "HAHAHA-OKOK");

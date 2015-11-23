@@ -8,7 +8,7 @@ import com.github.yoojia.next.react.Filter;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
-class AcceptFilter<T> implements Filter<EventMeta<T>> {
+class AcceptFilter implements Filter<EventMeta> {
 
     private final String mDefineName;
     private final Class<?> mDefineType;
@@ -19,7 +19,7 @@ class AcceptFilter<T> implements Filter<EventMeta<T>> {
     }
 
     @Override
-    public boolean accept(EventMeta<T> evt) {
+    public boolean accept(EventMeta evt) {
         // 不接受: 事件名不同
         if (!mDefineName.equals(evt.name)) {
             return false;

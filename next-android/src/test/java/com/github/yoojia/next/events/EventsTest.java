@@ -61,7 +61,7 @@ public class EventsTest {
 
 
     private void testStress(int count, String tag){
-        final NextEvents<Object> events = new NextEvents<>();
+        final NextEvents events = new NextEvents();
         final SubscriberHost subscriberHost = new SubscriberHost(count);
         events.register(subscriberHost, null);
 

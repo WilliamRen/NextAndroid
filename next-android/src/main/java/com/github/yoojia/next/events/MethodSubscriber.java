@@ -34,7 +34,7 @@ class MethodSubscriber<T> implements Subscriber<T>{
     @SuppressWarnings("unchecked")
     public void onErrors(Exception errors) {
         // @Subscribe 方法发生错误时，将错误包装成ExceptionEvent，再转发
-        mReactorRef.emit(new EventMeta<>(ExceptionEvent.NAME, new ExceptionEvent(errors)));
+        mReactorRef.emit(new EventMeta(ExceptionEvent.NAME, new ExceptionEvent(errors)));
     }
 
     public interface Args<T> {

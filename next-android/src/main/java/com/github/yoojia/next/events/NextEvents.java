@@ -58,19 +58,22 @@ public class NextEvents {
                 }
                 // Return type: void
                 if (! Void.TYPE.equals(method.getReturnType())) {
-                    throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID");
+                    throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
+                            ", method: " + method);
                 }
                 // Method params
                 final Class<?>[] params = method.getParameterTypes();
                 if (params.length != 1) {
-                    throw new IllegalArgumentException("@Subscribe annotated methods must has single parameter");
+                    throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
+                            ", method: " + method);
                 }
                 // Check annotation:
                 final Annotation[][] annotations = method.getParameterAnnotations();
                 if (annotations.length == 0 ||
                         annotations[0].length == 0 ||
                         ! Evt.class.equals(annotations[0][0].annotationType())) {
-                    throw new IllegalArgumentException("Parameter without @Evt annotation");
+                    throw new IllegalArgumentException("The parameter without @Evt annotation" +
+                            ", method" + method);
                 }
                 // custom filter
                 return customFilter == null || customFilter.acceptMethod(method);
@@ -104,7 +107,7 @@ public class NextEvents {
                 final Subscribe subscribe = method.getAnnotation(Subscribe.class);
                 final String defineName = event.value();
                 if (TextUtils.isEmpty(defineName)) {
-                    throw new IllegalArgumentException("Event name must not empty");
+                    throw new IllegalArgumentException("Event name in @Subscribe must not be empty");
                 }
                 final int flags = subscribe.onThreads() ? Schedule.FLAG_ON_THREADS : Schedule.FLAG_ON_MAIN;
                 subscribers.add(subscriber);
@@ -123,7 +126,7 @@ public class NextEvents {
     public synchronized NextEvents unregister(Object target) {
         if (! mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was NOT REGISTERED! " +
-                    "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
+                    "'NextEvents.register(...)' and 'NextEvents.unregister(...)' must be call in pairs !");
         }else{// registered
             final ArrayList<Subscriber<EventMeta>> subscribers = mRefs.remove(target);
             for (Subscriber<EventMeta> subscriber : subscribers) {

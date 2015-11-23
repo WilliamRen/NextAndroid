@@ -24,7 +24,7 @@ public class Reactor<T> {
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {
         if (mSubs.contains(newSub) || mRefs.containsKey(newSub.target)) {
-            throw new IllegalArgumentException("Duplicate subscription/Subscription.subscriber");
+            throw new IllegalArgumentException("Duplicate Subscription/Subscription.subscriber");
         }
         mSubs.add(newSub);
         mRefs.put(newSub.target, newSub);

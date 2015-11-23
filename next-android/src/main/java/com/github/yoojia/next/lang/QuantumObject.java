@@ -21,7 +21,7 @@ public class QuantumObject<T> {
             if (mObject == null) {
                 mObject = value;
             }else{
-                throw new IllegalStateException("Value had set !");
+                throw new IllegalStateException("Value has set !");
             }
         }
     }

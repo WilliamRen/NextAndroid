@@ -13,9 +13,9 @@ class AcceptFilter implements Filter<EventMeta> {
     private final String mDefineName;
     private final Class<?> mDefineType;
 
-    AcceptFilter(String defineName, Class<?> defineType) {
+    AcceptFilter(String defineName, Class<?> rawDefineType) {
         mDefineName = defineName;
-        mDefineType = defineType.isPrimitive() ? Primitives.getWrapClass(defineType) : defineType;
+        mDefineType = rawDefineType.isPrimitive() ? Primitives.getWrapClass(rawDefineType) : rawDefineType;
     }
 
     @Override

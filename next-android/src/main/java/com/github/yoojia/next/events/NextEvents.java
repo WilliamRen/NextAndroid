@@ -105,7 +105,8 @@ public class NextEvents<T> {
                 if (TextUtils.isEmpty(defineName)) {
                     throw new IllegalArgumentException("Event name must not empty");
                 }
-                final int scheduleFlags = subscribe.async() ? Schedule.FLAG_ASYNC : Schedule.FLAG_MAIN;
+                final boolean runOnThreads = subscribe.onThreads() || subscribe.async();
+                final int scheduleFlags = runOnThreads ? Schedule.FLAG_ASYNC : Schedule.FLAG_MAIN;
                 subscribers.add(subscriber);
                 this.subscribe(subscriber, scheduleFlags, defineName, defineType);
             }

@@ -83,9 +83,9 @@ public class Reactor<T> {
         return new Callable<Void>() {
             @Override public Void call() throws Exception {
                 try{
-                    sub.target.call(input);
+                    sub.target.onCall(input);
                 }catch (Exception err) {
-                    sub.target.errors(err);
+                    sub.target.onErrors(err);
                 }
                 return null;
             }

@@ -21,13 +21,13 @@ class MethodSubscriber<T> implements Subscriber<T>{
     }
 
     @Override
-    public void call(T input) throws Exception {
+    public void onCall(T input) throws Exception {
         mMethod.setAccessible(true);
         mMethod.invoke(mObject, mArgs.toInvokeArgs(input));
     }
 
     @Override
-    public void errors(Exception errors) {
+    public void onErrors(Exception errors) {
         throw new RuntimeException(errors);
     }
 

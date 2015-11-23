@@ -6,7 +6,7 @@ package com.github.yoojia.next.react;
  */
 public interface Subscriber<T> {
 
-    void call(T input) throws Exception;
+    void onCall(T input) throws Exception;
 
-    void errors(Exception errors);
+    void onErrors(Exception errors);
 }

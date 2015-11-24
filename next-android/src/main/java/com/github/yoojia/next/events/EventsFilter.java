@@ -1,19 +1,19 @@
 package com.github.yoojia.next.events;
 
+import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.Primitives;
-import com.github.yoojia.next.react.Filter;
 
 /**
  * Subscriber 事件过滤器
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
-class AcceptFilter implements Filter<EventMeta> {
+class EventsFilter implements Filter<EventMeta> {
 
     private final String mDefineName;
     private final Class<?> mDefineType;
 
-    AcceptFilter(String defineName, Class<?> rawDefineType) {
+    EventsFilter(String defineName, Class<?> rawDefineType) {
         mDefineName = defineName;
         mDefineType = rawDefineType.isPrimitive() ? Primitives.getWrapClass(rawDefineType) : rawDefineType;
     }

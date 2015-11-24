@@ -2,6 +2,8 @@ package com.github.yoojia.next.events;
 
 import android.text.TextUtils;
 
+import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.lang.MethodsFinder;
 import com.github.yoojia.next.react.Reactor;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Subscriber;
@@ -30,55 +32,45 @@ public class NextEvents {
      * @param customFilter 指定Method过滤接口
      * @return NextEvent实例
      */
-    public NextEvents register(final Object target, final FilterMethods.Filter customFilter) {
+    public NextEvents register(final Object target, final Filter<Method> customFilter) {
         if (mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was REGISTERED! " +
                     "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
         }
         // Find @Subscribe methods
-        final List<Method> annotatedMethods = new FilterMethods(target).find(new FilterMethods.Filter(){
-
-            @Override
-            public boolean acceptType(Class<?> type) {
-                final String className = type.getName();
-                if (className.startsWith("java.") ||
-                        className.startsWith("javax.") ||
-                        className.startsWith("android.")) {
-                    return false;
-                }
-                // custom filter
-                return customFilter == null || customFilter.acceptType(type);
-            }
-
-            @Override
-            public boolean acceptMethod(Method method) {
-                // With @Subscribe annotation
-                if (! method.isAnnotationPresent(Subscribe.class)) {
-                    return false;
-                }
-                // Return type: void
-                if (! Void.TYPE.equals(method.getReturnType())) {
-                    throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
-                            ", method: " + method);
-                }
-                // Method params
-                final Class<?>[] params = method.getParameterTypes();
-                if (params.length != 1) {
-                    throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
-                            ", method: " + method);
-                }
-                // Check annotation:
-                final Annotation[][] annotations = method.getParameterAnnotations();
-                if (annotations.length == 0 ||
-                        annotations[0].length == 0 ||
-                        ! Evt.class.equals(annotations[0][0].annotationType())) {
-                    throw new IllegalArgumentException("The parameter without @Evt annotation" +
-                            ", method" + method);
-                }
-                // custom filter
-                return customFilter == null || customFilter.acceptMethod(method);
-            }
-        });
+        final List<Method> annotatedMethods = new MethodsFinder()
+                .filter(new Filter<Method>() {
+                    @Override public boolean accept(Method method) {
+                        if (method.isBridge() || method.isSynthetic()) {
+                            return false;
+                        }
+                        // With @Subscribe annotation
+                        if (! method.isAnnotationPresent(Subscribe.class)) {
+                            return false;
+                        }
+                        // Return type: void
+                        if (! Void.TYPE.equals(method.getReturnType())) {
+                            throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
+                                    ", method: " + method);
+                        }
+                        // Method params
+                        final Class<?>[] params = method.getParameterTypes();
+                        if (params.length != 1) {
+                            throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
+                                    ", method: " + method);
+                        }
+                        // Check annotation:
+                        final Annotation[][] annotations = method.getParameterAnnotations();
+                        if (annotations.length == 0 ||
+                                annotations[0].length == 0 ||
+                                ! Evt.class.equals(annotations[0][0].annotationType())) {
+                            throw new IllegalArgumentException("The parameter without @Evt annotation" +
+                                    ", method" + method);
+                        }
+                        // custom filter
+                        return customFilter == null || customFilter.accept(method);
+                    }
+                }).find(target.getClass());
         // Check Annotations
         if (annotatedMethods.isEmpty()) {
             Warning.show("NextEvents");
@@ -147,7 +139,7 @@ public class NextEvents {
     public NextEvents subscribe(Subscriber<EventMeta> subscriber, int scheduleFlags,
                                 String defineName, Class<?> defineType) {
         mReactor.add(Subscription.create1(subscriber, scheduleFlags,
-                new AcceptFilter(defineName, defineType)));
+                new EventsFilter(defineName, defineType)));
         return this;
     }
 

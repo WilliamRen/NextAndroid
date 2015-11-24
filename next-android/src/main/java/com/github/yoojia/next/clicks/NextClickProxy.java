@@ -36,6 +36,12 @@ public class NextClickProxy {
         finder.filter(new Filter<Field>() {
             @Override
             public boolean accept(Field field) {
+                // Check View type
+                final Class<?> type = field.getType();
+                if (! View.class.isAssignableFrom(type)) {
+                    return false;
+                }
+                // Check annotation
                 return field.isAnnotationPresent(EmitClick.class);
             }
         });
@@ -97,24 +103,16 @@ public class NextClickProxy {
         if (TextUtils.isEmpty(event)) {
             throw new IllegalArgumentException("Illegal click event name: " + event);
         }
-        final boolean origin = field.isAccessible();
         field.setAccessible(true);
         final Object viewField = field.get(host);
-        if (!origin) {
-            field.setAccessible(false);
-        }
-        if (viewField instanceof View){
-            final View view = (View) viewField;
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override @SuppressWarnings("unchecked")
-                public void onClick(View v) {
-                    emitClick(v, event);
-                }
-            });
-            return view;
-        }else{
-            throw new IllegalArgumentException("@EmitClick field not a View: " + field);
-        }
+        final View view = (View) viewField;
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override @SuppressWarnings("unchecked")
+            public void onClick(View v) {
+                emitClick(v, event);
+            }
+        });
+        return view;
     }
 
     /**

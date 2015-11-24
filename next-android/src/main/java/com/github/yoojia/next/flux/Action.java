@@ -20,12 +20,14 @@ public final class Action {
     private final QuantumObject<String> mSenderStack = new QuantumObject<>();
 
     public final String type;
-    public final Bundle data;
+
+    // Action一般用于传递少量常用类型参数，使用Bundle比HashMap性能更好。
+    public final Bundle data = new Bundle();
 
     private Action(String type, Bundle data) {
         notEmpty(type, "Action.type must not be null or empty !");
         this.type = type;
-        this.data = data;
+        this.data.putAll(data);
     }
 
     /**

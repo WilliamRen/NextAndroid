@@ -1,5 +1,7 @@
 package com.github.yoojia.next.react;
 
+import com.github.yoojia.next.lang.Filter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

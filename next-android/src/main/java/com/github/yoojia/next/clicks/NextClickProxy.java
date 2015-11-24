@@ -5,7 +5,6 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
-import com.github.yoojia.next.events.FilterMethods;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
@@ -61,11 +60,9 @@ public class NextClickProxy {
                         throw new RuntimeException(error);
                     }
                 }
-                mEvents.register(host, new FilterMethods.Filter() {
-                    // 全部类型,内置过滤器已过滤Java, JavaX, Android接口
-                    @Override public boolean acceptType(Class<?> type) { return true; }
+                mEvents.register(host, new Filter<Method>() {
                     // 只接受ClickEvent类型的方法
-                    @Override public boolean acceptMethod(Method method) {
+                    @Override public boolean accept(Method method) {
                         final Class<?>[] types = method.getParameterTypes();
                         return ClickEvent.class.equals(types[0]);
                     }

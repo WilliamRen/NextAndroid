@@ -1,8 +1,8 @@
 package com.github.yoojia.next.flux;
 
-import com.github.yoojia.next.events.FilterMethods;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
+import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.react.Schedule;
 
 import java.lang.reflect.Method;
@@ -33,13 +33,9 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
-        mEvents.register(host, new FilterMethods.Filter() {
-            // Accept All types
-            @Override public boolean acceptType(Class<?> type) {
-                return true;
-            }
+        mEvents.register(host, new Filter<Method>() {
             // Only accept Action type
-            @Override public boolean acceptMethod(Method method) {
+            @Override public boolean accept(Method method) {
                 final Class<?>[] types = method.getParameterTypes();
                 return Action.class.equals(types[0]);
             }

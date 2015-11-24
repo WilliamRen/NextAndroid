@@ -56,7 +56,8 @@ class BaseKVDB {
 
     public void set(final String key, final String value){
         if (value == null || value.isEmpty()) {
-            Log.e("KVDB", "Ignore set empty value operation for KEY[" + key + "]. Try 'remove(key)' method to remove.");
+            Log.e("KVDB", "Ignore set empty value operation for KEY[" + key + "]. " +
+                    "Try <KVDB.remove(...)> to remove by key.");
             return;
         }
         mMemCached.put(key, value);

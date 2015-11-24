@@ -9,15 +9,15 @@ import java.lang.reflect.Method;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-06
  */
-class MethodSubscriber<T> implements Subscriber<T>{
+class MethodSubscriber implements Subscriber<EventMeta>{
 
     private final Object mObject;
     private final Method mMethod;
-    private final Args<T> mArgs;
+    private final Args mArgs;
 
     private final Reactor mReactorRef;
 
-    public MethodSubscriber(Reactor reactorRef, Object object, Method method, Args<T> args) {
+    public MethodSubscriber(Reactor reactorRef, Object object, Method method, Args args) {
         mReactorRef = reactorRef;
         mObject = object;
         mMethod = method;
@@ -25,19 +25,20 @@ class MethodSubscriber<T> implements Subscriber<T>{
     }
 
     @Override
-    public void onCall(T input) throws Exception {
+    public void onCall(EventMeta input) throws Exception {
         mMethod.setAccessible(true);
         mMethod.invoke(mObject, mArgs.toInvokeArgs(input));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void onErrors(Exception errors) {
+    public void onErrors(EventMeta input, Exception errors) {
         // @Subscribe 方法发生错误时，将错误包装成ExceptionEvent，再转发
-        mReactorRef.emit(new EventMeta(ExceptionEvent.NAME, new ExceptionEvent(errors)));
+        mReactorRef.emit(new EventMeta(ExceptionEvent.NAME,
+                new ExceptionEvent(errors, mMethod.getName(), input.name, input.value)));
     }
 
-    public interface Args<T> {
-        Object[] toInvokeArgs(T input);
+    public interface Args {
+        Object[] toInvokeArgs(EventMeta input);
     }
 }

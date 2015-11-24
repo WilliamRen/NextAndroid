@@ -85,7 +85,7 @@ public class Reactor<T> {
                 try{
                     sub.target.onCall(input);
                 }catch (Exception err) {
-                    sub.target.onErrors(err);
+                    sub.target.onErrors(input, err);
                 }
                 return null;
             }

@@ -1,6 +1,6 @@
 package com.github.yoojia.next.flux;
 
-import com.github.yoojia.next.events.MethodFinder;
+import com.github.yoojia.next.events.FilterMethods;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.react.Schedule;
@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
  */
 public final class Dispatcher {
 
-    private static final String STACK_WARNING = "Set dispatcher.setTraceEnabled(true) to collect methods stack !";
+    private static final String STACK_WARNING = "Use <dispatcher.setTraceEnabled(...)> to collect methods stack !";
 
     private boolean mTraceEnabled = false;
 
@@ -33,7 +33,7 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
-        mEvents.register(host, new MethodFinder.Filter() {
+        mEvents.register(host, new FilterMethods.Filter() {
             // Accept All types
             @Override public boolean acceptType(Class<?> type) {
                 return true;
@@ -81,8 +81,7 @@ public final class Dispatcher {
     private void logCallStack(Action action) {
         // 记录回调方法栈
         if (mTraceEnabled) {
-            final String callStackInfo = CallStack.collect();
-            action.setSenderStack(callStackInfo);
+            action.setSenderStack(CallStack.collect());
         }else{
             action.setSenderStack(STACK_WARNING);
         }

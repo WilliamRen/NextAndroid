@@ -30,13 +30,13 @@ public class NextEvents {
      * @param customFilter 指定Method过滤接口
      * @return NextEvent实例
      */
-    public NextEvents register(final Object target, final MethodFinder.Filter customFilter) {
+    public NextEvents register(final Object target, final FilterMethods.Filter customFilter) {
         if (mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was REGISTERED! " +
-                    "NextEvents.register(...) $ NextEvents.unregister(...) must call in pairs !");
+                    "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
         }
         // Find @Subscribe methods
-        final List<Method> annotatedMethods = new MethodFinder(target).find(new MethodFinder.Filter(){
+        final List<Method> annotatedMethods = new FilterMethods(target).find(new FilterMethods.Filter(){
 
             @Override
             public boolean acceptType(Class<?> type) {
@@ -84,7 +84,7 @@ public class NextEvents {
             Warning.show("NextEvents");
         }
         // Filter methods and register them
-        final MethodSubscriber.Args<EventMeta> args = new MethodSubscriber.Args<EventMeta>() {
+        final MethodSubscriber.Args args = new MethodSubscriber.Args() {
             @Override
             public Object[] toInvokeArgs(EventMeta input) {
                 return new Object[]{input.value};
@@ -100,8 +100,8 @@ public class NextEvents {
                 subscribers = mRefs.get(target);
             }
             for (final Method method : annotatedMethods) {
-                final MethodSubscriber<EventMeta> subscriber =
-                        new MethodSubscriber<>(mReactor, target, method, args);
+                final MethodSubscriber subscriber =
+                        new MethodSubscriber(mReactor, target, method, args);
                 final Class<?> defineType = method.getParameterTypes()[0];
                 final Evt event = (Evt) method.getParameterAnnotations()[0][0];
                 final Subscribe subscribe = method.getAnnotation(Subscribe.class);
@@ -126,7 +126,7 @@ public class NextEvents {
     public synchronized NextEvents unregister(Object target) {
         if (! mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was NOT REGISTERED! " +
-                    "'NextEvents.register(...)' and 'NextEvents.unregister(...)' must be call in pairs !");
+                    "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
         }else{// registered
             final ArrayList<Subscriber<EventMeta>> subscribers = mRefs.remove(target);
             for (Subscriber<EventMeta> subscriber : subscribers) {

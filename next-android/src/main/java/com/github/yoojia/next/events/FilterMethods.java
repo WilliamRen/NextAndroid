@@ -9,11 +9,11 @@ import java.util.List;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
-public class MethodFinder {
+public class FilterMethods {
 
     private final Class<?> mType;
 
-    public MethodFinder(Object object) {
+    public FilterMethods(Object object) {
         mType = object.getClass();
     }
 

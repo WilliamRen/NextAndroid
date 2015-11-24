@@ -8,5 +8,5 @@ public interface Subscriber<T> {
 
     void onCall(T input) throws Exception;
 
-    void onErrors(Exception errors);
+    void onErrors(T input, Exception errors);
 }

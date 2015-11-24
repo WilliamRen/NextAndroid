@@ -76,12 +76,6 @@ public class NextEvents {
             Warning.show("NextEvents");
         }
         // Filter methods and register them
-        final MethodSubscriber.Args args = new MethodSubscriber.Args() {
-            @Override
-            public Object[] toInvokeArgs(EventMeta input) {
-                return new Object[]{input.value};
-            }
-        };
         synchronized (mRefs) {
             final ArrayList<Subscriber<EventMeta>> subscribers;
             // if not registered, ad to Refs
@@ -92,8 +86,7 @@ public class NextEvents {
                 subscribers = mRefs.get(target);
             }
             for (final Method method : annotatedMethods) {
-                final MethodSubscriber subscriber =
-                        new MethodSubscriber(mReactor, target, method, args);
+                final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
                 final Class<?> defineType = method.getParameterTypes()[0];
                 final Evt event = (Evt) method.getParameterAnnotations()[0][0];
                 final Subscribe subscribe = method.getAnnotation(Subscribe.class);

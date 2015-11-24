@@ -36,6 +36,9 @@ public class NextClickProxy {
         finder.filter(new Filter<Field>() {
             @Override
             public boolean accept(Field field) {
+                if (field.isSynthetic() || field.isEnumConstant()) {
+                    return false;
+                }
                 // Check View type
                 final Class<?> type = field.getType();
                 if (! View.class.isAssignableFrom(type)) {

@@ -61,7 +61,7 @@ public class NextClickProxy {
                     final EmitClick evt = field.getAnnotation(EmitClick.class);
                     try {
                         final String defineName = evt.value();
-                        final View view = bindClickView(host, field, TextUtils.isEmpty(defineName) ? evt.event() : defineName);
+                        final View view = bindClickView(host, field, defineName);
                         if (Integer.MIN_VALUE != evt.keyCode()) {
                             mKeyCodeMapping.append(evt.keyCode(), view);
                         }

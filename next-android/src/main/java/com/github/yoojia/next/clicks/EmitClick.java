@@ -13,12 +13,6 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @java.lang.annotation.Target(ElementType.FIELD)
 public @interface EmitClick {
-    /**
-     * 事件名, 使用 value()
-     * @return String
-     */
-    @Deprecated
-    String event() default "";
 
     /**
      * 事件名

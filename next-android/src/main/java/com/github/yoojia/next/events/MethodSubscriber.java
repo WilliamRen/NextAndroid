@@ -13,21 +13,19 @@ class MethodSubscriber implements Subscriber<EventMeta>{
 
     private final Object mObject;
     private final Method mMethod;
-    private final Args mArgs;
 
     private final Reactor mReactorRef;
 
-    public MethodSubscriber(Reactor reactorRef, Object object, Method method, Args args) {
+    public MethodSubscriber(Reactor reactorRef, Object object, Method method) {
         mReactorRef = reactorRef;
         mObject = object;
         mMethod = method;
-        mArgs = args;
     }
 
     @Override
     public void onCall(EventMeta input) throws Exception {
         mMethod.setAccessible(true);
-        mMethod.invoke(mObject, mArgs.toInvokeArgs(input));
+        mMethod.invoke(mObject, input.value);
     }
 
     @Override
@@ -38,7 +36,4 @@ class MethodSubscriber implements Subscriber<EventMeta>{
                 new ExceptionEvent(errors, mMethod.getName(), input.name, input.value)));
     }
 
-    public interface Args {
-        Object[] toInvokeArgs(EventMeta input);
-    }
 }

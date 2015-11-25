@@ -1,6 +1,7 @@
 package com.github.yoojia.next.lang;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,26 +13,33 @@ import static com.github.yoojia.next.lang.Preconditions.notNull;
  */
 public abstract class AnnotatedFinder<T extends AnnotatedElement> {
 
-    protected Filter<T> mResourceFilter = new Filter<T>() {
-        @Override
-        public boolean accept(T res) {
-            return true;
-        }
-    };
+    protected Filter<T> mResourceFilter;
+    protected Filter<Class<?>> mTypeFilter;
 
-    protected Filter<Class<?>> mTypeFilter = new Filter<Class<?>>() {
-        @Override
-        public boolean accept(Class<?> type) {
-            final String name = type.getName();
-            if (name.startsWith("java.")
-                    || name.startsWith("javax.")
-                    || name.startsWith("android.")) {
-                return false;
-            }else{
+    public AnnotatedFinder() {
+        // Init Resource filter
+        filter(new Filter<T>() {
+            @Override
+            public boolean accept(T res) {
                 return true;
             }
-        }
-    };
+        });
+        // Init types filter
+        // Ignore java,javax,android objects
+        types(new Filter<Class<?>>() {
+            @Override
+            public boolean accept(Class<?> type) {
+                final String name = type.getName();
+                if (name.startsWith("java.")
+                        || name.startsWith("javax.")
+                        || name.startsWith("android.")) {
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        });
+    }
 
     /**
      * 设置注解目标对象的过滤处理接口
@@ -65,12 +73,13 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
         final List<T> output = new ArrayList<>();
         Class<?> type = targetType;
         while (! Object.class.equals(type)){
-            // Check type
+            // Check class type
             if (!mTypeFilter.accept(type)) {
                 break;
             }
             final T[] resources = resourcesFromType(type);
             for (T res : resources){
+                // Check resource
                 if(mResourceFilter.accept(res)){
                     output.add(res);
                 }

@@ -1,44 +1,42 @@
 package com.github.yoojia.next.inputs.impls;
 
-import android.text.TextUtils;
-
-import com.github.yoojia.next.inputs.Tester;
+import com.github.yoojia.next.inputs.Tester0;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 
 /**
- * FIXME Class description goes here
+ * Chinese ID Card Tester
  *
- * @author 陈永佳 (chengyongjia@parkingwang.com)
+ * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public class ChineseIDCardTester extends Tester{
+public class ChineseIDCardTester extends Tester0 {
+
+    static final int[] WEIGHT = {7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2};
+
+    static final char[] VALID = {'1','0','X','9','8','7','6','5','4','3','2'};
+
+    static final SimpleDateFormat YYMMdd = new SimpleDateFormat("YYMMdd", Locale.getDefault());
 
     @Override
-    public boolean performTest(String content) {
-        if (TextUtils.isEmpty(content)){
-            return true;
-        }
-        final int length = content.length();
+    public boolean performTest0(String notEmptyInput) {
+        final int length = notEmptyInput.length();
         if (15 == length){
             try{
-                return isOldCNIDCard(content);
+                return isOldCNIDCard(notEmptyInput);
             }catch (NumberFormatException e){
                 e.printStackTrace();
                 return false;
             }
         }else if (18 == length){
-            return isNewCNIDCard(content);
+            return isNewCNIDCard(notEmptyInput);
         }else {
             return false;
         }
     }
-
-    static final int[] WEIGHT = {7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2};
-
-    static final char[] VALID = {'1','0','X','9','8','7','6','5','4','3','2'};
 
     public static boolean isNewCNIDCard(String numbers){
         int sum = 0;
@@ -51,14 +49,13 @@ public class ChineseIDCardTester extends Tester{
     }
 
     public static boolean isOldCNIDCard(String numbers){
-        //ABCDEFYYMMDDXXX
-        String abcdef = numbers.substring(0,5);
-        String yymmdd = numbers.substring(6,11);
-        String xxx = numbers.substring(12,14);
-        boolean aPass = abcdef.equals(String.valueOf(Integer.parseInt(abcdef)));
+        final String abcdef = numbers.substring(0,5);
+        final String yymmdd = numbers.substring(6,11);
+        final String xxx = numbers.substring(12,14);
+        final boolean aPass = abcdef.equals(String.valueOf(Integer.parseInt(abcdef)));
         boolean yPass = true;
         try {
-            new SimpleDateFormat("YYMMdd").parse(yymmdd);
+            YYMMdd.parse(yymmdd);
         } catch (ParseException e) {
             e.printStackTrace();
             yPass = false;

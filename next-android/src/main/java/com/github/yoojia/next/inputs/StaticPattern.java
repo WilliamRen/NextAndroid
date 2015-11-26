@@ -9,10 +9,10 @@ import com.github.yoojia.next.inputs.impls.NumericTester;
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public class StaticPattern{
+public class StaticPattern {
 
-    static final int PRIORITY_REQUIRED = -1024;
-    static final int PRIORITY_GENERAL = 0;
+    public static final int PRIORITY_REQUIRED = -1024;
+    public static final int PRIORITY_GENERAL = 0;
 
     private static final Tester TESTER_NOT_BLANK = new Tester() {
         @Override
@@ -31,53 +31,50 @@ public class StaticPattern{
         }
     };
 
-    private static final Tester TESTER_DIGITS = new Tester() {
+    private static final Tester TESTER_DIGITS = new Tester0() {
         @Override
-        public boolean performTest(String input) throws Exception {
-            if (TextUtils.isEmpty(input)) {
-                return true;
-            }
-            return TextUtils.isDigitsOnly(input);
+        public boolean performTest0(String notEmptyInput) throws Exception {
+            return TextUtils.isDigitsOnly(notEmptyInput);
         }
     };
 
-    private static final Tester TESTER_EMAIL = new Tester() {
+    private static final Tester TESTER_EMAIL = new Tester0() {
         @Override
-        public boolean performTest(String input) throws Exception {
-            return matchRegexAllowEmpty(input.toLowerCase(), "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+" +
+        public boolean performTest0(String input) throws Exception {
+            return matchRegex(input.toLowerCase(), "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+" +
                     "(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+" +
                     "[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$");
         }
     };
 
-    private static final Tester TESTER_HOST = new Tester() {
+    private static final Tester TESTER_HOST = new Tester0() {
         @Override
-        public boolean performTest(String input) throws Exception {
-            return matchRegexAllowEmpty(input.toLowerCase(),
+        public boolean performTest0(String input) throws Exception {
+            return matchRegex(input.toLowerCase(),
                     "^([a-z0-9]([a-z0-9\\-]{0,65}[a-z0-9])?\\.)+[a-z]{2,6}$");
         }
     };
 
-    private static final Tester TESTER_URL = new Tester() {
+    private static final Tester TESTER_URL = new Tester0() {
         @Override
-        public boolean performTest(String input) throws Exception {
-            return matchRegexAllowEmpty(input.toLowerCase(),
+        public boolean performTest0(String notEmptyInput) throws Exception {
+            return matchRegex(notEmptyInput.toLowerCase(),
                     "^(https?:\\/\\/)?[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?$");
         }
     };
 
-    private static final Tester TESTER_IPV4 = new Tester() {
+    private static final Tester TESTER_IPV4 = new Tester0() {
         @Override
-        public boolean performTest(String input) throws Exception {
-            return matchRegexAllowEmpty(input,
+        public boolean performTest0(String notEmptyInput) throws Exception {
+            return matchRegex(notEmptyInput,
                     "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
         }
     };
 
-    private static final Tester TESTER_CHINESE_MOBILE = new Tester() {
+    private static final Tester TESTER_CHINESE_MOBILE = new Tester0() {
         @Override
-        public boolean performTest(String input) throws Exception {
-            return matchRegexAllowEmpty(input, "^(\\+?\\d{2}-?)?(1[0-9])\\d{9}$");
+        public boolean performTest0(String notEmptyInput) throws Exception {
+            return matchRegex(notEmptyInput, "^(\\+?\\d{2}-?)?(1[0-9])\\d{9}$");
         }
     };
 
@@ -197,10 +194,21 @@ public class StaticPattern{
                 .msgOnFail("请输入有效的手机号");
     }
 
-    private static boolean matchRegexAllowEmpty(String input, String regex) {
-        if (TextUtils.isEmpty(input)) {
-            return true;
-        }
+    public static Pattern AcceptIn(final String chars){
+        return RegexMatch("[" + chars + "]")
+                .priority(PRIORITY_GENERAL);
+    }
+
+    public static Pattern RegexMatch(final String regex) {
+        return new Pattern(new Tester() {
+            @Override
+            public boolean performTest(String input) throws Exception {
+                return matchRegex(input, regex);
+            }
+        }).priority(PRIORITY_GENERAL);
+    }
+
+    private static boolean matchRegex(String input, String regex) {
         return java.util.regex.Pattern.compile(regex).matcher(input).matches();
     }
 }

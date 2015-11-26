@@ -1,7 +1,6 @@
 package com.github.yoojia.next.inputs.impls;
 
-import com.github.yoojia.next.inputs.StaticPattern;
-import com.github.yoojia.next.inputs.Tester;
+import com.github.yoojia.next.inputs.Tester0;
 
 import java.util.regex.Pattern;
 
@@ -10,10 +9,10 @@ import java.util.regex.Pattern;
  *
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public class BlankCardTester extends Tester{
+public class BlankCardTester extends Tester0 {
 
     @Override
-    public boolean performTest(String input) {
+    public boolean performTest0(String input) {
         // accept only spaces, digits and dashes
         if (! Pattern.compile("[\\d -]*").matcher(input).matches()) {
             return false;

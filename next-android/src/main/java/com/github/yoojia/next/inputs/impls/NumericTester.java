@@ -1,21 +1,16 @@
 package com.github.yoojia.next.inputs.impls;
 
-import android.text.TextUtils;
-
-import com.github.yoojia.next.inputs.Tester;
+import com.github.yoojia.next.inputs.Tester0;
 
 /**
  * Numeric tester
  *
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public class NumericTester extends Tester{
+public class NumericTester extends Tester0 {
 
     @Override
-    public boolean performTest(String input) throws Exception {
-        if(TextUtils.isEmpty(input)){
-            return false;
-        }
+    public boolean performTest0(String input) throws Exception {
         return isNumeric(input);
     }
 

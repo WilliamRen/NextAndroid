@@ -19,7 +19,7 @@ public class DefaultMessageDisplay implements MessageDisplay {
         if (input instanceof TextInput) {
             mInputView = ((TextInput) input).inputView;
         }else{
-            Log.e(TAG, "- Using <DefaultMessageDisplay>, and <TextInput> is recommend !");
+            Log.e(TAG, "- When use <DefaultMessageDisplay>, <TextInput> is recommend !");
             mInputView = null;
         }
     }

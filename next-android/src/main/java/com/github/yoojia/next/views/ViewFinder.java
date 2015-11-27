@@ -29,7 +29,7 @@ public class ViewFinder implements NextAutoView.Finder{
         if (view != null){
             return view.findViewById(targetId);
         }else{
-            Log.e(TAG, "Found a NULL view: targetId=" + targetId + ", Route.size=" + parents.length);
+            Log.e(TAG, "Found a NULL view: targetId=" + targetId + ", parents.size=" + parents.length);
             return null;
         }
     }

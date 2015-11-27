@@ -10,13 +10,14 @@ import java.lang.reflect.Method;
 public class MethodsFinder extends AnnotatedFinder<Method> {
 
     public MethodsFinder() {
-        super.mResourceFilter = new Filter<Method>() {
+        super();
+        filter(new Filter<Method>() {
             @Override
             public boolean accept(Method method) {
                 // Not bridge or synthetic methods
                 return !method.isBridge() && !method.isSynthetic();
             }
-        };
+        });
     }
 
     @Override

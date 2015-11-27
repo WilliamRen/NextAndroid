@@ -12,11 +12,16 @@ import java.util.concurrent.Executors;
  */
 public class Schedules {
 
+    /**
+     * 调用者
+     * @return Schedule
+     */
     public static Schedule caller() {
         return new Schedule() {
             @Override public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                if (Schedule.CALLER != scheduleFlags) {
-                    throw new IllegalArgumentException("Unsupported flags(Schedule.MAIN/ASYNC) in CALLER Schedule !");
+                if (Schedule.FLAG_ON_CALLER != scheduleFlags) {
+                    throw new IllegalArgumentException(
+                            "Unsupported flags(Schedule.FLAG_ON_MAIN/Schedule.FLAG_ON_THREADS) in CALLER Schedule !");
                 }
                 task.call();
             }
@@ -26,59 +31,71 @@ public class Schedules {
         };
     }
 
+    /**
+     * 单线程
+     * @return Schedule
+     */
     public static Schedule singleThread() {
         return new Schedule() {
 
             private final Handler mMainHandler = new Handler(Looper.getMainLooper());
-            private final ExecutorService mThread = Executors.newSingleThreadExecutor();
+            private final ExecutorService mThreads = Executors.newSingleThreadExecutor();
 
             @Override
             public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                run(mThread, mMainHandler, task, scheduleFlags);
+                run(mThreads, mMainHandler, task, scheduleFlags);
             }
 
             @Override
             public void close() {
-                mThread.shutdown();
+                mThreads.shutdown();
             }
         };
     }
 
+    /**
+     * 固定线程数
+     * @return Schedule
+     */
     public static Schedule threads(final int threads) {
         return new Schedule() {
 
             private final Handler mMainHandler = new Handler(Looper.getMainLooper());
-            private final ExecutorService mThread = Executors.newFixedThreadPool(threads);
+            private final ExecutorService mThreads = Executors.newFixedThreadPool(threads);
 
             @Override
             public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                run(mThread, mMainHandler, task, scheduleFlags);
+                run(mThreads, mMainHandler, task, scheduleFlags);
             }
 
             @Override
             public void close() {
-                mThread.shutdown();
+                mThreads.shutdown();
             }
         };
     }
 
     private static void run(ExecutorService threads, Handler mainHandler, final Callable<Void> task, int scheduleFlags) throws Exception{
-        if (Schedule.ASYNC == scheduleFlags) {
-            threads.submit(task);
-        }else if (Schedule.CALLER == scheduleFlags){
-            task.call();
-        }else if (Schedule.MAIN == scheduleFlags){
-            mainHandler.post(new Runnable() {
-                @Override public void run() {
-                    try {
-                        task.call();
-                    } catch (Exception err) {
-                        throw new RuntimeException(err);
+        switch (scheduleFlags) {
+            case Schedule.FLAG_ON_THREADS:
+                threads.submit(task);
+                break;
+            case Schedule.FLAG_ON_CALLER:
+                task.call();
+                break;
+            case Schedule.FLAG_ON_MAIN:
+                mainHandler.post(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            task.call();
+                        } catch (Exception err) {
+                            throw new RuntimeException(err);
+                        }
                     }
-                }
-            });
-        }else {
-            throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);
+                });
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);
         }
     }
 }

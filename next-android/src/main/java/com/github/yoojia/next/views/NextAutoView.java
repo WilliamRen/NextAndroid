@@ -43,12 +43,8 @@ public class NextAutoView {
         }else{
             final Objects os = new Objects(mHost);
             for (Field field : fields){
-                final boolean origin = field.isAccessible();
                 field.setAccessible(true);
                 final AutoView ano = field.getAnnotation(AutoView.class);
-                if (!origin) {
-                    field.setAccessible(false);
-                }
                 os.setField(field, viewField.find(ano.value(), ano.parents()));
             }
         }

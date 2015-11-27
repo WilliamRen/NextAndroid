@@ -1,8 +1,8 @@
 package com.github.yoojia.next.flux;
 
-import com.github.yoojia.next.events.MethodFinder;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
+import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.react.Schedule;
 
 import java.lang.reflect.Method;
@@ -13,19 +13,19 @@ import java.lang.reflect.Method;
  */
 public final class Dispatcher {
 
-    private static final String STACK_WARNING = "Set dispatcher.setTraceEnabled(true) to collect methods stack !";
+    private static final String STACK_WARNING = "Use <dispatcher.setTraceEnabled(...)> to collect methods stack !";
 
     private boolean mTraceEnabled = false;
 
-    private final NextEvents<Action> mEvents;
+    private final NextEvents mEvents;
 
     public Dispatcher(Schedule schedulers) {
-        mEvents = new NextEvents<>();
+        mEvents = new NextEvents();
         mEvents.subscribeOn(schedulers);
     }
 
     public Dispatcher() {
-        mEvents = new NextEvents<>();
+        mEvents = new NextEvents();
     }
 
     /**
@@ -33,13 +33,9 @@ public final class Dispatcher {
      * @param host 目标对象实例
      */
     public void register(Object host){
-        mEvents.register(host, new MethodFinder.Filter() {
-            // Accept All types
-            @Override public boolean acceptType(Class<?> type) {
-                return true;
-            }
+        mEvents.register(host, new Filter<Method>() {
             // Only accept Action type
-            @Override public boolean acceptMethod(Method method) {
+            @Override public boolean accept(Method method) {
                 final Class<?>[] types = method.getParameterTypes();
                 return Action.class.equals(types[0]);
             }
@@ -81,8 +77,7 @@ public final class Dispatcher {
     private void logCallStack(Action action) {
         // 记录回调方法栈
         if (mTraceEnabled) {
-            final String callStackInfo = CallStack.collect();
-            action.setSenderStack(callStackInfo);
+            action.setSenderStack(CallStack.collect());
         }else{
             action.setSenderStack(STACK_WARNING);
         }

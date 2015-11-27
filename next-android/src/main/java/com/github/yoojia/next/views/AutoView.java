@@ -17,11 +17,13 @@ import java.lang.annotation.Target;
 public @interface AutoView {
     /**
      * View ResId
+     * @return Int
      */
     int value();
 
     /**
      * View ResId chain of current view
+     * @return Int[]
      */
     int[] parents() default {};
 }

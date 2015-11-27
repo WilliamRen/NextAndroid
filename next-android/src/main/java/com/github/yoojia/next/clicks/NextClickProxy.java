@@ -1,10 +1,10 @@
 package com.github.yoojia.next.clicks;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
-import com.github.yoojia.next.events.MethodFinder;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
@@ -24,10 +24,10 @@ public class NextClickProxy {
     private static final String TAG = "CLICKS";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
-    private final NextEvents<ClickEvent> mEvents;
+    private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents<>();
+        mEvents = new NextEvents();
     }
 
     public NextClickProxy register(final Object host){
@@ -36,6 +36,15 @@ public class NextClickProxy {
         finder.filter(new Filter<Field>() {
             @Override
             public boolean accept(Field field) {
+                if (field.isSynthetic() || field.isEnumConstant()) {
+                    return false;
+                }
+                // Check View type
+                final Class<?> type = field.getType();
+                if (! View.class.isAssignableFrom(type)) {
+                    return false;
+                }
+                // Check annotation
                 return field.isAnnotationPresent(EmitClick.class);
             }
         });
@@ -51,7 +60,8 @@ public class NextClickProxy {
                     field.setAccessible(true);
                     final EmitClick evt = field.getAnnotation(EmitClick.class);
                     try {
-                        final View view = bindClickView(host, field, evt.event());
+                        final String defineName = evt.value();
+                        final View view = bindClickView(host, field, defineName);
                         if (Integer.MIN_VALUE != evt.keyCode()) {
                             mKeyCodeMapping.append(evt.keyCode(), view);
                         }
@@ -59,11 +69,9 @@ public class NextClickProxy {
                         throw new RuntimeException(error);
                     }
                 }
-                mEvents.register(host, new MethodFinder.Filter() {
-                    // 全部类型,内置过滤器已过滤Java, JavaX, Android接口
-                    @Override public boolean acceptType(Class<?> type) { return true; }
+                mEvents.register(host, new Filter<Method>() {
                     // 只接受ClickEvent类型的方法
-                    @Override public boolean acceptMethod(Method method) {
+                    @Override public boolean accept(Method method) {
                         final Class<?>[] types = method.getParameterTypes();
                         return ClickEvent.class.equals(types[0]);
                     }
@@ -95,24 +103,19 @@ public class NextClickProxy {
     }
 
     private View bindClickView(Object host, Field field, final String event) throws Exception {
-        final boolean origin = field.isAccessible();
+        if (TextUtils.isEmpty(event)) {
+            throw new IllegalArgumentException("Illegal click event name: " + event);
+        }
         field.setAccessible(true);
         final Object viewField = field.get(host);
-        if (!origin) {
-            field.setAccessible(false);
-        }
-        if (viewField instanceof View){
-            final View view = (View) viewField;
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override @SuppressWarnings("unchecked")
-                public void onClick(View v) {
-                    emitClick(v, event);
-                }
-            });
-            return view;
-        }else{
-            throw new IllegalArgumentException("@EmitClick field not a View: " + field);
-        }
+        final View view = (View) viewField;
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override @SuppressWarnings("unchecked")
+            public void onClick(View v) {
+                emitClick(v, event);
+            }
+        });
+        return view;
     }
 
     /**

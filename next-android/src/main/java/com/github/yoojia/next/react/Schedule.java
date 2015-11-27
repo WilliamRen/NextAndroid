@@ -8,9 +8,9 @@ import java.util.concurrent.Callable;
  */
 public interface Schedule {
 
-    int CALLER = 0;
-    int MAIN = 1;
-    int ASYNC = 2;
+    int FLAG_ON_CALLER = 20151010;
+    int FLAG_ON_MAIN = 20151111;
+    int FLAG_ON_THREADS = 20151212;
 
     void submit(Callable<Void> task, int flags) throws Exception;
 

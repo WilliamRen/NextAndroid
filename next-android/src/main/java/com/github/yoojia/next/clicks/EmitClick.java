@@ -13,13 +13,16 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @java.lang.annotation.Target(ElementType.FIELD)
 public @interface EmitClick {
+
     /**
      * 事件名
+     * @return String
      */
-    String event();
+    String value() default "";
 
     /**
      * 按键码
+     * @return Int
      */
     int keyCode() default Integer.MIN_VALUE;
 }

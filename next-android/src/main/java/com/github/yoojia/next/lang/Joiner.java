@@ -23,7 +23,7 @@ public class Joiner {
         if (!iterator.hasNext()) {
             return "";
         }
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         buf.append(iterator.next());
         while (iterator.hasNext()){
             final Object value = iterator.next();

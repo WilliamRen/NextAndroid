@@ -24,7 +24,7 @@ public class Reactor<T> {
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {
         if (mSubs.contains(newSub) || mRefs.containsKey(newSub.target)) {
-            throw new IllegalArgumentException("Duplicate subscription/Subscription.subscriber");
+            throw new IllegalArgumentException("Duplicate Subscription/Subscription.subscriber");
         }
         mSubs.add(newSub);
         mRefs.put(newSub.target, newSub);
@@ -42,7 +42,7 @@ public class Reactor<T> {
     public Reactor<T> emit(T input) {
         final Callable<Void> task = newEmitWrapTask(input);
         try {
-            mEmitSchedule.submit(task, Schedule.CALLER);
+            mEmitSchedule.submit(task, Schedule.FLAG_ON_CALLER);
         } catch (Exception err) {
             throw new RuntimeException(err);
         }
@@ -51,7 +51,7 @@ public class Reactor<T> {
 
     public void close(){
         mEmitSchedule.close();
-        // Never null
+        // mSubSchedule Never be null
         mSubSchedule.get().close();
     }
 
@@ -83,9 +83,9 @@ public class Reactor<T> {
         return new Callable<Void>() {
             @Override public Void call() throws Exception {
                 try{
-                    sub.target.call(input);
+                    sub.target.onCall(input);
                 }catch (Exception err) {
-                    sub.target.errors(err);
+                    sub.target.onErrors(input, err);
                 }
                 return null;
             }

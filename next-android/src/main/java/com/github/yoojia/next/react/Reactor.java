@@ -51,7 +51,7 @@ public class Reactor<T> {
 
     public void close(){
         mEmitSchedule.close();
-        // Never null
+        // mSubSchedule Never be null
         mSubSchedule.get().close();
     }
 

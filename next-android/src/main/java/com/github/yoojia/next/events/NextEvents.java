@@ -30,7 +30,7 @@ public class NextEvents {
      * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.
      * @param target 包含@Subscribe注解的目标对象
      * @param customFilter 指定Method过滤接口
-     * @return NextEvent实例
+     * @return NextEvent
      */
     public NextEvents register(final Object target, final Filter<Method> customFilter) {
         if (mRefs.containsKey(target)) {
@@ -129,15 +129,13 @@ public class NextEvents {
      * @param defineType 接受触发的事件类型
      * @return NextEvents
      */
-    public NextEvents subscribe(Subscriber<EventMeta> subscriber, int scheduleFlags,
-                                String defineName, Class<?> defineType) {
-        mReactor.add(Subscription.create1(subscriber, scheduleFlags,
-                new EventsFilter(defineName, defineType)));
+    public NextEvents subscribe(Subscriber<EventMeta> subscriber, int scheduleFlags, String defineName, Class<?> defineType) {
+        mReactor.add(Subscription.create1(subscriber, scheduleFlags, new EventsFilter(defineName, defineType)));
         return this;
     }
 
     /**
-     * 返回注册Subscriber
+     * 反注册Subscriber
      * @param subscriber Subscriber
      * @return NextEvents
      */
@@ -146,16 +144,30 @@ public class NextEvents {
         return this;
     }
 
+    /**
+     * 发布事件
+     * @param name 事件名
+     * @param value 事件对象
+     * @return NextEvents
+     */
     public NextEvents emit(String name, Object value) {
         mReactor.emit(new EventMeta(name, value));
         return this;
     }
 
+    /**
+     * 指定订阅执行目标的调度器
+     * @param schedule 调度器
+     * @return NextEvents
+     */
     public NextEvents subscribeOn(Schedule schedule) {
         mReactor.subscribeOn(schedule);
         return this;
     }
 
+    /**
+     * 努力争取去掉这个方法
+     */
     public void close() {
         mReactor.close();
     }

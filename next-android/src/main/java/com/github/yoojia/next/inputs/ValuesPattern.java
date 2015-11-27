@@ -18,7 +18,7 @@ public class ValuesPattern {
             public boolean performTest0(String input) throws Exception {
                 return input.length() >= minLength;
             }
-        });
+        }).msgOnFail("输入内容长度必须不少于：" + minLength);
     }
 
     public static Pattern MaxLength(final int maxLength) {
@@ -27,7 +27,7 @@ public class ValuesPattern {
             public boolean performTest0(String input) throws Exception {
                 return input.length() <= maxLength;
             }
-        });
+        }).msgOnFail("输入内容长度必须不多于：" + maxLength);
     }
 
     public static Pattern RangeLength(final int minLength, final int maxLength) {
@@ -37,7 +37,7 @@ public class ValuesPattern {
                 final int length = input.length();
                 return minLength <= length && length <= maxLength;
             }
-        });
+        }).msgOnFail("输入内容长度必须在[" + maxLength + "," + maxLength + "]之间");
     }
 
     public static Pattern MinValue(final int minValue) {
@@ -56,7 +56,7 @@ public class ValuesPattern {
             protected boolean test(Integer input, Integer value0, Integer value1) {
                 return input >= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
     public static Pattern MinValue(final long minValue) {
@@ -75,7 +75,7 @@ public class ValuesPattern {
             protected boolean test(Long input, Long value0, Long value1) {
                 return input >= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
     public static Pattern MinValue(final float minValue) {
@@ -94,7 +94,7 @@ public class ValuesPattern {
             protected boolean test(Float input, Float value0, Float value1) {
                 return input >= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
     public static Pattern MinValue(final double minValue) {
@@ -113,14 +113,14 @@ public class ValuesPattern {
             protected boolean test(Double input, Double value0, Double value1) {
                 return input >= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
-    public static Pattern MaxValue(final int minValue) {
+    public static Pattern MaxValue(final int maxValue) {
         return proxy(new ValuesProxy<Integer>() {
             @Override
             protected Integer value0() {
-                return minValue;
+                return maxValue;
             }
 
             @Override
@@ -132,14 +132,14 @@ public class ValuesPattern {
             protected boolean test(Integer input, Integer value0, Integer value1) {
                 return input <= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
-    public static Pattern MaxValue(final long minValue) {
+    public static Pattern MaxValue(final long maxValue) {
         return proxy(new ValuesProxy<Long>() {
             @Override
             protected Long value0() {
-                return minValue;
+                return maxValue;
             }
 
             @Override
@@ -151,14 +151,14 @@ public class ValuesPattern {
             protected boolean test(Long input, Long value0, Long value1) {
                 return input <= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
-    public static Pattern MaxValue(final float minValue) {
+    public static Pattern MaxValue(final float maxValue) {
         return proxy(new ValuesProxy<Float>() {
             @Override
             protected Float value0() {
-                return minValue;
+                return maxValue;
             }
 
             @Override
@@ -170,14 +170,14 @@ public class ValuesPattern {
             protected boolean test(Float input, Float value0, Float value1) {
                 return input <= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
-    public static Pattern MaxValue(final double minValue) {
+    public static Pattern MaxValue(final double maxValue) {
         return proxy(new ValuesProxy<Double>() {
             @Override
             protected Double value0() {
-                return minValue;
+                return maxValue;
             }
 
             @Override
@@ -189,7 +189,7 @@ public class ValuesPattern {
             protected boolean test(Double input, Double value0, Double value1) {
                 return input <= value0;
             }
-        });
+        }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
     public static Pattern RangeValue(final int minValue, final int maxValue) {
@@ -213,7 +213,7 @@ public class ValuesPattern {
             protected boolean test(Integer input, Integer value0, Integer value1) {
                 return value0 <= input && input <= value1;
             }
-        });
+        }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
     public static Pattern RangeValue(final long minValue, final long maxValue) {
@@ -237,7 +237,7 @@ public class ValuesPattern {
             protected boolean test(Long input, Long value0, Long value1) {
                 return value0 <= input && input <= value1;
             }
-        });
+        }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
     public static Pattern RangeValue(final float minValue, final float maxValue) {
@@ -261,7 +261,7 @@ public class ValuesPattern {
             protected boolean test(Float input, Float value0, Float value1) {
                 return value0 <= input && input <= value1;
             }
-        });
+        }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
     public static Pattern RangeValue(final double minValue, final double maxValue) {
@@ -285,7 +285,7 @@ public class ValuesPattern {
             protected boolean test(Double input, Double value0, Double value1) {
                 return value0 <= input && input <= value1;
             }
-        });
+        }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
     public static Pattern EqualsTo(final ValueLoader<String> loader){

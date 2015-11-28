@@ -14,5 +14,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Evt {
+    /**
+     * 事件名称
+     * @return String
+     */
     String value();
 }

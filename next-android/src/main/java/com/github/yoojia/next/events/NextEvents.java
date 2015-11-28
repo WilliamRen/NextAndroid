@@ -1,6 +1,7 @@
 package com.github.yoojia.next.events;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.MethodsFinder;
@@ -16,12 +17,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.github.yoojia.next.lang.Preconditions.notNull;
+
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
 public class NextEvents {
+
+    private static final String TAG = "NextEvents";
 
     private final Reactor<EventMeta> mReactor = new Reactor<>();
     private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
@@ -33,6 +38,7 @@ public class NextEvents {
      * @return NextEvent
      */
     public NextEvents register(final Object target, final Filter<Method> customFilter) {
+        notNull(target, "Target Object must not be null !");
         if (mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was REGISTERED! " +
                     "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
@@ -70,10 +76,13 @@ public class NextEvents {
                         // custom filter
                         return customFilter == null || customFilter.accept(method);
                     }
-                }).find(target.getClass());
-        // Check Annotations
+                })
+                .find(target.getClass());
+        // Check Annotations methods
         if (annotatedMethods.isEmpty()) {
-            Warning.show("NextEvents");
+            Log.e(TAG, "- Empty Methods(with @Subscribe)! Object host: " + target);
+            Warning.show(TAG);
+            return this;
         }
         // Filter methods and register them
         synchronized (mRefs) {
@@ -146,12 +155,12 @@ public class NextEvents {
 
     /**
      * 发布事件
-     * @param name 事件名
-     * @param value 事件对象
+     * @param eventName 事件名
+     * @param eventObject 事件对象
      * @return NextEvents
      */
-    public NextEvents emit(String name, Object value) {
-        mReactor.emit(new EventMeta(name, value));
+    public NextEvents emit(String eventName, Object eventObject) {
+        mReactor.emit(new EventMeta(eventName, eventObject));
         return this;
     }
 

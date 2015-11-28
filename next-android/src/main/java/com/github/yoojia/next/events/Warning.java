@@ -9,7 +9,8 @@ import android.util.Log;
 class Warning {
 
     public static void show(String tag){
-        Log.e(tag, "- Seems something wrong in release mode? Try add belows configs to your [proguard-rules.pro] file: ");
-        Log.e(tag, "-keepclassmembers class * { @com.github.yoojia.next.events.Evt *; @com.github.yoojia.next.events.Subscribe *; }");
+        final String tip = "@Subscribe methods not found ! Try add belows to your <proguard-rules.pro> file:\n" +
+                " -keepclassmembers class * { @com.github.yoojia.next.events.Evt *; @com.github.yoojia.next.events.Subscribe *; }";
+        Log.e(tag, tip);
     }
 }

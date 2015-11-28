@@ -9,7 +9,8 @@ import android.util.Log;
 class Warning {
 
     public static void show(String tag){
-        Log.e(tag, "- Seems something wrong in release mode? Try add belows configs to your [proguard-rules.pro] file: ");
-        Log.e(tag, "-keepclassmembers class * { @com.github.yoojia.next.clicks.EmitClick *; }");
+        final String tip = "@ClickEvent fields not found ! Try add belows to your <proguard-rules.pro> file:\n" +
+                " -keepclassmembers class * { @com.github.yoojia.next.clicks.ClickEvt *; }";
+        Log.e(tag, tip);
     }
 }

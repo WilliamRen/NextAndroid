@@ -4,7 +4,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 
-import com.github.yoojia.next.lang.QuantumObject;
+import com.github.yoojia.next.lang.ObjectWrap;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import static com.github.yoojia.next.lang.Preconditions.notEmpty;
  */
 public final class Action {
 
-    private final QuantumObject<String> mSenderStack = new QuantumObject<>();
+    private final ObjectWrap<String> mSenderStack = new ObjectWrap<>();
 
     public final String type;
 

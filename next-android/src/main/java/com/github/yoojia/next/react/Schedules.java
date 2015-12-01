@@ -84,15 +84,19 @@ public class Schedules {
                 task.call();
                 break;
             case Schedule.FLAG_ON_MAIN:
-                mainHandler.post(new Runnable() {
-                    @Override public void run() {
-                        try {
-                            task.call();
-                        } catch (Exception err) {
-                            throw new RuntimeException(err);
+                if (Looper.getMainLooper() == Looper.myLooper()) {
+                    task.call();
+                }else{
+                    mainHandler.post(new Runnable() {
+                        @Override public void run() {
+                            try {
+                                task.call();
+                            } catch (Exception err) {
+                                throw new RuntimeException(err);
+                            }
                         }
-                    }
-                });
+                    });
+                }
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);

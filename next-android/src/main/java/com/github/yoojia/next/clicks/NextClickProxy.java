@@ -3,6 +3,7 @@ package com.github.yoojia.next.clicks;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.KeyEvent;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
@@ -62,7 +63,7 @@ public class NextClickProxy {
                     try {
                         final String defineName = evt.value();
                         final View view = bindClickView(target, field, defineName);
-                        if (Integer.MIN_VALUE != evt.keyCode()) {
+                        if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
                             mKeyCodeMapping.append(evt.keyCode(), view);
                         }
                     } catch (Exception error) {

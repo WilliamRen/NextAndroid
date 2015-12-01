@@ -20,12 +20,12 @@ public class NextAutoView {
 
     private static final String TAG = NextAutoView.class.getSimpleName();
 
-    private final Object mHost;
-    private final Class<?> mHostType;
+    private final Object mTarget;
+    private final Class<?> mTargetType;
 
-    public NextAutoView(Object host) {
-        mHost = host;
-        mHostType = host.getClass();
+    public NextAutoView(Object target) {
+        mTarget = target;
+        mTargetType = target.getClass();
     }
 
     public void inject(Finder viewField){
@@ -36,16 +36,16 @@ public class NextAutoView {
                 return field.isAnnotationPresent(AutoView.class);
             }
         });
-        final List<Field> fields = fieldsFinder.find(mHostType);
+        final List<Field> fields = fieldsFinder.find(mTargetType);
         if (fields.isEmpty()){
-            Log.d(TAG, "- Empty Views(with @AutoView) ! ");
+            Log.d(TAG, "- Empty Views(with @AutoView) ! Target Object: " + mTarget);
             Warning.show(TAG);
         }else{
-            final Objects os = new Objects(mHost);
+            final Objects os = new Objects(mTarget);
             for (Field field : fields){
                 field.setAccessible(true);
-                final AutoView ano = field.getAnnotation(AutoView.class);
-                os.setField(field, viewField.find(ano.value(), ano.parents()));
+                final AutoView av = field.getAnnotation(AutoView.class);
+                os.setField(field, viewField.find(av.value(), av.parents()));
             }
         }
     }

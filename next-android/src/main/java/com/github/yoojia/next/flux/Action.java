@@ -109,23 +109,13 @@ public final class Action {
         return getBundle(key, new Bundle(0));
     }
 
-    @Deprecated
-    public ArrayList<? extends Parcelable> getArrayList(String key, ArrayList<? extends Parcelable> defaultValue) {
-        return getParcelableArrayList(key, defaultValue);
-    }
-
     public ArrayList<? extends Parcelable> getParcelableArrayList(String key, ArrayList<? extends Parcelable> defaultValue) {
         ArrayList<? extends Parcelable> value =  data.getParcelableArrayList(key);
         return value == null ? defaultValue : value;
     }
 
-    @Deprecated
-    public ArrayList<? extends Parcelable> getArrayList(String key) {
-        return getParcelableArrayList(key);
-    }
-
     public ArrayList<? extends Parcelable> getParcelableArrayList(String key) {
-        return getArrayList(key, new ArrayList<Parcelable>(0));
+        return getParcelableArrayList(key, new ArrayList<Parcelable>(0));
     }
 
     @SuppressWarnings("unchecked")
@@ -260,11 +250,6 @@ public final class Action {
         public Builder putParcelableArray(String key, Parcelable[] values) {
             data.putParcelableArray(key, values);
             return this;
-        }
-
-        @Deprecated
-        public Builder putArrayList(String key, ArrayList<? extends Parcelable> value) {
-            return putParcelableArrayList(key, value);
         }
 
         public Builder putParcelableArrayList(String key, ArrayList<? extends Parcelable> value) {

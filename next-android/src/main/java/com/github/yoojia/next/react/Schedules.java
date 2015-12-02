@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * 任务调度器
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  */
 public class Schedules {

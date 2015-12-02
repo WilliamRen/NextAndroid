@@ -1,5 +1,7 @@
 package com.github.yoojia.next.react;
 
+import com.github.yoojia.next.lang.ObjectWrap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -15,11 +17,11 @@ public class Reactor<T> {
     private final List<Subscription<T>> mSubs = new CopyOnWriteArrayList<>();
     private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
     private final Schedule mEmitSchedule;
-    private final AtomicReference<Schedule> mSubSchedule;
+    private final ObjectWrap<Schedule> mSubSchedule;
 
     public Reactor() {
         mEmitSchedule = Schedules.caller();
-        mSubSchedule = new AtomicReference<>(Schedules.singleThread());
+        mSubSchedule = new ObjectWrap<>(Schedules.singleThread());
     }
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {

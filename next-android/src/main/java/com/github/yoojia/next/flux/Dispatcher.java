@@ -15,17 +15,24 @@ public final class Dispatcher {
 
     private static final String STACK_WARNING = "Use <dispatcher.setTraceEnabled(...)> to collect methods stack !";
 
+    private final NextEvents mEvents;
+    private final String mCategoryName;
+
     private boolean mTraceEnabled = false;
 
-    private final NextEvents mEvents;
-
-    public Dispatcher(Schedule schedulers) {
+    public Dispatcher(Schedule schedulers, String categoryName) {
+        mCategoryName = categoryName;
         mEvents = new NextEvents();
         mEvents.subscribeOn(schedulers);
     }
 
-    public Dispatcher() {
+    public Dispatcher(String categoryName) {
+        mCategoryName = categoryName;
         mEvents = new NextEvents();
+    }
+
+    public Dispatcher(){
+        this(null);
     }
 
     /**
@@ -36,6 +43,17 @@ public final class Dispatcher {
         mEvents.register(host, new Filter<Method>() {
             // Only accept Action type
             @Override public boolean accept(Method method) {
+                // Check categories
+                // - If set category, @Category is required
+                if (mCategoryName != null && !mCategoryName.isEmpty()) {
+                    if ( ! method.isAnnotationPresent(Category.class)) {
+                        return false;
+                    }
+                    final Category category = method.getAnnotation(Category.class);
+                    if ( ! mCategoryName.equals(category.value())) {
+                        return false;
+                    }
+                }
                 final Class<?>[] types = method.getParameterTypes();
                 return Action.class.equals(types[0]);
             }

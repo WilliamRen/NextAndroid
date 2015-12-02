@@ -1,6 +1,7 @@
 package com.github.yoojia.next.events;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.MethodsFinder;
@@ -16,12 +17,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.github.yoojia.next.lang.Preconditions.notNull;
+
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
 public class NextEvents {
+
+    private static final String TAG = "NextEvents";
 
     private final Reactor<EventMeta> mReactor = new Reactor<>();
     private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
@@ -33,6 +38,7 @@ public class NextEvents {
      * @return NextEvent
      */
     public NextEvents register(final Object target, final Filter<Method> customFilter) {
+        notNull(target, "Target Object must not be null !");
         if (mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was REGISTERED! " +
                     "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
@@ -70,36 +76,36 @@ public class NextEvents {
                         // custom filter
                         return customFilter == null || customFilter.accept(method);
                     }
-                }).find(target.getClass());
-        // Check Annotations
-        if (annotatedMethods.isEmpty()) {
-            Warning.show("NextEvents");
-        }
+                })
+                .find(target.getClass());
         // Filter methods and register them
-        synchronized (mRefs) {
-            final ArrayList<Subscriber<EventMeta>> subscribers;
-            // if not registered, ad to Refs
-            if ( ! mRefs.containsKey(target)) {
-                subscribers = new ArrayList<>();
-                mRefs.put(target, subscribers);
-            }else{
-                subscribers = mRefs.get(target);
-            }
-            for (final Method method : annotatedMethods) {
-                final Evt event = (Evt) method.getParameterAnnotations()[0][0];
-                final String defineName = event.value();
-                if (TextUtils.isEmpty(defineName)) {
-                    throw new IllegalArgumentException("Event name in @Subscribe must not be empty");
-                }
-                final Subscribe subscribe = method.getAnnotation(Subscribe.class);
-                final int flags = subscribe.onThreads() ? Schedule.FLAG_ON_THREADS : Schedule.FLAG_ON_MAIN;
-                final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
-                subscribers.add(subscriber);
-                final Class<?> defineType = method.getParameterTypes()[0];
-                this.subscribe(subscriber, flags, defineName, defineType);
-            }
+        final ArrayList<Subscriber<EventMeta>> subscribers;
+        // if not registered, add to Refs(register)
+        if ( ! mRefs.containsKey(target)) {
+            subscribers = new ArrayList<>();
+            mRefs.put(target, subscribers);
+        }else{
+            subscribers = mRefs.get(target);
         }
-
+        // Check Annotations methods
+        if (annotatedMethods.isEmpty()) {
+            Log.e(TAG, "- Empty Methods(with @Subscribe)! Object host: " + target);
+            Warning.show(TAG);
+            return this;
+        }
+        for (final Method method : annotatedMethods) {
+            final Evt event = (Evt) method.getParameterAnnotations()[0][0];
+            final String defineName = event.value();
+            if (TextUtils.isEmpty(defineName)) {
+                throw new IllegalArgumentException("Event name in @Subscribe must not be empty");
+            }
+            final Subscribe subscribe = method.getAnnotation(Subscribe.class);
+            final int flags = subscribe.onThreads() ? Schedule.FLAG_ON_THREADS : Schedule.FLAG_ON_MAIN;
+            final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
+            subscribers.add(subscriber);
+            final Class<?> defineType = method.getParameterTypes()[0];
+            this.subscribe(subscriber, flags, defineName, defineType);
+        }
         return this;
     }
 
@@ -146,12 +152,12 @@ public class NextEvents {
 
     /**
      * 发布事件
-     * @param name 事件名
-     * @param value 事件对象
+     * @param eventName 事件名
+     * @param eventObject 事件对象
      * @return NextEvents
      */
-    public NextEvents emit(String name, Object value) {
-        mReactor.emit(new EventMeta(name, value));
+    public NextEvents emit(String eventName, Object eventObject) {
+        mReactor.emit(new EventMeta(eventName, eventObject));
         return this;
     }
 

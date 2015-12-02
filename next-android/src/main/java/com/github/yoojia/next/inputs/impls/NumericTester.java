@@ -4,7 +4,7 @@ import com.github.yoojia.next.inputs.Tester0;
 
 /**
  * Numeric tester
- *
+ * !!! NOTE THAT: Impl comes from ApacheCommonUtils
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
 public class NumericTester extends Tester0 {
@@ -14,9 +14,7 @@ public class NumericTester extends Tester0 {
         return isNumeric(input);
     }
 
-    // implements commit apache common utils
     public static boolean isNumeric(String input){
-
         char[] chars = input.toCharArray();
         int sz = chars.length;
         boolean hasExp = false;

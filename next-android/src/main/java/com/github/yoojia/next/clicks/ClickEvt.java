@@ -1,5 +1,7 @@
 package com.github.yoojia.next.clicks;
 
+import android.view.KeyEvent;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -12,7 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @java.lang.annotation.Target(ElementType.FIELD)
-public @interface EmitClick {
+public @interface ClickEvt {
 
     /**
      * 事件名
@@ -24,5 +26,5 @@ public @interface EmitClick {
      * 按键码
      * @return Int
      */
-    int keyCode() default Integer.MIN_VALUE;
+    int keyCode() default KeyEvent.KEYCODE_UNKNOWN;
 }

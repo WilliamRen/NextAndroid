@@ -3,6 +3,7 @@ package com.github.yoojia.next.clicks;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.KeyEvent;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
@@ -30,8 +31,8 @@ public class NextClickProxy {
         mEvents = new NextEvents();
     }
 
-    public NextClickProxy register(final Object host){
-        notNull(host, "Host must not be null !");
+    public NextClickProxy register(final Object target){
+        notNull(target, "Target Object must not be null !");
         final FieldsFinder finder = new FieldsFinder();
         finder.filter(new Filter<Field>() {
             @Override
@@ -45,31 +46,31 @@ public class NextClickProxy {
                     return false;
                 }
                 // Check annotation
-                return field.isAnnotationPresent(EmitClick.class);
+                return field.isAnnotationPresent(ClickEvt.class);
             }
         });
         final Runnable task = new Runnable() {
             @Override public void run() {
-                final List<Field> fields = finder.find(host.getClass());
+                final List<Field> fields = finder.find(target.getClass());
                 if (fields.isEmpty()){
-                    Log.d(TAG, "- Empty Handlers(with @EmitClick) ! ");
+                    Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
                     Warning.show(TAG);
                     return;
                 }
                 for (Field field : fields){
                     field.setAccessible(true);
-                    final EmitClick evt = field.getAnnotation(EmitClick.class);
+                    final ClickEvt evt = field.getAnnotation(ClickEvt.class);
                     try {
                         final String defineName = evt.value();
-                        final View view = bindClickView(host, field, defineName);
-                        if (Integer.MIN_VALUE != evt.keyCode()) {
+                        final View view = bindClickView(target, field, defineName);
+                        if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
                             mKeyCodeMapping.append(evt.keyCode(), view);
                         }
                     } catch (Exception error) {
                         throw new RuntimeException(error);
                     }
                 }
-                mEvents.register(host, new Filter<Method>() {
+                mEvents.register(target, new Filter<Method>() {
                     // 只接受ClickEvent类型的方法
                     @Override public boolean accept(Method method) {
                         final Class<?>[] types = method.getParameterTypes();

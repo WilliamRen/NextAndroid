@@ -7,7 +7,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.github.yoojia.next.clicks.ClickEvent;
-import com.github.yoojia.next.clicks.EmitClick;
+import com.github.yoojia.next.clicks.ClickEvt;
 import com.github.yoojia.next.clicks.NextClickProxy;
 import com.github.yoojia.next.events.Evt;
 import com.github.yoojia.next.events.Subscribe;
@@ -23,11 +23,11 @@ public class MainActivity extends AppCompatActivity {
     @AutoView(R.id.helo)
     private TextView mHelo;
 
-    @EmitClick(event = "click")
+    @ClickEvt("click")
     @AutoView(R.id.button)
     private Button mButton;
 
-    private final Dispatcher mDispatcher = new Dispatcher();
+    private final Dispatcher mDispatcher = new Dispatcher(categoryName);
 
     private TestStore mStore;
 

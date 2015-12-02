@@ -160,6 +160,18 @@ public final class Action {
         return data.getParcelable(key);
     }
 
+    public ArrayList<Integer> getIntArrayList(String key) {
+        return data.getIntegerArrayList(key);
+    }
+
+    public ArrayList<String> getStringArrayList(String key) {
+        return data.getStringArrayList(key);
+    }
+
+    public ArrayList<CharSequence> getCharSequenceArrayList(String key) {
+        return data.getCharSequenceArrayList(key);
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -254,6 +266,21 @@ public final class Action {
 
         public Builder putParcelableArrayList(String key, ArrayList<? extends Parcelable> value) {
             data.putParcelableArrayList(key, value);
+            return this;
+        }
+
+        public Builder putIntArrayList(String key, ArrayList<Integer> value) {
+            data.putIntegerArrayList(key, value);
+            return this;
+        }
+
+        public Builder putStringArrayList(String key, ArrayList<String> value) {
+            data.putStringArrayList(key, value);
+            return this;
+        }
+
+        public Builder putCharSequenceArrayList(String key, ArrayList<CharSequence> value) {
+            data.putCharSequenceArrayList(key, value);
             return this;
         }
 

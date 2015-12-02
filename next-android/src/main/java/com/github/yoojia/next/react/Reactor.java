@@ -10,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * 事件响应处理
  * @author YOOJIA.CHEN (yoojiachen@gmail.com)
  */
 public class Reactor<T> {

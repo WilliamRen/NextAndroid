@@ -6,7 +6,8 @@ package com.github.yoojia.next.lang;
  */
 public interface Filter<T> {
     /**
-     * return TRUE if accept this item
+     * @param item Item
+     * @return TRUE if accept this item
      */
     boolean accept(T item);
 }

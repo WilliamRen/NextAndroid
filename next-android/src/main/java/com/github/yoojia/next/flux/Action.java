@@ -4,7 +4,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 
-import com.github.yoojia.next.lang.QuantumObject;
+import com.github.yoojia.next.lang.ObjectWrap;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import static com.github.yoojia.next.lang.Preconditions.notEmpty;
  */
 public final class Action {
 
-    private final QuantumObject<String> mSenderStack = new QuantumObject<>();
+    private final ObjectWrap<String> mSenderStack = new ObjectWrap<>();
 
     public final String type;
 
@@ -109,23 +109,13 @@ public final class Action {
         return getBundle(key, new Bundle(0));
     }
 
-    @Deprecated
-    public ArrayList<? extends Parcelable> getArrayList(String key, ArrayList<? extends Parcelable> defaultValue) {
-        return getParcelableArrayList(key, defaultValue);
-    }
-
     public ArrayList<? extends Parcelable> getParcelableArrayList(String key, ArrayList<? extends Parcelable> defaultValue) {
         ArrayList<? extends Parcelable> value =  data.getParcelableArrayList(key);
         return value == null ? defaultValue : value;
     }
 
-    @Deprecated
-    public ArrayList<? extends Parcelable> getArrayList(String key) {
-        return getParcelableArrayList(key);
-    }
-
     public ArrayList<? extends Parcelable> getParcelableArrayList(String key) {
-        return getArrayList(key, new ArrayList<Parcelable>(0));
+        return getParcelableArrayList(key, new ArrayList<Parcelable>(0));
     }
 
     @SuppressWarnings("unchecked")
@@ -168,6 +158,18 @@ public final class Action {
 
     public <T extends Parcelable> T getTypedParcelable(String key) {
         return data.getParcelable(key);
+    }
+
+    public ArrayList<Integer> getIntArrayList(String key) {
+        return data.getIntegerArrayList(key);
+    }
+
+    public ArrayList<String> getStringArrayList(String key) {
+        return data.getStringArrayList(key);
+    }
+
+    public ArrayList<CharSequence> getCharSequenceArrayList(String key) {
+        return data.getCharSequenceArrayList(key);
     }
 
     @Override
@@ -262,13 +264,23 @@ public final class Action {
             return this;
         }
 
-        @Deprecated
-        public Builder putArrayList(String key, ArrayList<? extends Parcelable> value) {
-            return putParcelableArrayList(key, value);
-        }
-
         public Builder putParcelableArrayList(String key, ArrayList<? extends Parcelable> value) {
             data.putParcelableArrayList(key, value);
+            return this;
+        }
+
+        public Builder putIntArrayList(String key, ArrayList<Integer> value) {
+            data.putIntegerArrayList(key, value);
+            return this;
+        }
+
+        public Builder putStringArrayList(String key, ArrayList<String> value) {
+            data.putStringArrayList(key, value);
+            return this;
+        }
+
+        public Builder putCharSequenceArrayList(String key, ArrayList<CharSequence> value) {
+            data.putCharSequenceArrayList(key, value);
             return this;
         }
 

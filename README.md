@@ -6,9 +6,9 @@ NextAndroid 是一个集成Android App开发工具库
 
 类似Google Guava的EventBus，NextEvents提供一个事件总线处理库。它提供了线程回调，MainUI回调等非常有用的事件响应处理方式。
 
-在Intel i5/8G 的PC下测试结果：
+在 `Intel i5` / `8G` / `Win10` / `Robolectric` 环境下测试结果：
 
-Schedule类型及负载|发送事件速率|发送事件用时|执行负载用时|负载调用次数
+Schedule类型及负载|发送速率|发送用时|执行负载总用时|调用负载总次数
 ----|----|----|----|----
 SingleThread(1ms Payload)|	 859/s|		8ms|		2326ms|	    2000
 CallerThread(1ms Payload)|	 868/s|		2302ms|	    2302ms|	    2000

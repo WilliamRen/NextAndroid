@@ -47,7 +47,7 @@ public class Schedules {
 
             @Override
             public void submit(final Callable<Void> task, int scheduleFlags) throws Exception {
-                final Runnable wrap = new Runnable() {
+                final Runnable runnable = new Runnable() {
                     @Override public void run() {
                         try {
                             task.call();
@@ -68,7 +68,7 @@ public class Schedules {
                             }
                         }
                         mThreads.incrementAndGet();
-                        new Thread(wrap).start();
+                        startAnonymous(runnable);
                         break;
                     case Schedule.FLAG_ON_CALLER:
                         task.call();
@@ -77,7 +77,7 @@ public class Schedules {
                         if (Looper.getMainLooper() == Looper.myLooper()) {
                             task.call();
                         }else{
-                            mMainHandler.post(wrap);
+                            mMainHandler.post(runnable);
                         }
                         break;
                     default:
@@ -88,6 +88,12 @@ public class Schedules {
             @Override
             public void close() {
                 // may not call
+            }
+
+            private void startAnonymous(Runnable runnable) {
+                final Thread thread = new Thread(runnable, "anonymous-schedule");
+                thread.setPriority(Thread.MAX_PRIORITY);
+                thread.start();
             }
         };
     }

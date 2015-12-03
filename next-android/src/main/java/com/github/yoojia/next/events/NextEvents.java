@@ -7,6 +7,7 @@ import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.MethodsFinder;
 import com.github.yoojia.next.react.Reactor;
 import com.github.yoojia.next.react.Schedule;
+import com.github.yoojia.next.react.Schedules;
 import com.github.yoojia.next.react.Subscriber;
 import com.github.yoojia.next.react.Subscription;
 
@@ -28,8 +29,16 @@ public class NextEvents {
 
     private static final String TAG = "NextEvents";
 
-    private final Reactor<EventMeta> mReactor = new Reactor<>();
+    private final Reactor<EventMeta> mReactor;
     private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
+
+    public NextEvents() {
+        this(Schedules.singleThread());
+    }
+
+    public NextEvents(Schedule subscribeOn) {
+        mReactor = new Reactor<>(subscribeOn);
+    }
 
     /**
      * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.

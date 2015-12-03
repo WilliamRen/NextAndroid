@@ -22,8 +22,7 @@ public final class Dispatcher {
 
     public Dispatcher(Schedule schedulers, String categoryName) {
         mCategoryName = categoryName;
-        mEvents = new NextEvents();
-        mEvents.subscribeOn(schedulers);
+        mEvents = new NextEvents(schedulers);
     }
 
     public Dispatcher(String categoryName) {

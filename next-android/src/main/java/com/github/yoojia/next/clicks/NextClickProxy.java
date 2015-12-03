@@ -9,6 +9,7 @@ import android.view.View;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.react.Schedules;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -28,7 +29,8 @@ public class NextClickProxy {
     private final NextEvents mEvents;
 
     public NextClickProxy() {
-        mEvents = new NextEvents();
+        // 点击处理，默认使用匿名线程来处理
+        mEvents = new NextEvents(Schedules.anonymous());
     }
 
     public NextClickProxy register(final Object target){

@@ -15,16 +15,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Schedules {
 
     /**
-     * 调用者
+     * 调用者调试器，忽略 Schedule.FLAG_X 参数。
+     * 由调用者执行最终回调目标。
      * @return Schedule
      */
     public static Schedule caller() {
         return new Schedule() {
             @Override public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                if (Schedule.FLAG_ON_CALLER != scheduleFlags) {
-                    throw new IllegalArgumentException(
-                            "Unsupported flags(Schedule.FLAG_ON_MAIN/Schedule.FLAG_ON_THREADS) in CALLER Schedule !");
-                }
                 task.call();
             }
 
@@ -34,7 +31,9 @@ public class Schedules {
     }
 
     /**
-     * 匿名线程调度器，允许最大并发为CPU数量。超过最大并发数，添加任务时将被阻塞。
+     * 匿名线程调度器，允许最大并发为CPU数量。
+     * - 超过最大并发数，添加任务时将被阻塞。每次执行任务时创建一个匿名线程，不适用于大并发任务。
+     * - 此调度器为NextClickProxy等存在不调用close()/destroy()方法而调试。
      * @return Schedule
      */
     public static Schedule anonymous(){
@@ -99,7 +98,8 @@ public class Schedules {
     }
 
     /**
-     * 单线程
+     * 单线程调度器。
+     *  - 在测试环境中，使用此调度模式中，空负载时并发处理最快
      * @return Schedule
      */
     public static Schedule singleThread() {
@@ -121,14 +121,23 @@ public class Schedules {
     }
 
     /**
-     * 固定线程数
+     * 固定线程数调度器
      * @return Schedule
      */
     public static Schedule threads(final int threads) {
+        return service(Executors.newFixedThreadPool(threads));
+    }
+
+    /**
+     * 指定ExecutorService实现的高度器
+     * @param service ExecutorService
+     * @return Schedule
+     */
+    public static Schedule service(final ExecutorService service) {
         return new Schedule() {
 
             private final Handler mMainHandler = new Handler(Looper.getMainLooper());
-            private final ExecutorService mThreads = Executors.newFixedThreadPool(threads);
+            private final ExecutorService mThreads = service;
 
             @Override
             public void submit(Callable<Void> task, int scheduleFlags) throws Exception {

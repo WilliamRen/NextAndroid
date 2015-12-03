@@ -13,7 +13,6 @@ Schedule类型及负载|发送事件速率|发送事件用时|执行负载用时
 SingleThread(1ms Payload)|	 859/s|		8ms|		2326ms|	    2000
 CallerThread(1ms Payload)|	 868/s|		2302ms|	    2302ms|	    2000
 MultiThreads(1ms Payload)|	 3485/s|	5ms|		573ms|		2000
-
 SingleThread(NopPayload)|	 2000420/s|		999ms|		999ms|		2000000
 MultiThreads(NopPayload)|	 1506137/s|		1211ms|	    1327ms|	    2000000
 CallerThread(NopPayload)|	 9923440/s|		201ms|		201ms|		2000000

@@ -20,9 +20,9 @@ public class Reactor<T> {
     private final Schedule mEmitSchedule;
     private final ObjectWrap<Schedule> mSubSchedule;
 
-    public Reactor() {
+    public Reactor(Schedule subscribeOn) {
         mEmitSchedule = Schedules.caller();
-        mSubSchedule = new ObjectWrap<>(Schedules.singleThread());
+        mSubSchedule = new ObjectWrap<>(subscribeOn);
     }
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {

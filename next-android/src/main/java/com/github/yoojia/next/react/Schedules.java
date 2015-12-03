@@ -6,6 +6,7 @@ import android.os.Looper;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 任务调度器
@@ -29,6 +30,65 @@ public class Schedules {
 
             @Override
             public void close() {/*nop*/}
+        };
+    }
+
+    /**
+     * 匿名线程调度器，允许最大并发为CPU数量。超过最大并发数，添加任务时将被阻塞。
+     * @return Schedule
+     */
+    public static Schedule anonymous(){
+        return new Schedule() {
+
+            private final int MAX_THREADS = Runtime.getRuntime().availableProcessors();
+
+            private final Handler mMainHandler = new Handler(Looper.getMainLooper());
+            private final AtomicInteger mThreads = new AtomicInteger(0);
+
+            @Override
+            public void submit(final Callable<Void> task, int scheduleFlags) throws Exception {
+                final Runnable wrap = new Runnable() {
+                    @Override public void run() {
+                        try {
+                            task.call();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }finally {
+                            synchronized (mThreads) {
+                                mThreads.notify();
+                            }
+                        }
+                    }
+                };
+                switch (scheduleFlags) {
+                    case Schedule.FLAG_ON_THREADS:
+                        if (mThreads.get() >= MAX_THREADS) {
+                            synchronized (mThreads) {
+                                mThreads.wait();
+                            }
+                        }
+                        mThreads.incrementAndGet();
+                        new Thread(wrap).start();
+                        break;
+                    case Schedule.FLAG_ON_CALLER:
+                        task.call();
+                        break;
+                    case Schedule.FLAG_ON_MAIN:
+                        if (Looper.getMainLooper() == Looper.myLooper()) {
+                            task.call();
+                        }else{
+                            mMainHandler.post(wrap);
+                        }
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);
+                }
+            }
+
+            @Override
+            public void close() {
+                // may not call
+            }
         };
     }
 

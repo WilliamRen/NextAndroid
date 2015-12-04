@@ -7,7 +7,6 @@ import android.view.KeyEvent;
 import android.view.View;
 
 import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.lang.AsyncExecutor;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.react.Schedule;
@@ -30,11 +29,11 @@ public class NextClickProxy {
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
     private final NextEvents mEvents;
-    private final Schedule mSchedule;
+    private final Schedule mScheduleRef;
 
     public NextClickProxy() {
-        mSchedule = Schedules.useShared();
-        mEvents = new NextEvents(mSchedule);
+        mScheduleRef = Schedules.useShared();
+        mEvents = new NextEvents(mScheduleRef);
     }
 
     /**
@@ -73,14 +72,10 @@ public class NextClickProxy {
                 for (Field field : fields){
                     field.setAccessible(true);
                     final ClickEvt evt = field.getAnnotation(ClickEvt.class);
-                    try {
-                        final String defineName = evt.value();
-                        final View view = bindClickView(target, field, defineName);
-                        if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
-                            mKeyCodeMapping.append(evt.keyCode(), view);
-                        }
-                    } catch (Exception error) {
-                        throw new RuntimeException(error);
+                    final String defineName = evt.value();
+                    final View view = bindClickView(target, field, defineName);
+                    if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
+                        mKeyCodeMapping.append(evt.keyCode(), view);
                     }
                 }
                 mEvents.register(target, new Filter<Method>() {
@@ -94,7 +89,7 @@ public class NextClickProxy {
             }
         };
         try {
-            mSchedule.submit(task, Schedule.FLAG_ON_THREADS);
+            mScheduleRef.submit(task, Schedule.FLAG_ON_THREADS);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

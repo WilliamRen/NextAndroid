@@ -27,8 +27,7 @@ public final class Dispatcher {
     }
 
     public Dispatcher(String categoryName) {
-        mCategoryName = categoryName;
-        mEvents = new NextEvents(Schedules.useShared());
+        this(Schedules.useShared(), categoryName);
     }
 
     public Dispatcher(){

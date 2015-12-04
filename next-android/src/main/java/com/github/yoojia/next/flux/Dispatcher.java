@@ -68,13 +68,6 @@ public final class Dispatcher {
     }
 
     /**
-     * 安全销毁
-     */
-    public void destroy(){
-        mEvents.close();
-    }
-
-    /**
      * 提交Action事件
      * @param action Action 事件
      */

@@ -16,11 +16,9 @@ public class Reactor<T> {
 
     private final List<Subscription<T>> mSubs = new CopyOnWriteArrayList<>();
     private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
-    private final Schedule mEmitSchedule;
     private final ObjectWrap<Schedule> mSubSchedule;
 
     public Reactor(Schedule subscribeOn) {
-        mEmitSchedule = Schedules.newCaller();
         mSubSchedule = new ObjectWrap<>(subscribeOn);
     }
 
@@ -42,19 +40,12 @@ public class Reactor<T> {
     }
 
     public Reactor<T> emit(T input) {
-        final Callable<Void> task = newEmitWrapTask(input);
         try {
-            mEmitSchedule.submit(task, Schedule.FLAG_ON_CALLER);
+            emitInput(input);
         } catch (Exception err) {
             throw new RuntimeException(err);
         }
         return this;
-    }
-
-    public void close(){
-        mEmitSchedule.close();
-        // mSubSchedule Never be null
-        mSubSchedule.get().close();
     }
 
     public Reactor<T> subscribeOn(Schedule schedule) {
@@ -65,33 +56,23 @@ public class Reactor<T> {
         return this;
     }
 
-    private Callable<Void> newEmitWrapTask(final T input){
-        return new Callable<Void>() {
-            @Override public Void call() throws Exception {
-                for (Subscription<T> callable : mSubs) {
-                    if ( ! callable.filter(input)) {
-                        continue;
+    private void emitInput(final T input) throws Exception {
+        for (final Subscription<T> callable : mSubs) {
+            if ( ! callable.filter(input)) {
+                continue;
+            }
+            final Schedule schedule = mSubSchedule.get();
+            schedule.submit(new Callable<Void>() {
+                @Override public Void call() throws Exception {
+                    try{
+                        callable.target.onCall(input);
+                    }catch (Exception err) {
+                        callable.target.onErrors(input, err);
                     }
-                    final Callable<Void> finalRunTask = newSubscribeTask(callable, input);
-                    final Schedule schedule = mSubSchedule.get();
-                    schedule.submit(finalRunTask, callable.targetScheduleFlags);
+                    return null;
                 }
-                return null;
-            }
-        };
-    }
-
-    private Callable<Void> newSubscribeTask(final Subscription<T> sub, final T input) {
-        return new Callable<Void>() {
-            @Override public Void call() throws Exception {
-                try{
-                    sub.target.onCall(input);
-                }catch (Exception err) {
-                    sub.target.onErrors(input, err);
-                }
-                return null;
-            }
-        };
+            }, callable.targetScheduleFlags);
+        }
     }
 
 }

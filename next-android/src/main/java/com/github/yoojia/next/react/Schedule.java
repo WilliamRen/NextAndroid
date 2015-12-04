@@ -20,8 +20,4 @@ public interface Schedule {
      */
     void submit(Callable<Void> task, int flags) throws Exception;
 
-    /**
-     * 关闭任务调度器
-     */
-    void close();
 }

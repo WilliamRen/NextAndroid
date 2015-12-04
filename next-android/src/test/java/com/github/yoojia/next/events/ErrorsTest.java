@@ -43,6 +43,5 @@ public class ErrorsTest {
         events.emit("nonerr", "HAHAHA-OKOK");
         events.emit("001", 123);
         events.unregister(this);
-        events.close();
     }
 }

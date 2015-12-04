@@ -9,6 +9,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,6 +28,7 @@ public class EventsTest {
 
     private final static int COUNT_NOP = 10000 * 100;
     private final static int COUNT_PAYLOAD = 1000;
+    private final static int COUNT_LIMITED = 50;
 
     private static class Payload {
         public final AtomicInteger strCalls = new AtomicInteger(0);
@@ -88,34 +91,46 @@ public class EventsTest {
 
     }
 
+    private final ExecutorService CPUs = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+
     @Test
     public void testNop1(){
-        testStress(new NopPayload(COUNT_NOP), Schedules.singleThread() , "SingleThread(NopPayload)");
+        testStress(new NopPayload(COUNT_NOP), Schedules.newSingleThread() , "SingleThread(Nop Payload)");
     }
 
     @Test
     public void testNop2(){
-        testStress(new NopPayload(COUNT_NOP), Schedules.threads(4), "MultiThreads(NopPayload)");
+        testStress(new NopPayload(COUNT_NOP), Schedules.newService(CPUs), "MultiThreads(Nop Payload)");
     }
 
     @Test
     public void testNop3(){
-        testStress(new NopPayload(COUNT_NOP), Schedules.caller(), "CallerThread(NopPayload)");
+        testStress(new NopPayload(COUNT_NOP), Schedules.newCaller(), "CallerThread(Nop Payload)");
+    }
+
+    @Test
+    public void testNop4(){
+        testStress(new NopPayload(COUNT_LIMITED), Schedules.useShared(), "SharedThread(Nop Payload)");
     }
 
     @Test
     public void test1ms1(){
-        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.singleThread() , "SingleThread(1ms Payload)");
+        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.newSingleThread() , "SingleThread(1ms Payload)");
     }
 
     @Test
     public void test1ms2(){
-        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.threads(4), "MultiThreads(1ms Payload)");
+        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.newService(CPUs), "MultiThreads(1ms Payload)");
     }
 
     @Test
     public void test1ms3(){
-        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.caller(), "CallerThread(1ms Payload)");
+        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.newCaller(), "CallerThread(1ms Payload)");
+    }
+
+    @Test
+    public void test1ms4(){
+        testStress(new Ms1Payload(COUNT_LIMITED), Schedules.useShared(), "SharedThread(1ms Payload)");
     }
 
     private void testStress(Payload payload, Schedule schedule, String tag){
@@ -152,7 +167,7 @@ public class EventsTest {
         final long deliveredMicros = (timeWhenAllFinished - timeBeforeEmits) / 1000;
         int deliveryRate = (int) (payload.totalCalls / (deliveredMicros / 1000000d));
 
-        System.err.println(tag + "\t ###Statistics### " +
+        System.err.println(tag + "\t ### " +
                         "Delivered:" + deliveryRate + "/s" +
                         "\t\tEmit:" + TimeUnit.MICROSECONDS.toMillis(emitMicros) + "ms" +
                         "\t\tRuns:" + TimeUnit.MICROSECONDS.toMillis(deliveredMicros) + "ms" +

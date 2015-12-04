@@ -4,6 +4,7 @@ import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.react.Schedule;
+import com.github.yoojia.next.react.Schedules;
 
 import java.lang.reflect.Method;
 
@@ -27,7 +28,7 @@ public final class Dispatcher {
 
     public Dispatcher(String categoryName) {
         mCategoryName = categoryName;
-        mEvents = new NextEvents();
+        mEvents = new NextEvents(Schedules.useShared());
     }
 
     public Dispatcher(){

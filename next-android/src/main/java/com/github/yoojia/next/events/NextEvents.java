@@ -33,7 +33,7 @@ public class NextEvents {
     private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
 
     public NextEvents() {
-        this(Schedules.singleThread());
+        this(Schedules.newSingleThread());
     }
 
     public NextEvents(Schedule subscribeOn) {

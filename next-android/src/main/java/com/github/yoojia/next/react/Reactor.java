@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 事件响应处理
@@ -21,7 +20,7 @@ public class Reactor<T> {
     private final ObjectWrap<Schedule> mSubSchedule;
 
     public Reactor(Schedule subscribeOn) {
-        mEmitSchedule = Schedules.caller();
+        mEmitSchedule = Schedules.newCaller();
         mSubSchedule = new ObjectWrap<>(subscribeOn);
     }
 

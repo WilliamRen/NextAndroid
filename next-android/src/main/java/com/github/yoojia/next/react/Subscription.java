@@ -56,7 +56,7 @@ public class Subscription<T> {
      * @return 封装处理器
      */
     @SuppressWarnings("unchecked")
-    public static <T> Subscription<T> create(Subscriber<T> target, int scheduleFlags, Filter<T>... filters) {
+    public static <T> Subscription<T> create0(Subscriber<T> target, int scheduleFlags, Filter<T>... filters) {
         final List<Filter<T>> filterList = Arrays.asList(filters);
         return new Subscription<>(target, scheduleFlags, filterList);
     }
@@ -71,7 +71,7 @@ public class Subscription<T> {
      */
     @SuppressWarnings("unchecked")
     public static <T> Subscription<T> create1(Subscriber<T> target, int scheduleFlags, Filter<T> filter1) {
-        return create(target, scheduleFlags, filter1);
+        return create0(target, scheduleFlags, filter1);
     }
 
     /**
@@ -85,6 +85,6 @@ public class Subscription<T> {
      */
     @SuppressWarnings("unchecked")
     public static <T> Subscription<T> create2(Subscriber<T> target, int scheduleFlags, Filter<T> filter1, Filter<T> filter2) {
-        return create(target, scheduleFlags, filter1, filter2);
+        return create0(target, scheduleFlags, filter1, filter2);
     }
 }

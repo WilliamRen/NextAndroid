@@ -8,11 +8,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,29 +22,10 @@ import static org.junit.Assert.fail;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
-public class EventsTest {
+public class StressTest extends BaseTester{
 
     private final static int COUNT_NOP = 10000 * 100;
     private final static int COUNT_PAYLOAD = 1000;
-
-    private static class Payload {
-        public final AtomicInteger strCalls = new AtomicInteger(0);
-        public final AtomicInteger intCalls = new AtomicInteger(0);
-        public final int eventCount;
-        public final int totalCalls;
-
-        protected final CountDownLatch mCountDownLatch;
-
-        protected Payload(int count) {
-            eventCount = count;
-            totalCalls = count * 2;
-            mCountDownLatch = new CountDownLatch(totalCalls);
-        }
-
-        public final void await() throws InterruptedException {
-            mCountDownLatch.await();
-        }
-    }
 
     private static class NopPayload extends Payload{
 
@@ -56,14 +35,12 @@ public class EventsTest {
 
         @Subscribe(onThreads = true)
         public void onEvents(@Evt("str") String start){
-            strCalls.addAndGet(1);
-            mCountDownLatch.countDown();
+            hitEvt1();
         }
 
         @Subscribe(onThreads = true)
         public void onEvents1(@Evt("int") long start){
-            intCalls.addAndGet(1);
-            mCountDownLatch.countDown();
+            hitEvt2();
         }
 
     }
@@ -77,15 +54,13 @@ public class EventsTest {
         @Subscribe(onThreads = true)
         public void onEvents(@Evt("str") String start) throws InterruptedException {
             Thread.sleep(1);
-            strCalls.addAndGet(1);
-            mCountDownLatch.countDown();
+            hitEvt1();
         }
 
         @Subscribe(onThreads = true)
         public void onEvents1(@Evt("int") long start) throws InterruptedException {
             Thread.sleep(1);
-            intCalls.addAndGet(1);
-            mCountDownLatch.countDown();
+            hitEvt2();
         }
 
     }
@@ -118,7 +93,7 @@ public class EventsTest {
         events.register(payload, null);
 
         final long timeBeforeEmits = NOW();
-        for (int i = 0; i < payload.eventCount; i++) {
+        for (int i = 0; i < payload.perEvtCount; i++) {
 
             final long intEvent = NOW();
             events.emit("int", intEvent);
@@ -137,8 +112,8 @@ public class EventsTest {
 
         events.unregister(payload);
 
-        assertThat(payload.intCalls.get(), equalTo(payload.eventCount));
-        assertThat(payload.strCalls.get(), equalTo(payload.eventCount));
+        assertThat(payload.evt1Calls.get(), equalTo(payload.perEvtCount));
+        assertThat(payload.evt2Calls.get(), equalTo(payload.perEvtCount));
 
         final long timeWhenAllFinished = NOW();
         final long emitMicros = (timeAfterEmits - timeBeforeEmits) / 1000;
@@ -151,10 +126,6 @@ public class EventsTest {
                         "\t\tRuns:" + TimeUnit.MICROSECONDS.toMillis(deliveredMicros) + "ms" +
                         "\t\tCalls:" + payload.totalCalls
         );
-    }
-
-    private static long NOW() {
-        return System.nanoTime();
     }
 
 }

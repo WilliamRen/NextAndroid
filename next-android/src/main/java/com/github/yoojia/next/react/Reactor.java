@@ -2,6 +2,7 @@ package com.github.yoojia.next.react;
 
 import com.github.yoojia.next.lang.ObjectWrap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -57,11 +58,11 @@ public class Reactor<T> {
     }
 
     private void emitInput(final T input) throws Exception {
+        final Schedule schedule = mSubSchedule.get();
         for (final Subscription<T> callable : mSubs) {
             if ( ! callable.filter(input)) {
                 continue;
             }
-            final Schedule schedule = mSubSchedule.get();
             schedule.submit(new Callable<Void>() {
                 @Override public Void call() throws Exception {
                     try{

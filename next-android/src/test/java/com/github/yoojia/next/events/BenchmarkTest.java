@@ -10,11 +10,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,35 +29,6 @@ public class BenchmarkTest {
     private final static int COUNT_PAYLOAD = 1000;
     private final static int COUNT_NOP = COUNT_PAYLOAD * 1000;
 
-    private static class Payload {
-        public final AtomicInteger strCalls = new AtomicInteger(0);
-        public final AtomicInteger intCalls = new AtomicInteger(0);
-        public final int eventCount;
-        public final int totalCalls;
-
-        protected final CountDownLatch mCountDownLatch;
-
-        protected Payload(int count) {
-            eventCount = count;
-            totalCalls = count * 2;
-            mCountDownLatch = new CountDownLatch(totalCalls);
-        }
-
-        public final void await() throws InterruptedException {
-            mCountDownLatch.await();
-        }
-
-        public void onStringEvents(String start){
-            strCalls.addAndGet(1);
-            mCountDownLatch.countDown();
-        }
-
-        public void onLongEvents(long start){
-            intCalls.addAndGet(1);
-            mCountDownLatch.countDown();
-        }
-    }
-
     private static class NextNopPayload extends Payload{
 
         protected NextNopPayload(int count) {
@@ -68,12 +37,12 @@ public class BenchmarkTest {
 
         @Subscribe(onThreads = true)
         public void onEvents(@Evt("str") String start){
-            onStringEvents(start);
+            hitEvt1();
         }
 
         @Subscribe(onThreads = true)
         public void onEvents1(@Evt("long") long start){
-            onLongEvents(start);
+            hitEvt2();
         }
 
     }
@@ -87,13 +56,13 @@ public class BenchmarkTest {
         @Subscribe(onThreads = true)
         public void onEvents(@Evt("str") String start) throws InterruptedException {
             Thread.sleep(1);
-            onStringEvents(start);
+            hitEvt1();
         }
 
         @Subscribe(onThreads = true)
         public void onEvents1(@Evt("long") long start) throws InterruptedException {
             Thread.sleep(1);
-            onLongEvents(start);
+            hitEvt2();
         }
 
     }
@@ -106,12 +75,12 @@ public class BenchmarkTest {
 
         @com.squareup.otto.Subscribe
         public void onEvents(String evt) {
-            onStringEvents(evt);
+            hitEvt1();
         }
 
         @com.squareup.otto.Subscribe
         public void onEvents1(Long evt) {
-            onLongEvents(evt);
+            hitEvt2();
         }
     }
 
@@ -124,13 +93,13 @@ public class BenchmarkTest {
         @com.squareup.otto.Subscribe
         public void onEvents(String evt) throws InterruptedException {
             Thread.sleep(1);
-            onStringEvents(evt);
+            hitEvt1();
         }
 
         @com.squareup.otto.Subscribe
         public void onEvents1(Long evt) throws InterruptedException {
             Thread.sleep(1);
-            onLongEvents(evt);
+            hitEvt2();
         }
     }
 
@@ -173,7 +142,7 @@ public class BenchmarkTest {
 
         final long timeBeforeEmits = NOW();
 
-        for (int i = 0; i < payload.eventCount; i++) {
+        for (int i = 0; i < payload.perEvtCount; i++) {
 
             final long longEvent = NOW();
             bus.post(longEvent);
@@ -192,8 +161,8 @@ public class BenchmarkTest {
 
         bus.unregister(payload);
 
-        assertThat(payload.intCalls.get(), equalTo(payload.eventCount));
-        assertThat(payload.strCalls.get(), equalTo(payload.eventCount));
+        assertThat(payload.evt1Calls.get(), equalTo(payload.perEvtCount));
+        assertThat(payload.evt2Calls.get(), equalTo(payload.perEvtCount));
 
         final long timeWhenAllFinished = NOW();
         final long emitMicros = (timeAfterEmits - timeBeforeEmits) / 1000;
@@ -215,7 +184,7 @@ public class BenchmarkTest {
 
         final long timeBeforeEmits = NOW();
 
-        for (int i = 0; i < payload.eventCount; i++) {
+        for (int i = 0; i < payload.perEvtCount; i++) {
 
             final long longEvent = NOW();
             events.emit("long", longEvent);
@@ -234,8 +203,8 @@ public class BenchmarkTest {
 
         events.unregister(payload);
 
-        assertThat(payload.intCalls.get(), equalTo(payload.eventCount));
-        assertThat(payload.strCalls.get(), equalTo(payload.eventCount));
+        assertThat(payload.evt1Calls.get(), equalTo(payload.perEvtCount));
+        assertThat(payload.evt2Calls.get(), equalTo(payload.perEvtCount));
 
         final long timeWhenAllFinished = NOW();
         final long emitMicros = (timeAfterEmits - timeBeforeEmits) / 1000;

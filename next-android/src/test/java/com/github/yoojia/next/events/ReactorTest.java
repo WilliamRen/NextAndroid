@@ -83,7 +83,6 @@ public class ReactorTest extends BaseTester {
 
         // OTTO:    2594713, 2621723
         // REACTOR: 4166909, 4435465, 5688249
-        // REACTOR: 2993725
         System.err.println("Reactor\t ### " +
                         "Delivered:" + deliveryRate + "/s" +
                         "\t\tEmit:" + TimeUnit.MICROSECONDS.toMillis(emitMicros) + "ms" +

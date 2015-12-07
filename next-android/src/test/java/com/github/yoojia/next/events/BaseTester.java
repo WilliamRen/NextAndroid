@@ -1,9 +1,8 @@
 package com.github.yoojia.next.events;
 
 /**
- * FIXME Class description goes here
- *
- * @author 陈永佳 (chengyongjia@parkingwang.com)
+ * @author 陈小锅 (yoojia.chen@gmail.com)
+ * @since 1.0
  */
 public class BaseTester {
 

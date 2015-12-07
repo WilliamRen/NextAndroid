@@ -4,7 +4,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 /**
- * @author @author 陈小锅 (yoojia.chen@gmail.com)
+ * @author 陈小锅 (yoojia.chen@gmail.com)
  */
 public class TextLoader implements ValueLoader<String>{
 

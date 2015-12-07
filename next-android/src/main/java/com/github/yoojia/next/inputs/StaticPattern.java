@@ -31,14 +31,14 @@ public class StaticPattern {
         }
     };
 
-    private static final Tester TESTER_DIGITS = new Tester0() {
+    private static final Tester TESTER_DIGITS = new TesterEx() {
         @Override
         public boolean performTest0(String notEmptyInput) throws Exception {
             return TextUtils.isDigitsOnly(notEmptyInput);
         }
     };
 
-    private static final Tester TESTER_EMAIL = new Tester0() {
+    private static final Tester TESTER_EMAIL = new TesterEx() {
         @Override
         public boolean performTest0(String input) throws Exception {
             return matchRegex(input.toLowerCase(), "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+" +
@@ -47,7 +47,7 @@ public class StaticPattern {
         }
     };
 
-    private static final Tester TESTER_HOST = new Tester0() {
+    private static final Tester TESTER_HOST = new TesterEx() {
         @Override
         public boolean performTest0(String input) throws Exception {
             return matchRegex(input.toLowerCase(),
@@ -55,7 +55,7 @@ public class StaticPattern {
         }
     };
 
-    private static final Tester TESTER_URL = new Tester0() {
+    private static final Tester TESTER_URL = new TesterEx() {
         @Override
         public boolean performTest0(String notEmptyInput) throws Exception {
             return matchRegex(notEmptyInput.toLowerCase(),
@@ -63,7 +63,7 @@ public class StaticPattern {
         }
     };
 
-    private static final Tester TESTER_IPV4 = new Tester0() {
+    private static final Tester TESTER_IPV4 = new TesterEx() {
         @Override
         public boolean performTest0(String notEmptyInput) throws Exception {
             return matchRegex(notEmptyInput,
@@ -71,7 +71,7 @@ public class StaticPattern {
         }
     };
 
-    private static final Tester TESTER_CHINESE_MOBILE = new Tester0() {
+    private static final Tester TESTER_CHINESE_MOBILE = new TesterEx() {
         @Override
         public boolean performTest0(String notEmptyInput) throws Exception {
             return matchRegex(notEmptyInput, "^(\\+?\\d{2}-?)?(1[0-9])\\d{9}$");

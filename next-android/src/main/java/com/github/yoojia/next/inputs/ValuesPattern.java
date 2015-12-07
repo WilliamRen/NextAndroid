@@ -13,7 +13,7 @@ public class ValuesPattern {
     }
 
     public static Pattern MinLength(final int minLength) {
-        return new Pattern(new Tester0() {
+        return new Pattern(new TesterEx() {
             @Override
             public boolean performTest0(String input) throws Exception {
                 return input.length() >= minLength;
@@ -22,7 +22,7 @@ public class ValuesPattern {
     }
 
     public static Pattern MaxLength(final int maxLength) {
-        return new Pattern(new Tester0() {
+        return new Pattern(new TesterEx() {
             @Override
             public boolean performTest0(String input) throws Exception {
                 return input.length() <= maxLength;
@@ -31,7 +31,7 @@ public class ValuesPattern {
     }
 
     public static Pattern RangeLength(final int minLength, final int maxLength) {
-        return new Pattern(new Tester0() {
+        return new Pattern(new TesterEx() {
             @Override
             public boolean performTest0(String input) throws Exception {
                 final int length = input.length();
@@ -327,7 +327,7 @@ public class ValuesPattern {
     }
 
     public static <T> Pattern proxy(final ValuesProxy<T> proxy) {
-        return new Pattern(new Tester0() {
+        return new Pattern(new TesterEx() {
             @Override
             public boolean performTest0(String input) throws Exception {
                 final T value = proxy.valueOf(input);

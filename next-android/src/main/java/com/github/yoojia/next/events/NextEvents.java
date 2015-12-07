@@ -33,7 +33,7 @@ public class NextEvents {
     private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
 
     public NextEvents() {
-        this(Schedules.singleThread());
+        this(Schedules.useShared());
     }
 
     public NextEvents(Schedule subscribeOn) {
@@ -178,13 +178,6 @@ public class NextEvents {
     public NextEvents subscribeOn(Schedule schedule) {
         mReactor.subscribeOn(schedule);
         return this;
-    }
-
-    /**
-     * 努力争取去掉这个方法
-     */
-    public void close() {
-        mReactor.close();
     }
 
 }

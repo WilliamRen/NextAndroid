@@ -9,11 +9,13 @@ import android.view.View;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
@@ -23,53 +25,57 @@ import static com.github.yoojia.next.lang.Preconditions.notNull;
  */
 public class NextClickProxy {
 
-    private static final String TAG = "CLICKS";
+    private static final String TAG = "CLICKS-PROXY";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
     private final NextEvents mEvents;
+    private final Schedule mScheduleRef;
 
     public NextClickProxy() {
-        // 点击处理，默认使用匿名线程来处理
-        mEvents = new NextEvents(Schedules.anonymous());
+        mScheduleRef = Schedules.useShared();
+        mEvents = new NextEvents(mScheduleRef);
     }
 
+    /**
+     * 注册点击处理.
+     * - 注册过程为异步处理. 此方法执行后立即返回, 不保证方法执行后点击处理注册全部成功;
+     * - 必须在主线程中执行此方法;
+     * @param target 目标对象
+     * @return NextClickProxy
+     */
     public NextClickProxy register(final Object target){
         notNull(target, "Target Object must not be null !");
-        final FieldsFinder finder = new FieldsFinder();
-        finder.filter(new Filter<Field>() {
-            @Override
-            public boolean accept(Field field) {
-                if (field.isSynthetic() || field.isEnumConstant()) {
-                    return false;
-                }
-                // Check View type
-                final Class<?> type = field.getType();
-                if (! View.class.isAssignableFrom(type)) {
-                    return false;
-                }
-                // Check annotation
-                return field.isAnnotationPresent(ClickEvt.class);
-            }
-        });
-        final Runnable task = new Runnable() {
-            @Override public void run() {
+        final Callable<Void> task = new Callable<Void>() {
+            @Override public Void call() throws Exception {
+                final FieldsFinder finder = new FieldsFinder();
+                finder.filter(new Filter<Field>() {
+                    @Override
+                    public boolean accept(Field field) {
+                        if (field.isSynthetic() || field.isEnumConstant()) {
+                            return false;
+                        }
+                        // Check View type
+                        final Class<?> type = field.getType();
+                        if (! View.class.isAssignableFrom(type)) {
+                            return false;
+                        }
+                        // Check annotation
+                        return field.isAnnotationPresent(ClickEvt.class);
+                    }
+                });
                 final List<Field> fields = finder.find(target.getClass());
                 if (fields.isEmpty()){
                     Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
                     Warning.show(TAG);
-                    return;
+                    return null;
                 }
                 for (Field field : fields){
                     field.setAccessible(true);
                     final ClickEvt evt = field.getAnnotation(ClickEvt.class);
-                    try {
-                        final String defineName = evt.value();
-                        final View view = bindClickView(target, field, defineName);
-                        if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
-                            mKeyCodeMapping.append(evt.keyCode(), view);
-                        }
-                    } catch (Exception error) {
-                        throw new RuntimeException(error);
+                    final String defineName = evt.value();
+                    final View view = bindClickView(target, field, defineName);
+                    if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
+                        mKeyCodeMapping.append(evt.keyCode(), view);
                     }
                 }
                 mEvents.register(target, new Filter<Method>() {
@@ -79,13 +85,21 @@ public class NextClickProxy {
                         return ClickEvent.class.equals(types[0]);
                     }
                 });
+                return null;
             }
         };
-        // 使用匿名线程来处理点击代理的注册过程
-        new Thread(task).start();
+        try {
+            mScheduleRef.submit(task, Schedule.FLAG_ON_THREADS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return this;
     }
 
+    /**
+     * 通过按键码来触发点击事件处理
+     * @param keyCode 按键码
+     */
     public void emitKeyCode(int keyCode) {
         View view = mKeyCodeMapping.get(keyCode);
         if (view != null) {
@@ -113,7 +127,8 @@ public class NextClickProxy {
         final Object viewField = field.get(host);
         final View view = (View) viewField;
         view.setOnClickListener(new View.OnClickListener() {
-            @Override @SuppressWarnings("unchecked")
+            @Override
+            @SuppressWarnings("unchecked")
             public void onClick(View v) {
                 emitClick(v, event);
             }

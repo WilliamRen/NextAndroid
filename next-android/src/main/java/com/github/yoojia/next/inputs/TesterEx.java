@@ -4,7 +4,7 @@ package com.github.yoojia.next.inputs;
  * Allow empty input
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public abstract class Tester0 extends Tester{
+public abstract class TesterEx extends Tester{
 
     @Override
     public final boolean performTest(String input) throws Exception {

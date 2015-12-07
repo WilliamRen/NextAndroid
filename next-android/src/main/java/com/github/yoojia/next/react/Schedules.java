@@ -19,6 +19,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Schedules {
 
     /**
+     * 调用者调度器
+     * @return Schedule
+     */
+    public static Schedule newCaller() {
+        return new Schedule() {
+            @Override
+            public void submit(Callable<Void> task, int flags) throws Exception {
+                task.call();
+            }
+        };
+    }
+
+    /**
      * 指定ExecutorService实现的高度器
      * @param service ExecutorService
      * @return Schedule

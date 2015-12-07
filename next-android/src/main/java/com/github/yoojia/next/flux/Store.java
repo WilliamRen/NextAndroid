@@ -7,15 +7,15 @@ package com.github.yoojia.next.flux;
 public abstract class Store<T> {
 
     protected final Dispatcher mDispatcher;
-    protected final T mContextHost;
+    protected final T mContext;
 
     protected Store(Dispatcher dispatcher) {
         this(dispatcher, null);
     }
 
-    protected Store(Dispatcher dispatcher, T contextHost) {
+    protected Store(Dispatcher dispatcher, T context) {
         mDispatcher = dispatcher;
-        mContextHost = contextHost;
+        mContext = context;
     }
 
     public void register(){

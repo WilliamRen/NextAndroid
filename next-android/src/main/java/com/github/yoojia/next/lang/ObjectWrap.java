@@ -6,7 +6,6 @@ package com.github.yoojia.next.lang;
  */
 public class ObjectWrap<T> {
 
-    private final Object mLock = new Object();
     private T mObject;
 
     public ObjectWrap() {
@@ -16,25 +15,23 @@ public class ObjectWrap<T> {
         set(initValue);
     }
 
-    public void set(T value) {
-        synchronized (mLock) {
-            if (mObject == null) {
-                mObject = value;
-            }else{
-                throw new IllegalStateException("Value has set !");
-            }
+    public synchronized void set(T value) {
+        if (mObject == null) {
+            mObject = value;
+        }else{
+            throw new IllegalStateException("Value has set !");
         }
     }
 
-    public T get(){
-        synchronized (mLock){
-            return mObject;
-        }
+    public synchronized T get(){
+        return mObject;
     }
 
     public boolean has() {
-        synchronized (mLock) {
-            return null != mObject;
-        }
+        return null != mObject;
+    }
+
+    public static <T> ObjectWrap<T> wrap(T object) {
+        return new ObjectWrap<>(object);
     }
 }

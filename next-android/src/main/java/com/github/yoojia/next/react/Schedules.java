@@ -26,6 +26,9 @@ public class Schedules {
         return new Schedule() {
             @Override
             public void submit(Callable<Void> task, int flags) throws Exception {
+                if (Schedule.FLAG_ON_CALLER != flags) {
+                    throw new IllegalArgumentException("Caller schedule just accept <Schedule.FLAG_ON_CALLER>");
+                }
                 task.call();
             }
         };
@@ -88,6 +91,9 @@ public class Schedules {
 
     private static void submit(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
         switch (scheduleFlags) {
+            case Schedule.FLAG_ON_CALLER:
+                task.call();
+                break;
             case Schedule.FLAG_ON_THREADS:
                 threads.submit(task);
                 break;

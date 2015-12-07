@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     @AutoView(R.id.button)
     private Button mButton;
 
-    private final Dispatcher mDispatcher = new Dispatcher(categoryName);
+    private final Dispatcher mDispatcher = new Dispatcher();
 
     private TestStore mStore;
 
@@ -63,6 +63,5 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         mStore.unregister();
         mDispatcher.unregister(this);
-        mDispatcher.destroy();
     }
 }

@@ -40,21 +40,6 @@ public class Subscription<T> {
      * @param <T> 事件类型
      * @return 封装处理器
      */
-    public static <T> Subscription<T> create(Subscriber<T> target, int scheduleFlags, List<Filter<T>> filters) {
-        if (filters == null) {
-            throw new NullPointerException();
-        }
-        return new Subscription<>(target, scheduleFlags, filters);
-    }
-
-    /**
-     * 给定一组过滤接口，封装事件订阅接口
-     * @param target 事件订阅接口
-     * @param scheduleFlags 事件调度标识
-     * @param filters 一组过滤接口
-     * @param <T> 事件类型
-     * @return 封装处理器
-     */
     @SuppressWarnings("unchecked")
     public static <T> Subscription<T> create0(Subscriber<T> target, int scheduleFlags, Filter<T>... filters) {
         final List<Filter<T>> filterList = Arrays.asList(filters);

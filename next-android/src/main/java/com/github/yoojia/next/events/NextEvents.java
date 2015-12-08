@@ -144,7 +144,7 @@ public class NextEvents {
      * @return NextEvents
      */
     public NextEvents subscribe(Subscriber<EventMeta> subscriber, int scheduleFlags, String defineName, Class<?> defineType) {
-        mReactor.add(Subscription.create1(subscriber, scheduleFlags, new EventsFilter(defineName, defineType)));
+        mReactor.add(Subscription.create1(subscriber, scheduleFlags, EventsFilter.with(defineName, defineType)));
         return this;
     }
 
@@ -165,7 +165,7 @@ public class NextEvents {
      * @return NextEvents
      */
     public NextEvents emit(String eventName, Object eventObject) {
-        mReactor.emit(new EventMeta(eventName, eventObject));
+        mReactor.emit(EventMeta.with(eventName, eventObject));
         return this;
     }
 

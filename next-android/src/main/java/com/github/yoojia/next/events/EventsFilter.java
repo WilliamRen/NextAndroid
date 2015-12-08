@@ -30,4 +30,8 @@ class EventsFilter implements Filter<EventMeta> {
         }
         return true;
     }
+
+    static EventsFilter with(String defineName, Class<?> rawDefineType) {
+        return new EventsFilter(defineName, rawDefineType);
+    }
 }

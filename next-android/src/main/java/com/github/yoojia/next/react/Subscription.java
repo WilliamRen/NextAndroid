@@ -12,10 +12,12 @@ import java.util.List;
  */
 public class Subscription<T> {
 
+    private static final int COUNT_OF_PER_SUBSCRIBER_MAY_HAS_FILTERS = 2;
+
     final Subscriber<T> target;
     final int targetScheduleFlags;
 
-    private final List<Filter<T>> mFilters = new ArrayList<>();
+    private final ArrayList<Filter<T>> mFilters = new ArrayList<>(COUNT_OF_PER_SUBSCRIBER_MAY_HAS_FILTERS);
 
     private Subscription(Subscriber<T> target, int scheduleFlags, List<Filter<T>> filters) {
         this.target = target;

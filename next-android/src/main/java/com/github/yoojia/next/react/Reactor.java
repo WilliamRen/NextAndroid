@@ -2,7 +2,6 @@ package com.github.yoojia.next.react;
 
 import com.github.yoojia.next.lang.ObjectWrap;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -17,10 +16,10 @@ public class Reactor<T> {
 
     private final List<Subscription<T>> mSubs = new CopyOnWriteArrayList<>();
     private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
-    private final ObjectWrap<Schedule> mSubSchedule;
+    private final ObjectWrap<Schedule> mScheduleWrap;
 
     public Reactor(Schedule subscribeOn) {
-        mSubSchedule = new ObjectWrap<>(subscribeOn);
+        mScheduleWrap = new ObjectWrap<>(subscribeOn);
     }
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {
@@ -53,16 +52,19 @@ public class Reactor<T> {
         if (schedule == null) {
             throw new NullPointerException();
         }
-        mSubSchedule.set(schedule);
+        mScheduleWrap.set(schedule);
         return this;
     }
 
     private void emitInput(final T input) throws Exception {
-        final Schedule schedule = mSubSchedule.get();
+        final Schedule schedule = mScheduleWrap.get();
         for (final Subscription<T> callable : mSubs) {
+            // filter at per emit action:
+            // - Skip if not accept
             if ( ! callable.filter(input)) {
                 continue;
             }
+            // - Submit to Schedule to invoke target
             schedule.submit(new Callable<Void>() {
                 @Override public Void call() throws Exception {
                     try{

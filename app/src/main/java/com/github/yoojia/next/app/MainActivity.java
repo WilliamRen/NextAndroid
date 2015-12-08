@@ -10,6 +10,7 @@ import com.github.yoojia.next.clicks.ClickEvent;
 import com.github.yoojia.next.clicks.ClickEvt;
 import com.github.yoojia.next.clicks.NextClickProxy;
 import com.github.yoojia.next.events.Evt;
+import com.github.yoojia.next.events.RunOn;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.flux.Dispatcher;
 import com.github.yoojia.next.views.AutoView;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         mDispatcher.register(this);
     }
 
-    @Subscribe
+    @Subscribe(runOn = RunOn.MAIN)
     private void onClick(@Evt("click") ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {

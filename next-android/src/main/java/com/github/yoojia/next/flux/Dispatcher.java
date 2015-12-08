@@ -27,7 +27,7 @@ public final class Dispatcher {
     }
 
     public Dispatcher(String categoryName) {
-        this(Schedules.useShared(), categoryName);
+        this(Schedules.sharedThreads(), categoryName);
     }
 
     public Dispatcher(){

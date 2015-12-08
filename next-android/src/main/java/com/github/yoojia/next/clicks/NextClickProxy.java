@@ -32,7 +32,7 @@ public class NextClickProxy {
     private final Schedule mScheduleRef;
 
     public NextClickProxy() {
-        mScheduleRef = Schedules.useShared();
+        mScheduleRef = Schedules.sharedThreads();
         mEvents = new NextEvents(mScheduleRef);
     }
 

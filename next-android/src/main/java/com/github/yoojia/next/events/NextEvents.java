@@ -33,7 +33,7 @@ public class NextEvents {
     private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
 
     public NextEvents() {
-        this(Schedules.useShared());
+        this(Schedules.sharedThreads());
     }
 
     public NextEvents(Schedule subscribeOn) {
@@ -109,11 +109,10 @@ public class NextEvents {
                 throw new IllegalArgumentException("Event name in @Subscribe must not be empty");
             }
             final Subscribe subscribe = method.getAnnotation(Subscribe.class);
-            final int flags = subscribe.onThreads() ? Schedule.FLAG_ON_THREADS : Schedule.FLAG_ON_MAIN;
             final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
             subscribers.add(subscriber);
             final Class<?> defineType = method.getParameterTypes()[0];
-            this.subscribe(subscriber, flags, defineName, defineType);
+            this.subscribe(subscriber, subscribe.runOn().scheduleFlag, defineName, defineType);
         }
         return this;
     }

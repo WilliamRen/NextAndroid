@@ -56,7 +56,7 @@ public class Schedules {
      * 全局共享线程池调度器
      * @return Schedule
      */
-    public static Schedule useShared(){
+    public static Schedule sharedThreads(){
         return new SharedSchedule();
     }
 

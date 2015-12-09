@@ -48,7 +48,7 @@ public class NextClickProxy {
         final Callable<Void> task = new Callable<Void>() {
             @Override public Void call() throws Exception {
                 final List<Field> fields = new FieldsFinder()
-                        .filter(newFieldFilter())
+                        .filter(new ClickEvtFilter())
                         .find(target.getClass());
                 if (fields.isEmpty()){
                     Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
@@ -122,22 +122,25 @@ public class NextClickProxy {
         return view;
     }
 
-    private static Filter<Field> newFieldFilter() {
-        return new Filter<Field>() {
-            @Override
-            public boolean accept(Field field) {
-                if (field.isSynthetic() || field.isEnumConstant()) {
-                    return false;
-                }
-                // Check View type
-                final Class<?> type = field.getType();
-                if (! View.class.isAssignableFrom(type)) {
-                    return false;
-                }
-                // Check annotation
-                return field.isAnnotationPresent(ClickEvt.class);
+    private static class ClickEvtFilter implements Filter<Field> {
+
+        @Override
+        public boolean accept(Field field) {
+            return isClickEvtField(field);
+        }
+
+        private static boolean isClickEvtField(Field field) {
+            if (field.isSynthetic() || field.isEnumConstant()) {
+                return false;
             }
-        };
+            // Check View type
+            final Class<?> type = field.getType();
+            if (! View.class.isAssignableFrom(type)) {
+                return false;
+            }
+            // Check annotation
+            return field.isAnnotationPresent(ClickEvt.class);
+        }
     }
 
     /**

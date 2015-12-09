@@ -88,14 +88,12 @@ public class NextEvents {
             return this;
         }
         for (final Method method : annotatedMethods) {
-            final Evt event = (Evt) method.getParameterAnnotations()[0][0];
-            final String defineName = event.value();
-            if (TextUtils.isEmpty(defineName)) {
-                throw new IllegalArgumentException("Event name in @Evt must not be empty");
-            }
+            checkSignature(method);
             final Subscribe subscribe = method.getAnnotation(Subscribe.class);
             final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
             subscribers.add(subscriber);
+            final Evt event = (Evt) method.getParameterAnnotations()[0][0];
+            final String defineName = event.value();
             final Class<?> defineType = method.getParameterTypes()[0];
             this.subscribe(defineName, defineType, subscriber, subscribe.runOn().scheduleFlag);
         }
@@ -185,36 +183,46 @@ public class NextEvents {
     private static Filter<Method> newMethodFilter(final Filter<Method> customFilter) {
         return new Filter<Method>() {
             @Override public boolean accept(Method method) {
-                if (method.isBridge() || method.isSynthetic()) {
+                if ( ! isSubscribeMethod(method)) {
                     return false;
+                }else{
+                    return customFilter == null || customFilter.accept(method);
                 }
-                // With @Subscribe annotation
-                if (! method.isAnnotationPresent(Subscribe.class)) {
-                    return false;
-                }
-                // Return type: void
-                if (! Void.TYPE.equals(method.getReturnType())) {
-                    throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
-                            ", method: " + method);
-                }
-                // Method params
-                final Class<?>[] params = method.getParameterTypes();
-                if (params.length != 1) {
-                    throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
-                            ", method: " + method);
-                }
-                // Check annotation:
-                final Annotation[][] annotations = method.getParameterAnnotations();
-                if (annotations.length == 0 ||
-                        annotations[0].length == 0 ||
-                        ! Evt.class.equals(annotations[0][0].annotationType())) {
-                    throw new IllegalArgumentException("The parameter without @Evt annotation" +
-                            ", method" + method);
-                }
-                // custom filter
-                return customFilter == null || customFilter.accept(method);
             }
         };
+    }
+
+    private static boolean isSubscribeMethod(Method method) {
+        if (method.isBridge() || method.isSynthetic()) {
+            return false;
+        }
+        if (! method.isAnnotationPresent(Subscribe.class)) {
+            return false;
+        }
+        return true;
+    }
+
+    private static void checkSignature(Method method){
+        if (! Void.TYPE.equals(method.getReturnType())) {
+            throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
+                    ", method: " + method);
+        }
+        final Class<?>[] params = method.getParameterTypes();
+        if (params.length != 1) {
+            throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
+                    ", method: " + method);
+        }
+        final Annotation[][] annotations = method.getParameterAnnotations();
+        if (annotations.length == 0 ||
+                annotations[0].length == 0 ||
+                ! Evt.class.equals(annotations[0][0].annotationType())) {
+            throw new IllegalArgumentException("The parameter without @Evt annotation" +
+                    ", method" + method);
+        }
+        final Evt event = (Evt) method.getParameterAnnotations()[0][0];
+        if (TextUtils.isEmpty(event.value())) {
+            throw new IllegalArgumentException("Event name in @Evt must not be empty");
+        }
     }
 
 }

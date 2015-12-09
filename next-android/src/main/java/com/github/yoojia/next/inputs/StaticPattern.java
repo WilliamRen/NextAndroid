@@ -41,7 +41,7 @@ public class StaticPattern {
     private static final Tester TESTER_EMAIL = new TesterEx() {
         @Override
         public boolean performTest0(String input) throws Exception {
-            return matchRegex(input.toLowerCase(), "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+" +
+            return regexMatch(input.toLowerCase(), "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+" +
                     "(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+" +
                     "[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$");
         }
@@ -50,7 +50,7 @@ public class StaticPattern {
     private static final Tester TESTER_HOST = new TesterEx() {
         @Override
         public boolean performTest0(String input) throws Exception {
-            return matchRegex(input.toLowerCase(),
+            return regexMatch(input.toLowerCase(),
                     "^([a-z0-9]([a-z0-9\\-]{0,65}[a-z0-9])?\\.)+[a-z]{2,6}$");
         }
     };
@@ -58,7 +58,7 @@ public class StaticPattern {
     private static final Tester TESTER_URL = new TesterEx() {
         @Override
         public boolean performTest0(String notEmptyInput) throws Exception {
-            return matchRegex(notEmptyInput.toLowerCase(),
+            return regexMatch(notEmptyInput.toLowerCase(),
                     "^(https?:\\/\\/)?[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?$");
         }
     };
@@ -66,7 +66,7 @@ public class StaticPattern {
     private static final Tester TESTER_IPV4 = new TesterEx() {
         @Override
         public boolean performTest0(String notEmptyInput) throws Exception {
-            return matchRegex(notEmptyInput,
+            return regexMatch(notEmptyInput,
                     "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
         }
     };
@@ -74,7 +74,7 @@ public class StaticPattern {
     private static final Tester TESTER_CHINESE_MOBILE = new TesterEx() {
         @Override
         public boolean performTest0(String notEmptyInput) throws Exception {
-            return matchRegex(notEmptyInput, "^(\\+?\\d{2}-?)?(1[0-9])\\d{9}$");
+            return regexMatch(notEmptyInput, "^(\\+?\\d{2}-?)?(1[0-9])\\d{9}$");
         }
     };
 
@@ -203,12 +203,12 @@ public class StaticPattern {
         return new Pattern(new Tester() {
             @Override
             public boolean performTest(String input) throws Exception {
-                return matchRegex(input, regex);
+                return regexMatch(input, regex);
             }
         }).priority(PRIORITY_GENERAL);
     }
 
-    private static boolean matchRegex(String input, String regex) {
+    private static boolean regexMatch(String input, String regex) {
         return java.util.regex.Pattern.compile(regex).matcher(input).matches();
     }
 }

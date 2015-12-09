@@ -69,41 +69,6 @@ public class NextEvents {
             throw new IllegalStateException("Target object was REGISTERED! " +
                     "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
         }
-        // Find @Subscribe methods
-        final List<Method> annotatedMethods = new MethodsFinder()
-                .filter(new Filter<Method>() {
-                    @Override public boolean accept(Method method) {
-                        if (method.isBridge() || method.isSynthetic()) {
-                            return false;
-                        }
-                        // With @Subscribe annotation
-                        if (! method.isAnnotationPresent(Subscribe.class)) {
-                            return false;
-                        }
-                        // Return type: void
-                        if (! Void.TYPE.equals(method.getReturnType())) {
-                            throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
-                                    ", method: " + method);
-                        }
-                        // Method params
-                        final Class<?>[] params = method.getParameterTypes();
-                        if (params.length != 1) {
-                            throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
-                                    ", method: " + method);
-                        }
-                        // Check annotation:
-                        final Annotation[][] annotations = method.getParameterAnnotations();
-                        if (annotations.length == 0 ||
-                                annotations[0].length == 0 ||
-                                ! Evt.class.equals(annotations[0][0].annotationType())) {
-                            throw new IllegalArgumentException("The parameter without @Evt annotation" +
-                                    ", method" + method);
-                        }
-                        // custom filter
-                        return customFilter == null || customFilter.accept(method);
-                    }
-                })
-                .find(target.getClass());
         // Filter methods and register them
         final ArrayList<Subscriber<EventMeta>> subscribers;
         // if not registered, add to Refs(register)
@@ -114,6 +79,9 @@ public class NextEvents {
             subscribers = mRefs.get(target);
         }
         // Check Annotations methods
+        final List<Method> annotatedMethods = new MethodsFinder()
+                .filter(newMethodFilter(customFilter))
+                .find(target.getClass());
         if (annotatedMethods.isEmpty()) {
             Log.e(TAG, "- Empty Methods(with @Subscribe)! Object host: " + target);
             Warning.show(TAG);
@@ -212,6 +180,41 @@ public class NextEvents {
         notNull(schedule);
         mReactor.subscribeOn(schedule);
         return this;
+    }
+
+    private static Filter<Method> newMethodFilter(final Filter<Method> customFilter) {
+        return new Filter<Method>() {
+            @Override public boolean accept(Method method) {
+                if (method.isBridge() || method.isSynthetic()) {
+                    return false;
+                }
+                // With @Subscribe annotation
+                if (! method.isAnnotationPresent(Subscribe.class)) {
+                    return false;
+                }
+                // Return type: void
+                if (! Void.TYPE.equals(method.getReturnType())) {
+                    throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
+                            ", method: " + method);
+                }
+                // Method params
+                final Class<?>[] params = method.getParameterTypes();
+                if (params.length != 1) {
+                    throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
+                            ", method: " + method);
+                }
+                // Check annotation:
+                final Annotation[][] annotations = method.getParameterAnnotations();
+                if (annotations.length == 0 ||
+                        annotations[0].length == 0 ||
+                        ! Evt.class.equals(annotations[0][0].annotationType())) {
+                    throw new IllegalArgumentException("The parameter without @Evt annotation" +
+                            ", method" + method);
+                }
+                // custom filter
+                return customFilter == null || customFilter.accept(method);
+            }
+        };
     }
 
 }

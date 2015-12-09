@@ -33,12 +33,12 @@ public class StressTest extends BaseTester{
             super(count);
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents(@Evt("str") String start){
             hitEvt1();
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents1(@Evt("int") long start){
             hitEvt2();
         }
@@ -51,13 +51,13 @@ public class StressTest extends BaseTester{
             super(count);
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents(@Evt("str") String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents1(@Evt("int") long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
@@ -74,7 +74,7 @@ public class StressTest extends BaseTester{
 
     @Test
     public void testNop2(){
-        testStress(new NopPayload(COUNT_NOP), Schedules.useShared(), "SharedThread(Nop Payload)");
+        testStress(new NopPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
     }
 
     @Test
@@ -84,7 +84,7 @@ public class StressTest extends BaseTester{
 
     @Test
     public void test1ms2(){
-        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.useShared(), "SharedThread(1ms Payload)");
+        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
     }
 
     private void testStress(Payload payload, Schedule schedule, String tag){

@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -54,7 +53,7 @@ public class ReactorTest extends BaseTester {
 
         TestSubscriber payload = new TestSubscriber(COUNT_NOP);
 
-        reactor.add(Subscription.create0(payload, Schedule.FLAG_ON_THREADS));
+        reactor.add(Subscription.create(payload, Schedule.FLAG_ON_CALLER));
 
         final long timeBeforeEmits = System.nanoTime();
 

@@ -18,4 +18,8 @@ class EventMeta {
         final Class<?> type = value.getClass();
         this.type = type.isPrimitive() ? Primitives.getWrapClass(type) : type;
     }
+
+    static EventMeta with(String name, Object value) {
+        return new EventMeta(name, value);
+    }
 }

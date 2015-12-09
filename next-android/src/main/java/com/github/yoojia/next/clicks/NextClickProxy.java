@@ -32,7 +32,7 @@ public class NextClickProxy {
     private final Schedule mScheduleRef;
 
     public NextClickProxy() {
-        mScheduleRef = Schedules.useShared();
+        mScheduleRef = Schedules.sharedThreads();
         mEvents = new NextEvents(mScheduleRef);
     }
 
@@ -47,23 +47,9 @@ public class NextClickProxy {
         notNull(target, "Target Object must not be null !");
         final Callable<Void> task = new Callable<Void>() {
             @Override public Void call() throws Exception {
-                final FieldsFinder finder = new FieldsFinder();
-                finder.filter(new Filter<Field>() {
-                    @Override
-                    public boolean accept(Field field) {
-                        if (field.isSynthetic() || field.isEnumConstant()) {
-                            return false;
-                        }
-                        // Check View type
-                        final Class<?> type = field.getType();
-                        if (! View.class.isAssignableFrom(type)) {
-                            return false;
-                        }
-                        // Check annotation
-                        return field.isAnnotationPresent(ClickEvt.class);
-                    }
-                });
-                final List<Field> fields = finder.find(target.getClass());
+                final List<Field> fields = new FieldsFinder()
+                        .filter(newFieldFilter())
+                        .find(target.getClass());
                 if (fields.isEmpty()){
                     Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
                     Warning.show(TAG);
@@ -134,6 +120,24 @@ public class NextClickProxy {
             }
         });
         return view;
+    }
+
+    private static Filter<Field> newFieldFilter() {
+        return new Filter<Field>() {
+            @Override
+            public boolean accept(Field field) {
+                if (field.isSynthetic() || field.isEnumConstant()) {
+                    return false;
+                }
+                // Check View type
+                final Class<?> type = field.getType();
+                if (! View.class.isAssignableFrom(type)) {
+                    return false;
+                }
+                // Check annotation
+                return field.isAnnotationPresent(ClickEvt.class);
+            }
+        };
     }
 
     /**

@@ -26,6 +26,9 @@ public class Schedules {
         return new Schedule() {
             @Override
             public void submit(Callable<Void> task, int flags) throws Exception {
+                if (Schedule.FLAG_ON_CALLER != flags) {
+                    throw new IllegalArgumentException("Caller schedule just accept <Schedule.FLAG_ON_CALLER>");
+                }
                 task.call();
             }
         };
@@ -53,8 +56,37 @@ public class Schedules {
      * 全局共享线程池调度器
      * @return Schedule
      */
-    public static Schedule useShared(){
+    public static Schedule sharedThreads(){
         return new SharedSchedule();
+    }
+
+    private static void submit(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
+        switch (scheduleFlags) {
+            case Schedule.FLAG_ON_CALLER:
+                task.call();
+                break;
+            case Schedule.FLAG_ON_THREADS:
+                threads.submit(task);
+                break;
+            case Schedule.FLAG_ON_MAIN:
+                if (Looper.getMainLooper() != Looper.myLooper()) {
+                    InternalHandler.getDefault().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                task.call();
+                            } catch (Exception err) {
+                                throw new RuntimeException(err);
+                            }
+                        }
+                    });
+                }else{
+                    task.call();
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);
+        }
     }
 
     private static class SharedSchedule implements Schedule {
@@ -86,31 +118,6 @@ public class Schedules {
 
     }
 
-    private static void submit(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
-        switch (scheduleFlags) {
-            case Schedule.FLAG_ON_THREADS:
-                threads.submit(task);
-                break;
-            case Schedule.FLAG_ON_MAIN:
-                if (Looper.getMainLooper() == Looper.myLooper()) {
-                    task.call();
-                }else{
-                    InternalHandler.getDefault().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                task.call();
-                            } catch (Exception err) {
-                                throw new RuntimeException(err);
-                            }
-                        }
-                    });
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported Schedule flags: " + scheduleFlags);
-        }
-    }
 
     private static class InternalHandler extends Handler{
 
@@ -118,15 +125,10 @@ public class Schedules {
             super(Looper.getMainLooper());
         }
 
-        private static InternalHandler defaultHandler;
+        private static InternalHandler defaultHandler = new InternalHandler();
 
         public static InternalHandler getDefault(){
-            synchronized (InternalHandler.class) {
-                if (defaultHandler == null) {
-                    defaultHandler = new InternalHandler();
-                }
-                return defaultHandler;
-            }
+            return defaultHandler;
         }
     }
 

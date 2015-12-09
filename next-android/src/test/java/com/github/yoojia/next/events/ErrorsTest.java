@@ -13,24 +13,24 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class ErrorsTest {
 
-    @Subscribe
+    @Subscribe(runOn = RunOn.CALLER)
     public void onErrors(@Evt(ExceptionEvent.NAME)ExceptionEvent event){
         System.err.println("----------- Events: exception");
         event.exception.printStackTrace();
     }
 
-    @Subscribe
+    @Subscribe(runOn = RunOn.CALLER)
     public void throwsError(@Evt("err") String act){
         System.err.println("----------- Events: " + act);
         throw new NullPointerException("HAHAHA");
     }
 
-    @Subscribe
+    @Subscribe(runOn = RunOn.CALLER)
     public void calls(@Evt("nonerr") String act){
         System.err.println("----------- Events: " + act);
     }
 
-    @Subscribe
+    @Subscribe(runOn = RunOn.CALLER)
     public void calls(@Evt("001") Integer act){
         System.err.println("----------- Events: " + act);
     }

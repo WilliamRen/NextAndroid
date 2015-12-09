@@ -35,12 +35,12 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents(@Evt("str") String start){
             hitEvt1();
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents1(@Evt("long") long start){
             hitEvt2();
         }
@@ -53,13 +53,13 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents(@Evt("str") String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(onThreads = true)
+        @Subscribe(runOn = RunOn.THREADS)
         public void onEvents1(@Evt("long") long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
@@ -112,7 +112,7 @@ public class BenchmarkTest {
 
     @Test
     public void testNop2(){
-        nextStress(new NextNopPayload(COUNT_NOP), Schedules.useShared(), "SharedThread(Nop Payload)");
+        nextStress(new NextNopPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
     }
 
     @Test
@@ -127,7 +127,7 @@ public class BenchmarkTest {
 
     @Test
     public void test1ms2(){
-        nextStress(new Next1msPayload(COUNT_PAYLOAD), Schedules.useShared(), "SharedThread(1ms Payload)");
+        nextStress(new Next1msPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
     }
 
     @Test

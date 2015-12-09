@@ -8,16 +8,15 @@ import java.lang.annotation.Target;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
- * @version 2015-11-06
  */
 @Inherited
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Subscribe {
-
     /**
-     * 是否在其它线程（非主线程）中回调
-     * @return Boolean
+     * 指定回调方式。
+     * - 默认方式为 CALLER；
+     * @return RunOn
      */
-    boolean onThreads() default false;
+    RunOn runOn() default RunOn.CALLER;
 }

@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  */
 public final class Dispatcher {
 
-    private static final String STACK_WARNING = "Use <dispatcher.setTraceEnabled(...)> to collect methods stack !";
+    private static final String CALL_STACK_WARN = "Use <dispatcher.setTraceEnabled(...)> to collect methods stack !";
 
     private final NextEvents mEvents;
     private final String mCategoryName;
@@ -27,7 +27,7 @@ public final class Dispatcher {
     }
 
     public Dispatcher(String categoryName) {
-        this(Schedules.useShared(), categoryName);
+        this(Schedules.sharedThreads(), categoryName);
     }
 
     public Dispatcher(){
@@ -41,15 +41,16 @@ public final class Dispatcher {
     public void register(Object host){
         mEvents.register(host, new Filter<Method>() {
             // Only accept Action type
-            @Override public boolean accept(Method method) {
+            @Override
+            public boolean accept(Method method) {
                 // Check categories
                 // - If set category, @Category is required
                 if (mCategoryName != null && !mCategoryName.isEmpty()) {
-                    if ( ! method.isAnnotationPresent(Category.class)) {
+                    if (!method.isAnnotationPresent(Category.class)) {
                         return false;
                     }
                     final Category category = method.getAnnotation(Category.class);
-                    if ( ! mCategoryName.equals(category.value())) {
+                    if (!mCategoryName.equals(category.value())) {
                         return false;
                     }
                 }
@@ -71,7 +72,16 @@ public final class Dispatcher {
      * 提交Action事件
      * @param action Action 事件
      */
+    @Deprecated
     public void emit(Action action){
+        dispatch(action);
+    }
+
+    /**
+     * 派发Action事件
+     * @param action Action 事件
+     */
+    public void dispatch(Action action){
         logCallStack(action);
         mEvents.emit(action.type, action);
     }
@@ -89,7 +99,7 @@ public final class Dispatcher {
         if (mTraceEnabled) {
             action.setSenderStack(CallStack.collect());
         }else{
-            action.setSenderStack(STACK_WARNING);
+            action.setSenderStack(CALL_STACK_WARN);
         }
     }
 

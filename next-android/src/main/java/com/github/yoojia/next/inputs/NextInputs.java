@@ -29,7 +29,7 @@ public class NextInputs {
             boolean passed = true;
             final String input = rule.input.value();
             for (Pattern pattern : rule.patterns) {
-                if (!pattern.tester.performTest(input)) {
+                if ( ! pattern.tester.performTest(input)) {
                     if (mMessageDisplay instanceof DefaultMessageDisplay) {
                         final DefaultMessageDisplay def = (DefaultMessageDisplay) mMessageDisplay;
                         def.attach(rule.input);

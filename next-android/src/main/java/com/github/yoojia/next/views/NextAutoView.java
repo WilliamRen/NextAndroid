@@ -6,7 +6,6 @@ import android.view.View;
 
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.lang.Objects;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -36,11 +35,15 @@ public class NextAutoView {
             Log.d(TAG, "- Empty Views(with @AutoView) ! Target Object: " + mTarget);
             Warning.show(TAG);
         }else{
-            final Objects os = new Objects(mTarget);
             for (Field field : fields){
                 field.setAccessible(true);
                 final AutoView av = field.getAnnotation(AutoView.class);
-                os.setField(field, viewField.find(av.value(), av.parents()));
+                try {
+                    final View view = viewField.find(av.value(), av.parents());
+                    field.set(mTarget, view);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(e);
+                }
             }
         }
     }

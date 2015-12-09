@@ -27,11 +27,10 @@ public class Joiner {
         buf.append(iterator.next());
         while (iterator.hasNext()){
             final Object value = iterator.next();
-            if (value == null) {
-                continue;
+            if (value != null) {
+                buf.append(mJoinerChar);
+                buf.append(value);
             }
-            buf.append(mJoinerChar);
-            buf.append(value);
         }
         return buf.toString();
     }

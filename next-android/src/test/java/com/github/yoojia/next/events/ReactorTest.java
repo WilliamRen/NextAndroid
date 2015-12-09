@@ -53,7 +53,7 @@ public class ReactorTest extends BaseTester {
 
         TestSubscriber payload = new TestSubscriber(COUNT_NOP);
 
-        reactor.add(Subscription.create0(payload, Schedule.FLAG_ON_CALLER));
+        reactor.add(Subscription.create(payload, Schedule.FLAG_ON_CALLER));
 
         final long timeBeforeEmits = System.nanoTime();
 

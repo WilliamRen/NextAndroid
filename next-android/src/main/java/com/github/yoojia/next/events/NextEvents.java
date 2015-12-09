@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.github.yoojia.next.lang.Preconditions.notEmpty;
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
-
 /**
+ * NextEvents
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
- * @version 2015-11-07
  */
 public class NextEvents {
 
@@ -32,19 +32,36 @@ public class NextEvents {
     private final Reactor<EventMeta> mReactor;
     private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
 
+    /**
+     * Create a NextEvents instance, using default(shared threads) schedule for subscribers.
+     */
     public NextEvents() {
         this(Schedules.sharedThreads());
     }
 
+    /**
+     * Create a NextEvents instance with Schedule for subscribers.
+     * @param subscribeOn Schedule for subscribers.
+     * @throws NullPointerException If schedule is null.
+     */
     public NextEvents(Schedule subscribeOn) {
+        notNull(subscribeOn);
         mReactor = new Reactor<>(subscribeOn);
     }
 
     /**
-     * 从目标对象中注册添加@Subscribe注解的Methods, 并指定Method的过滤接口.
-     * @param target 包含@Subscribe注解的目标对象
-     * @param customFilter 指定Method过滤接口
+     * Register and scan methods with @Subscriber in target object, and accept a filter to
+     * filter accepted methods.
+     * @param target Target object which should contains methods with @Subscribe.
+     * @param customFilter Nullable, to filter accepted methods.
      * @return NextEvent
+     * @throws IllegalStateException If target has been registered before
+     * @throws IllegalArgumentException
+     * If methods with @Subscribe annotation in target object is not matched belows:
+     *  - VOID return type
+     *  - SINGLE & REQUIRED parameter
+     *  - WITH @Evt in parameter
+     *  - NOT-EMPTY in @Evt.value
      */
     public NextEvents register(final Object target, final Filter<Method> customFilter) {
         notNull(target, "Target Object must not be null !");
@@ -106,23 +123,26 @@ public class NextEvents {
             final Evt event = (Evt) method.getParameterAnnotations()[0][0];
             final String defineName = event.value();
             if (TextUtils.isEmpty(defineName)) {
-                throw new IllegalArgumentException("Event name in @Subscribe must not be empty");
+                throw new IllegalArgumentException("Event name in @Evt must not be empty");
             }
             final Subscribe subscribe = method.getAnnotation(Subscribe.class);
             final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
             subscribers.add(subscriber);
             final Class<?> defineType = method.getParameterTypes()[0];
-            this.subscribe(subscriber, subscribe.runOn().scheduleFlag, defineName, defineType);
+            this.subscribe(defineName, defineType, subscriber, subscribe.runOn().scheduleFlag);
         }
         return this;
     }
 
     /**
-     * 反注册目标对象, 所有这个对象的@Subscribe注解方法将被移出管理
-     * @param target 目标对象
-     * @return NextEvents实例
+     * Unregister the object, all methods with @Subscribe in this object will be remove from NextEvents.
+     * @param target Target to unregister;
+     * @return NextEvents
+     * @throws NullPointerException If target to unregister is null;
+     * @throws IllegalStateException If target was not registered before;
      */
     public synchronized NextEvents unregister(Object target) {
+        notNull(target);
         if (! mRefs.containsKey(target)) {
             throw new IllegalStateException("Target object was NOT REGISTERED! " +
                     "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
@@ -136,45 +156,60 @@ public class NextEvents {
     }
 
     /**
-     * 注册Subscriber, 并指定参数
-     * @param subscriber Subscriber
-     * @param scheduleFlags 触发回调方式标志
-     * @param defineName 接受触发的事件名
-     * @param defineType 接受触发的事件类型
+     * Register a subscriber.
+     * @param defineName Event name for subscriber;
+     * @param defineType Event type for subscriber;
+     * @param subscriber Subscriber;
+     * @param flag Schedule Flag for subscriber;
      * @return NextEvents
+     * @throws NullPointerException
+     * - If subscriber is null;
+     * - If class type is null;
+     * @throws IllegalArgumentException If event name is null or empty
+     * @throws IllegalStateException If the subscriber was registered before
      */
-    public NextEvents subscribe(Subscriber<EventMeta> subscriber, int scheduleFlags, String defineName, Class<?> defineType) {
-        mReactor.add(Subscription.create1(subscriber, scheduleFlags, EventsFilter.with(defineName, defineType)));
+    public NextEvents subscribe(String defineName, Class<?> defineType, Subscriber<EventMeta> subscriber, int flag) {
+        notNull(subscriber);
+        notEmpty(defineName, "Event name cannot be null or empty");
+        notNull(defineType);
+        mReactor.add(Subscription.create1(subscriber, flag, EventsFilter.with(defineName, defineType)));
         return this;
     }
 
     /**
-     * 反注册Subscriber
+     * Unsubscribe a Subscriber
      * @param subscriber Subscriber
      * @return NextEvents
+     * @throws NullPointerException If subscriber is null
      */
     public NextEvents unsubscribe(Subscriber<EventMeta> subscriber) {
+        notNull(subscriber);
         mReactor.remove(subscriber);
         return this;
     }
 
     /**
-     * 发布事件
-     * @param eventName 事件名
-     * @param eventObject 事件对象
+     * Emit a event
+     * @param eventName Event name
+     * @param eventObject Event value object
      * @return NextEvents
+     * @throws NullPointerException If event name or event object is null
      */
     public NextEvents emit(String eventName, Object eventObject) {
+        notNull(eventName);
+        notNull(eventObject);
         mReactor.emit(EventMeta.with(eventName, eventObject));
         return this;
     }
 
     /**
-     * 指定订阅执行目标的调度器
-     * @param schedule 调度器
+     * Set a schedule impl for NextEvents
+     * @param schedule Schedule
      * @return NextEvents
+     * @throws NullPointerException If schedule is null
      */
     public NextEvents subscribeOn(Schedule schedule) {
+        notNull(schedule);
         mReactor.subscribeOn(schedule);
         return this;
     }

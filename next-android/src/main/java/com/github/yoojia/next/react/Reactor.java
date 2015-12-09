@@ -8,6 +8,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static com.github.yoojia.next.lang.Preconditions.notNull;
+
 /**
  * 事件响应处理
  * @author YOOJIA.CHEN (yoojiachen@gmail.com)
@@ -24,7 +26,7 @@ public class Reactor<T> {
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {
         if (mSubs.contains(newSub) || mRefs.containsKey(newSub.target)) {
-            throw new IllegalArgumentException("Duplicate Subscription/Subscription.subscriber");
+            throw new IllegalStateException("Duplicate Subscription/Subscription.subscriber");
         }
         mSubs.add(newSub);
         mRefs.put(newSub.target, newSub);
@@ -49,9 +51,6 @@ public class Reactor<T> {
     }
 
     public Reactor<T> subscribeOn(Schedule schedule) {
-        if (schedule == null) {
-            throw new NullPointerException();
-        }
         mScheduleWrap.set(schedule);
         return this;
     }

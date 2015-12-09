@@ -58,10 +58,10 @@ public class NextEvents {
      * @throws IllegalStateException If target has been registered before
      * @throws IllegalArgumentException
      * If methods with @Subscribe annotation in target object is not matched belows:
-     *  <li>VOID return type</li>
-     *  <li>SINGLE AND REQUIRED parameter</li>
-     *  <li>WITH @Evt in parameter</li>
-     *  <li>NOT-EMPTY in @Evt.value</li>
+     *  - VOID return type
+     *  - SINGLE AND REQUIRED parameter
+     *  - WITH @Evt in parameter
+     *  - NOT-EMPTY in @Evt.value
      */
     public NextEvents register(final Object target, final Filter<Method> customFilter) {
         notNull(target, "Target Object must not be null !");

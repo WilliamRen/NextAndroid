@@ -6,16 +6,31 @@ NextAndroid 是一个集成Android App开发工具库
 
 类似Google Guava的EventBus，NextEvents提供一个事件总线处理库。它提供了线程回调，MainUI回调等非常有用的事件响应处理方式。
 
-在 `Intel i5` / `8G` / `Win10` / `Robolectric` 环境下测试结果：
+在 `AMD A8-5600K` / `8G` / `Ubuntu 14.04 LTS` / `Robolectric` 环境下测试结果：
 
 Schedule类型及负载|发送速率|发送用时|执行负载总用时|调用负载总次数
 ----|----|----|----|----
-SingleThread(1ms Payload)|	 859/s|		8ms|		2326ms|	    2000
-CallerThread(1ms Payload)|	 868/s|		2302ms|	    2302ms|	    2000
-MultiThreads(1ms Payload)|	 3485/s|	5ms|		573ms|		2000
-SingleThread(NopPayload)|	 2000420/s|		999ms|		999ms|		2000000
-MultiThreads(NopPayload)|	 1506137/s|		1211ms|	    1327ms|	    2000000
-CallerThread(NopPayload)|	 9923440/s|		201ms|		201ms|		2000000
+MultiThreads(1ms Payload)|	 4374/s|		23ms|		457ms|		2000
+SharedThread(1ms Payload)|	 4540/s|		4ms|		440ms|		2000
+CallerThread(1ms Payload)|	 916/s|		2183ms|		2183ms|		2000
+MultiThreads(Nop Payload)|	 1255396/s|		1593ms|		1593ms|		2000000
+SharedThread(Nop Payload)|	 1300754/s|		1535ms|		1537ms|		2000000
+CallerThread(Nop Payload)|	 5345735/s|		374ms|		374ms|		2000000
+
+
+与SQUAREUP.OTTO对比情况如下表
+
+
+Schedule类型及负载|发送速率|发送用时|执行负载总用时|调用负载总次数
+----|----|----|----|----
+MultiThreads(1ms Payload)|	 4385/s|		33ms|		456ms|		2000
+SharedThread(1ms Payload)|	 4505/s|		8ms|		443ms|		2000
+CallerThread(1ms Payload)|	 889/s|		2249ms|		2249ms|		2000
+SQUARE.OTTO (1ms Payload)|	 910/s|		2195ms|		2195ms|		2000
+MultiThreads(Nop Payload)|	 1354120/s|		1476ms|		1476ms|		2000000
+SharedThread(Nop Payload)|	 1361032/s|		1469ms|		1469ms|		2000000
+CallerThread(Nop Payload)|	 4239317/s|		471ms|		471ms|		2000000
+SQUARE.OTTO (Nop Payload)|	 2361166/s|		846ms|		847ms|		2000000
 
 ## Click Proxy - 点击代理
 

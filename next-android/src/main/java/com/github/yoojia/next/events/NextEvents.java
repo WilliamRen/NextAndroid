@@ -69,6 +69,7 @@ public class NextEvents {
             throw new IllegalStateException("Target object was REGISTERED! " +
                     "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
         }
+
         // Filter methods and register them
         final ArrayList<Subscriber<EventMeta>> subscribers;
         // if not registered, add to Refs(register)
@@ -78,15 +79,17 @@ public class NextEvents {
         }else{
             subscribers = mRefs.get(target);
         }
-        // Check Annotations methods
+
         final List<Method> annotatedMethods = new MethodsFinder()
                 .filter(newMethodFilter(customFilter))
                 .find(target.getClass());
+
         if (annotatedMethods.isEmpty()) {
             Log.e(TAG, "- Empty Methods(with @Subscribe)! Object host: " + target);
             Warning.show(TAG);
             return this;
         }
+
         for (final Method method : annotatedMethods) {
             checkSignature(method);
             final Subscribe subscribe = method.getAnnotation(Subscribe.class);
@@ -97,6 +100,7 @@ public class NextEvents {
             final Class<?> defineType = method.getParameterTypes()[0];
             this.subscribe(defineName, defineType, subscriber, subscribe.runOn().scheduleFlag);
         }
+
         return this;
     }
 

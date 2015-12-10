@@ -48,7 +48,7 @@ public class NextClickProxy {
         final Callable<Void> task = new Callable<Void>() {
             @Override public Void call() throws Exception {
                 final List<Field> fields = new FieldsFinder()
-                        .filter(new ClickEvtFilter())
+                        .filter(ClickEvtFieldFilter.defaultFilter)
                         .find(target.getClass());
                 if (fields.isEmpty()){
                     Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
@@ -58,19 +58,19 @@ public class NextClickProxy {
                 for (Field field : fields){
                     field.setAccessible(true);
                     final ClickEvt evt = field.getAnnotation(ClickEvt.class);
-                    final String defineName = evt.value();
-                    final View view = bindClickView(target, field, defineName);
+                    checkAnnotation(evt);
+                    final View view = createClickActionView(target, field, new View.OnClickListener() {
+                        @Override
+                        @SuppressWarnings("unchecked")
+                        public void onClick(View v) {
+                            emitClick(v, evt.value());
+                        }
+                    });
                     if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
                         mKeyCodeMapping.append(evt.keyCode(), view);
                     }
                 }
-                mEvents.register(target, new Filter<Method>() {
-                    // 只接受ClickEvent类型的方法
-                    @Override public boolean accept(Method method) {
-                        final Class<?>[] types = method.getParameterTypes();
-                        return ClickEvent.class.equals(types[0]);
-                    }
-                });
+                mEvents.register(target, CallbackMethodFilter.defaultFilter);
                 return null;
             }
         };
@@ -105,24 +105,23 @@ public class NextClickProxy {
         return this;
     }
 
-    private View bindClickView(Object host, Field field, final String event) throws Exception {
-        if (TextUtils.isEmpty(event)) {
-            throw new IllegalArgumentException("Illegal click event name: " + event);
-        }
+    private static View createClickActionView(Object host, Field field, View.OnClickListener listener) throws Exception {
         field.setAccessible(true);
         final Object viewField = field.get(host);
         final View view = (View) viewField;
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public void onClick(View v) {
-                emitClick(v, event);
-            }
-        });
+        view.setOnClickListener(listener);
         return view;
     }
 
-    private static class ClickEvtFilter implements Filter<Field> {
+    private static void checkAnnotation(ClickEvt evt){
+        if (TextUtils.isEmpty(evt.value())) {
+            throw new IllegalArgumentException("Event name in @ClickEvent cannot be empty !");
+        }
+    }
+
+    private static class ClickEvtFieldFilter implements Filter<Field> {
+
+        public final static ClickEvtFieldFilter defaultFilter = new ClickEvtFieldFilter();
 
         @Override
         public boolean accept(Field field) {
@@ -141,6 +140,19 @@ public class NextClickProxy {
             // Check annotation
             return field.isAnnotationPresent(ClickEvt.class);
         }
+
+    }
+
+    private static class CallbackMethodFilter implements Filter<Method> {
+
+        public final static CallbackMethodFilter defaultFilter = new CallbackMethodFilter();
+
+        @Override
+        public boolean accept(Method method) {
+            final Class<?>[] types = method.getParameterTypes();
+            return ClickEvent.class.equals(types[0]);
+        }
+
     }
 
     /**

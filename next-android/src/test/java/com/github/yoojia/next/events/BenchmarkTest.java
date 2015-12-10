@@ -29,9 +29,9 @@ public class BenchmarkTest {
     private final static int COUNT_PAYLOAD = 1000;
     private final static int COUNT_NOP = COUNT_PAYLOAD * 1000;
 
-    private static class NextNopPayload extends Payload{
+    private static class NextNopThreadsPayload extends Payload{
 
-        protected NextNopPayload(int count) {
+        protected NextNopThreadsPayload(int count) {
             super(count);
         }
 
@@ -47,9 +47,27 @@ public class BenchmarkTest {
 
     }
 
-    private static class Next1msPayload extends Payload{
+    private static class NextNopCallerPayload extends Payload{
 
-        protected Next1msPayload(int count) {
+        protected NextNopCallerPayload(int count) {
+            super(count);
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
+        public void onEvents(@Evt("str") String start){
+            hitEvt1();
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
+        public void onEvents1(@Evt("long") long start){
+            hitEvt2();
+        }
+
+    }
+
+    private static class Next1msThreadsPayload extends Payload{
+
+        protected Next1msThreadsPayload(int count) {
             super(count);
         }
 
@@ -60,6 +78,26 @@ public class BenchmarkTest {
         }
 
         @Subscribe(runOn = RunOn.THREADS)
+        public void onEvents1(@Evt("long") long start) throws InterruptedException {
+            Thread.sleep(1);
+            hitEvt2();
+        }
+
+    }
+
+    private static class Next1msCallerPayload extends Payload{
+
+        protected Next1msCallerPayload(int count) {
+            super(count);
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
+        public void onEvents(@Evt("str") String start) throws InterruptedException {
+            Thread.sleep(1);
+            hitEvt1();
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
         public void onEvents1(@Evt("long") long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
@@ -107,31 +145,41 @@ public class BenchmarkTest {
 
     @Test
     public void testNop1(){
-        nextStress(new NextNopPayload(COUNT_NOP), Schedules.newService(CPUs), "MultiThreads(Nop Payload)");
+        nextStress(new NextNopThreadsPayload(COUNT_NOP), Schedules.newService(CPUs), "MultiThreads(Nop Payload)");
     }
 
     @Test
     public void testNop2(){
-        nextStress(new NextNopPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
+        nextStress(new NextNopThreadsPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
     }
 
     @Test
     public void testNop3(){
+        nextStress(new NextNopCallerPayload(COUNT_NOP), Schedules.newCaller(), "CallerThread(Nop Payload)");
+    }
+
+    @Test
+    public void testNop4(){
         ottoStress(new OttoNopPayload(COUNT_NOP), "SQUARE.OTTO (Nop Payload)");
     }
 
     @Test
     public void test1ms1(){
-        nextStress(new Next1msPayload(COUNT_PAYLOAD), Schedules.newService(CPUs), "MultiThreads(1ms Payload)");
+        nextStress(new Next1msThreadsPayload(COUNT_PAYLOAD), Schedules.newService(CPUs), "MultiThreads(1ms Payload)");
     }
 
     @Test
     public void test1ms2(){
-        nextStress(new Next1msPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
+        nextStress(new Next1msThreadsPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
     }
 
     @Test
     public void test1ms3(){
+        nextStress(new Next1msCallerPayload(COUNT_PAYLOAD), Schedules.newCaller(), "CallerThread(1ms Payload)");
+    }
+
+    @Test
+    public void test1ms4(){
         ottoStress(new Otto1msPayload(COUNT_PAYLOAD), "SQUARE.OTTO (1ms Payload)");
     }
 

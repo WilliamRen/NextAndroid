@@ -59,21 +59,18 @@ public class Reactor<T> {
         final Schedule schedule = mScheduleWrap.get();
         for (final Subscription<T> callable : mSubs) {
             // filter at per emit action:
-            // - Skip if not accept
-            if ( ! callable.filter(input)) {
-                continue;
-            }
-            // - Submit to Schedule to invoke target
-            schedule.submit(new Callable<Void>() {
-                @Override public Void call() throws Exception {
-                    try{
-                        callable.target.onCall(input);
-                    }catch (Exception err) {
-                        callable.target.onErrors(input, err);
+            if (callable.filter(input)) {
+                schedule.submit(new Callable<Void>() {
+                    @Override public Void call() throws Exception {
+                        try{
+                            callable.target.onCall(input);
+                        }catch (Exception err) {
+                            callable.target.onErrors(input, err);
+                        }
+                        return null;
                     }
-                    return null;
-                }
-            }, callable.targetScheduleFlags);
+                }, callable.targetScheduleFlags);
+            }
         }
     }
 

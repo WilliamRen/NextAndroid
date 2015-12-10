@@ -118,7 +118,6 @@ public class Schedules {
 
     }
 
-
     private static class InternalHandler extends Handler{
 
         public InternalHandler() {

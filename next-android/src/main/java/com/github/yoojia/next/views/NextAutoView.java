@@ -6,7 +6,6 @@ import android.view.View;
 
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.lang.Objects;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -30,17 +29,21 @@ public class NextAutoView {
 
     public void inject(Finder viewField){
         final List<Field> fields = new FieldsFinder()
-                .filter(newFieldFilter())
+                .filter(AutoViewFieldFilter.defaultFilter)
                 .find(mTargetType);
         if (fields.isEmpty()){
             Log.d(TAG, "- Empty Views(with @AutoView) ! Target Object: " + mTarget);
             Warning.show(TAG);
         }else{
-            final Objects os = new Objects(mTarget);
             for (Field field : fields){
                 field.setAccessible(true);
                 final AutoView av = field.getAnnotation(AutoView.class);
-                os.setField(field, viewField.find(av.value(), av.parents()));
+                try {
+                    final View view = viewField.find(av.value(), av.parents());
+                    field.set(mTarget, view);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(e);
+                }
             }
         }
     }
@@ -57,21 +60,27 @@ public class NextAutoView {
         View find(int viewId, int[] route);
     }
 
-    private static Filter<Field> newFieldFilter() {
-        return new Filter<Field>() {
-            @Override
-            public boolean accept(Field field) {
-                if (field.isSynthetic() || field.isEnumConstant()) {
-                    return false;
-                }
-                // Check View type
-                final Class<?> type = field.getType();
-                if (! View.class.isAssignableFrom(type)) {
-                    return false;
-                }
-                return field.isAnnotationPresent(AutoView.class);
+    private static class AutoViewFieldFilter implements Filter<Field> {
+
+        @Override
+        public boolean accept(Field field) {
+            return isAutoViewField(field);
+        }
+
+        private static boolean isAutoViewField(Field field) {
+            if (field.isSynthetic() || field.isEnumConstant()) {
+                return false;
             }
-        };
+            // Check View type
+            final Class<?> type = field.getType();
+            if (! View.class.isAssignableFrom(type)) {
+                return false;
+            }
+            return field.isAnnotationPresent(AutoView.class);
+        }
+
+        public final static AutoViewFieldFilter defaultFilter = new AutoViewFieldFilter();
+
     }
 
     /**

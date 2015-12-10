@@ -71,11 +71,7 @@ public abstract class AnnotatedFinder<T extends AnnotatedElement> {
         notNull(targetType, "Subscriber type must not be null !");
         final List<T> output = new ArrayList<>();
         Class<?> type = targetType;
-        while (! Object.class.equals(type)){
-            // Check class type
-            if (!mTypeFilter.accept(type)) {
-                break;
-            }
+        while (! Object.class.equals(type) && mTypeFilter.accept(type)){
             final T[] resources = resourcesFromType(type);
             for (T res : resources){
                 // Check resource

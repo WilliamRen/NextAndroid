@@ -27,9 +27,9 @@ public class StressTest extends BaseTester{
     private final static int COUNT_NOP = 10000 * 100;
     private final static int COUNT_PAYLOAD = 1000;
 
-    private static class NopPayload extends Payload{
+    private static class ThreadsNopPayload extends Payload{
 
-        protected NopPayload(int count) {
+        protected ThreadsNopPayload(int count) {
             super(count);
         }
 
@@ -45,9 +45,27 @@ public class StressTest extends BaseTester{
 
     }
 
-    private static class Ms1Payload extends Payload{
+    private static class CallerNopPayload extends Payload{
 
-        protected Ms1Payload(int count) {
+        protected CallerNopPayload(int count) {
+            super(count);
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
+        public void onEvents(@Evt("str") String start){
+            hitEvt1();
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
+        public void onEvents1(@Evt("int") long start){
+            hitEvt2();
+        }
+
+    }
+
+    private static class Threads1msPayload extends Payload{
+
+        protected Threads1msPayload(int count) {
             super(count);
         }
 
@@ -65,26 +83,56 @@ public class StressTest extends BaseTester{
 
     }
 
+    private static class Caller1msPayload extends Payload{
+
+        protected Caller1msPayload(int count) {
+            super(count);
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
+        public void onEvents(@Evt("str") String start) throws InterruptedException {
+            Thread.sleep(1);
+            hitEvt1();
+        }
+
+        @Subscribe(runOn = RunOn.CALLER)
+        public void onEvents1(@Evt("int") long start) throws InterruptedException {
+            Thread.sleep(1);
+            hitEvt2();
+        }
+
+    }
+
     private final ExecutorService CPUs = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
 
     @Test
     public void testNop1(){
-        testStress(new NopPayload(COUNT_NOP), Schedules.newService(CPUs), "MultiThreads(Nop Payload)");
+        testStress(new ThreadsNopPayload(COUNT_NOP), Schedules.newService(CPUs), "MultiThreads(Nop Payload)");
     }
 
     @Test
     public void testNop2(){
-        testStress(new NopPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
+        testStress(new ThreadsNopPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
+    }
+
+    @Test
+    public void testNop3(){
+        testStress(new CallerNopPayload(COUNT_NOP), Schedules.newCaller(), "CallerThread(Nop Payload)");
     }
 
     @Test
     public void test1ms1(){
-        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.newService(CPUs), "MultiThreads(1ms Payload)");
+        testStress(new Threads1msPayload(COUNT_PAYLOAD), Schedules.newService(CPUs), "MultiThreads(1ms Payload)");
     }
 
     @Test
     public void test1ms2(){
-        testStress(new Ms1Payload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
+        testStress(new Threads1msPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
+    }
+
+    @Test
+    public void test1ms3(){
+        testStress(new Caller1msPayload(COUNT_PAYLOAD), Schedules.newCaller(), "CallerThread(1ms Payload)");
     }
 
     private void testStress(Payload payload, Schedule schedule, String tag){

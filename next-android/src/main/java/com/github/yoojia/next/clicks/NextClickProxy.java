@@ -25,7 +25,7 @@ import static com.github.yoojia.next.lang.Preconditions.notNull;
  */
 public class NextClickProxy {
 
-    private static final String TAG = "CLICKS-PROXY";
+    private static final String TAG = "CLICK-PROXY";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
     private final NextEvents mEvents;
@@ -43,42 +43,57 @@ public class NextClickProxy {
      * @param target 目标对象
      * @return NextClickProxy
      */
-    public NextClickProxy register(final Object target){
+    public NextClickProxy registerAsync(final Object target){
         notNull(target, "Target Object must not be null !");
-        final Callable<Void> task = new Callable<Void>() {
-            @Override public Void call() throws Exception {
-                final List<Field> fields = new FieldsFinder()
-                        .filter(ClickEvtFieldFilter.defaultFilter)
-                        .find(target.getClass());
-                if (fields.isEmpty()){
-                    Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
-                    Warning.show(TAG);
+        try {
+            mScheduleRef.submit(new Callable<Void>() {
+                @Override public Void call() throws Exception {
+                    register(target);
                     return null;
                 }
-                for (Field field : fields){
-                    field.setAccessible(true);
-                    final ClickEvt evt = field.getAnnotation(ClickEvt.class);
-                    checkAnnotation(evt);
-                    final View view = createClickActionView(target, field, new View.OnClickListener() {
-                        @Override
-                        @SuppressWarnings("unchecked")
-                        public void onClick(View v) {
-                            emitClick(v, evt.value());
-                        }
-                    });
-                    if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
-                        mKeyCodeMapping.append(evt.keyCode(), view);
-                    }
-                }
-                mEvents.register(target, CallbackMethodFilter.defaultFilter);
-                return null;
-            }
-        };
-        try {
-            mScheduleRef.submit(task, Schedule.FLAG_ON_THREADS);
+            }, Schedule.FLAG_ON_THREADS);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
+        return this;
+    }
+
+    /**
+     * 注册点击处理。
+     * - 注册过程为同步，在目标对象的 @ClickEvt 成员变量全部被注册后返回。
+     * @param target 目标对象
+     * @return NextEvents
+     */
+    public NextClickProxy register(final Object target) {
+        notNull(target, "Target Object must not be null !");
+        final List<Field> fields = new FieldsFinder()
+                .filter(ClickEvtFieldFilter.defaultFilter)
+                .find(target.getClass());
+        if (fields.isEmpty()){
+            Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
+            Warning.show(TAG);
+            return this;
+        }
+        try{
+            for (Field field : fields){
+                field.setAccessible(true);
+                final ClickEvt evt = field.getAnnotation(ClickEvt.class);
+                checkAnnotation(evt);
+                final View view = createClickActionView(target, field, new View.OnClickListener() {
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public void onClick(View v) {
+                        emitClick(v, evt.value());
+                    }
+                });
+                if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
+                    mKeyCodeMapping.append(evt.keyCode(), view);
+                }
+            }
+        }catch (Exception e){
+            throw new IllegalArgumentException(e);
+        }
+        mEvents.register(target, CallbackMethodFilter.defaultFilter);
         return this;
     }
 

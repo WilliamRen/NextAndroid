@@ -180,14 +180,23 @@ public final class Action {
                 '}';
     }
 
-    public static Action create(String eventName) {
-        return new Action.Builder().setType(eventName).build();
+    public static Action create(String type) {
+        return new Action.Builder().setType(type).build();
+    }
+
+    public static Action forward(String type, Action action) {
+        return new Action.Builder().setType(type).copy(action).build();
     }
 
     public static class Builder {
 
         public final Bundle data = new Bundle();
         private String mType;
+
+        public Builder copy(Action source) {
+            data.putAll(source.data);
+            return this;
+        }
 
         public Builder setType(String type){
             mType = type;

@@ -3,6 +3,8 @@ package com.github.yoojia.next.lang;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import static com.github.yoojia.next.lang.Preconditions.notNull;
+
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-09-14
@@ -16,9 +18,7 @@ public class Joiner {
     }
 
     public String join(Iterable<?> source){
-        if (source == null) {
-            return null;
-        }
+        notNull(source);
         final Iterator<?> iterator = source.iterator();
         if (!iterator.hasNext()) {
             return "";

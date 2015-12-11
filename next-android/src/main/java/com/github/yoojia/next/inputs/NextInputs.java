@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import static com.github.yoojia.next.lang.Preconditions.notNull;
+
 /**
  * NextInputs
  *
@@ -24,35 +26,25 @@ public class NextInputs {
 
     private boolean mAbortOnFail = true;
 
-    public boolean test() throws Exception {
-        for (TestRule rule : mRules) {
-            boolean passed = true;
-            final String input = rule.input.value();
-            for (Pattern pattern : rule.patterns) {
-                if ( ! pattern.tester.performTest(input)) {
-                    if (mMessageDisplay instanceof DefaultMessageDisplay) {
-                        final DefaultMessageDisplay def = (DefaultMessageDisplay) mMessageDisplay;
-                        def.attach(rule.input);
-                    }
-                    mMessageDisplay.show(pattern.message);
-                    passed = false;
-                    break;
+    public boolean test(){
+        try{
+            for (TestRule rule : mRules) {
+                if ( ! performTest(rule) && mAbortOnFail) {
+                    return false;
                 }
             }
-            if (mAbortOnFail && !passed) {
-                return false;
-            }
+            return true;
+        }catch (Exception err) {
+            throw new RuntimeException(err);
         }
-        return true;
     }
 
     public NextInputs add(Input input, Pattern...patterns){
-        if (patterns.length == 0){
-            throw new IllegalArgumentException("Pattern is required !");
+        if (patterns == null || patterns.length == 0){
+            throw new IllegalArgumentException("Patterns is required !");
         }
         Arrays.sort(patterns, ORDERING);
-        final TestRule rule = new TestRule(input, patterns);
-        mRules.add(rule);
+        mRules.add(new TestRule(input, patterns));
         return this;
     }
 
@@ -61,10 +53,26 @@ public class NextInputs {
     }
 
     public void setMessageDisplay(MessageDisplay display){
-        if (display == null) {
-            throw new NullPointerException();
-        }
+        notNull(display);
         mMessageDisplay = display;
     }
 
+    private boolean performTest(TestRule rule) throws Exception {
+        final String value = rule.input.value();
+        for (Pattern pattern : rule.patterns) {
+            if ( ! pattern.tester.performTest(value)) {
+                tryShowMessage(rule.input, pattern.message);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void tryShowMessage(Input input, String message){
+        if (mMessageDisplay instanceof DefaultMessageDisplay) {
+            final DefaultMessageDisplay def = (DefaultMessageDisplay) mMessageDisplay;
+            def.attach(input);
+        }
+        mMessageDisplay.show(message);
+    }
 }

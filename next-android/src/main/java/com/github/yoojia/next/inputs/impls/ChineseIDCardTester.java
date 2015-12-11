@@ -19,7 +19,7 @@ public class ChineseIDCardTester extends TesterEx {
 
     static final char[] VALID = {'1','0','X','9','8','7','6','5','4','3','2'};
 
-    static final SimpleDateFormat YYMMdd = new SimpleDateFormat("YYMMdd", Locale.getDefault());
+    static final SimpleDateFormat YYMMdd = new SimpleDateFormat("yyMMdd", Locale.getDefault());
 
     @Override
     public boolean performTest0(String notEmptyInput) {
@@ -27,12 +27,11 @@ public class ChineseIDCardTester extends TesterEx {
         if (15 == length){
             try{
                 return isOldCNIDCard(notEmptyInput);
-            }catch (NumberFormatException e){
-                e.printStackTrace();
+            }catch (Exception e){
                 return false;
             }
         }else if (18 == length){
-            return isNewCNIDCard(notEmptyInput);
+            return isNewCNIDCard(notEmptyInput.toUpperCase());
         }else {
             return false;
         }

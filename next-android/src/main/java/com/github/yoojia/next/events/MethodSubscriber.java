@@ -27,7 +27,7 @@ class MethodSubscriber implements Subscriber<EventMeta>{
     @Override
     @SuppressWarnings("unchecked")
     public void onErrors(EventMeta input, Exception errors) {
-        throw new RuntimeException("Error on event: " + input);
+        throw new RuntimeException("Error on: " + input, errors);
     }
 
 }

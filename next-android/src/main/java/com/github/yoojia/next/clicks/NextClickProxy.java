@@ -6,9 +6,11 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
+import com.github.yoojia.next.events.EventMeta;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.react.OnEventListener;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 
@@ -34,6 +36,12 @@ public class NextClickProxy {
     public NextClickProxy() {
         mScheduleRef = Schedules.sharedThreads();
         mEvents = new NextEvents(mScheduleRef);
+        // Click event not allow missing target
+        mEvents.onEventListener(new OnEventListener<EventMeta>() {
+            @Override public void onMiss(EventMeta input) {
+                throw new IllegalStateException("Handler target is missed, Input event: " + input);
+            }
+        });
     }
 
     /**

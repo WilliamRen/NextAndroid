@@ -29,7 +29,7 @@ public class NextAutoView {
 
     public void inject(Finder viewField){
         final List<Field> fields = new FieldsFinder()
-                .filter(AutoViewFieldFilter.defaultFilter)
+                .filter(AutoViewFieldFilter.getDefault())
                 .find(mTargetType);
         if (fields.isEmpty()){
             Log.d(TAG, "- Empty Views(with @AutoView) ! Target Object: " + mTarget);
@@ -62,6 +62,8 @@ public class NextAutoView {
 
     private static class AutoViewFieldFilter implements Filter<Field> {
 
+        private static AutoViewFieldFilter mDefaultFilter;
+
         @Override
         public boolean accept(Field field) {
             return isAutoViewField(field);
@@ -79,8 +81,16 @@ public class NextAutoView {
             return field.isAnnotationPresent(AutoView.class);
         }
 
-        public final static AutoViewFieldFilter defaultFilter = new AutoViewFieldFilter();
-
+        public static AutoViewFieldFilter getDefault(){
+            synchronized (AutoViewFieldFilter.class) {
+                if (mDefaultFilter == null) {
+                    mDefaultFilter = new AutoViewFieldFilter();
+                    return mDefaultFilter;
+                }else {
+                    return mDefaultFilter;
+                }
+            }
+        }
     }
 
     /**

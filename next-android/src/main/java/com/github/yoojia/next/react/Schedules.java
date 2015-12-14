@@ -108,22 +108,22 @@ public class Schedules {
         private static BlockingQueue<Runnable> QUEUE;
         private static ThreadPoolExecutor EXECUTOR;
 
+        private static SharedSchedule mDefaultSchedule;
+
         @Override
         public void submit(Callable<Void> task, int flags) throws Exception {
             Schedules.submit(EXECUTOR, task, flags);
         }
 
-        private static SharedSchedule defaultSchedule;
-
         public static SharedSchedule getDefault(){
             synchronized (SharedSchedule.class) {
-                if (defaultSchedule == null) {
+                if (mDefaultSchedule == null) {
                     QUEUE = new LinkedBlockingQueue<>();
                     EXECUTOR = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
                             TimeUnit.SECONDS, QUEUE, THREAD_FACTORY);
-                    defaultSchedule = new SharedSchedule();
+                    mDefaultSchedule = new SharedSchedule();
                 }
-                return defaultSchedule;
+                return mDefaultSchedule;
             }
         }
 
@@ -131,7 +131,7 @@ public class Schedules {
 
     private static class InternalHandler extends Handler{
 
-        private static InternalHandler defaultHandler;
+        private static InternalHandler mDefaultHandler;
 
         public InternalHandler() {
             super(Looper.getMainLooper());
@@ -139,10 +139,10 @@ public class Schedules {
 
         public static InternalHandler getDefault(){
             synchronized (InternalHandler.class) {
-                if (defaultHandler == null) {
-                    defaultHandler = new InternalHandler();
+                if (mDefaultHandler == null) {
+                    mDefaultHandler = new InternalHandler();
                 }
-                return defaultHandler;
+                return mDefaultHandler;
             }
         }
     }

@@ -67,7 +67,7 @@ public class NextClickProxy {
     public NextClickProxy register(final Object target) {
         notNull(target, "Target Object must not be null !");
         final List<Field> fields = new FieldsFinder()
-                .filter(ClickEvtFieldFilter.defaultFilter)
+                .filter(ClickEvtFieldFilter.getDefault())
                 .find(target.getClass());
         if (fields.isEmpty()){
             Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
@@ -93,7 +93,7 @@ public class NextClickProxy {
         }catch (Exception e){
             throw new IllegalArgumentException(e);
         }
-        mEvents.register(target, CallbackMethodFilter.defaultFilter);
+        mEvents.register(target, CallbackMethodFilter.getDefault());
         return this;
     }
 
@@ -136,7 +136,7 @@ public class NextClickProxy {
 
     private static class ClickEvtFieldFilter implements Filter<Field> {
 
-        public final static ClickEvtFieldFilter defaultFilter = new ClickEvtFieldFilter();
+        private static ClickEvtFieldFilter mDefaultFilter;
 
         @Override
         public boolean accept(Field field) {
@@ -156,11 +156,22 @@ public class NextClickProxy {
             return field.isAnnotationPresent(ClickEvt.class);
         }
 
+        public static ClickEvtFieldFilter getDefault(){
+            synchronized (ClickEvtFieldFilter.class) {
+                if (mDefaultFilter == null) {
+                    mDefaultFilter = new ClickEvtFieldFilter();
+                    return mDefaultFilter;
+                }else {
+                    return mDefaultFilter;
+                }
+            }
+        }
+
     }
 
     private static class CallbackMethodFilter implements Filter<Method> {
 
-        public final static CallbackMethodFilter defaultFilter = new CallbackMethodFilter();
+        private static CallbackMethodFilter mDefaultFilter;
 
         @Override
         public boolean accept(Method method) {
@@ -168,6 +179,16 @@ public class NextClickProxy {
             return ClickEvent.class.equals(types[0]);
         }
 
+        public static CallbackMethodFilter getDefault(){
+            synchronized (CallbackMethodFilter.class) {
+                if (mDefaultFilter == null) {
+                    mDefaultFilter = new CallbackMethodFilter();
+                    return mDefaultFilter;
+                }else {
+                    return mDefaultFilter;
+                }
+            }
+        }
     }
 
     /**

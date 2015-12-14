@@ -79,6 +79,27 @@ public class StaticPattern {
         .msgOnFail("请输入有效的邮件地址");
     }
 
+    private static boolean isIPv4(String notEmptyInput){
+        return regexMatch(notEmptyInput,
+                "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
+    }
+
+    /**
+     * IPV4地址
+     * @return Pattern
+     */
+    public static Pattern IPv4(){
+        return new Pattern(new FilterTester() {
+            @Override
+            public boolean performTestNotEmpty(String notEmptyInput) throws Exception {
+                return isIPv4(notEmptyInput);
+            }
+        })
+        .priority(PRIORITY_GENERAL)
+        .msgOnFail("请输入有效的IP地址");
+    }
+
+
     /**
      * 域名地址
      * @return Pattern
@@ -86,8 +107,9 @@ public class StaticPattern {
     public static Pattern Host(){
         return new Pattern(new FilterTester() {
             @Override
-            public boolean performTestNotEmpty(String input) throws Exception {
-                return regexMatch(input.toLowerCase(), "^([a-z0-9]([a-z0-9\\-]{0,65}[a-z0-9])?\\.)+[a-z]{2,6}$");
+            public boolean performTestNotEmpty(String notEmptyInput) throws Exception {
+                return isIPv4(notEmptyInput) ||
+                        regexMatch(notEmptyInput.toLowerCase(), "^([a-z0-9]([a-z0-9\\-]{0,65}[a-z0-9])?\\.)+[a-z]{2,6}$");
             }
         })
         .priority(PRIORITY_GENERAL)
@@ -108,22 +130,6 @@ public class StaticPattern {
         })
         .priority(PRIORITY_GENERAL)
         .msgOnFail("请输入有效的网址");
-    }
-
-    /**
-     * IPV4地址
-     * @return Pattern
-     */
-    public static Pattern IPv4(){
-        return new Pattern(new FilterTester() {
-            @Override
-            public boolean performTestNotEmpty(String notEmptyInput) throws Exception {
-                return regexMatch(notEmptyInput,
-                        "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
-            }
-        })
-        .priority(PRIORITY_GENERAL)
-        .msgOnFail("请输入有效的IP地址");
     }
 
     /**
@@ -171,6 +177,10 @@ public class StaticPattern {
         .msgOnFail("请输入有效的手机号");
     }
 
+    /**
+     * 为True状态
+     * @return Pattern
+     */
     public static Pattern IsTrue(){
         return new Pattern(new FilterTester() {
             @Override
@@ -182,6 +192,10 @@ public class StaticPattern {
         .msgOnFail("当前项必须为True");
     }
 
+    /**
+     * 为False状态
+     * @return Pattern
+     */
     public static Pattern IsFalse(){
         return new Pattern(new FilterTester() {
             @Override

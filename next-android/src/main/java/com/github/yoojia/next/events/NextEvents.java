@@ -94,7 +94,7 @@ public class NextEvents {
         for (final Method method : annotatedMethods) {
             checkSignature(method);
             final Subscribe subscribe = method.getAnnotation(Subscribe.class);
-            final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
+            final MethodSubscriber subscriber = new MethodSubscriber(target, method);
             subscribers.add(subscriber);
             final Evt event = (Evt) method.getParameterAnnotations()[0][0];
             final String defineName = event.value();

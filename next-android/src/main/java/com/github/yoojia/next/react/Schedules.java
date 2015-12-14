@@ -57,7 +57,7 @@ public class Schedules {
      * @return Schedule
      */
     public static Schedule sharedThreads(){
-        return new SharedSchedule();
+        return SharedSchedule.getDefault();
     }
 
     private static void submit(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
@@ -105,29 +105,45 @@ public class Schedules {
             }
         };
 
-        private static final BlockingQueue<Runnable> BLOCKING_QUEUE = new LinkedBlockingQueue<>();
-
-        public static final ThreadPoolExecutor THREAD_POOL_EXECUTOR
-                = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
-                TimeUnit.SECONDS, BLOCKING_QUEUE, THREAD_FACTORY);
+        private static BlockingQueue<Runnable> QUEUE;
+        private static ThreadPoolExecutor EXECUTOR;
 
         @Override
         public void submit(Callable<Void> task, int flags) throws Exception {
-            Schedules.submit(THREAD_POOL_EXECUTOR, task, flags);
+            Schedules.submit(EXECUTOR, task, flags);
+        }
+
+        private static SharedSchedule defaultSchedule;
+
+        public static SharedSchedule getDefault(){
+            synchronized (SharedSchedule.class) {
+                if (defaultSchedule == null) {
+                    QUEUE = new LinkedBlockingQueue<>();
+                    EXECUTOR = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
+                            TimeUnit.SECONDS, QUEUE, THREAD_FACTORY);
+                    defaultSchedule = new SharedSchedule();
+                }
+                return defaultSchedule;
+            }
         }
 
     }
 
     private static class InternalHandler extends Handler{
 
+        private static InternalHandler defaultHandler;
+
         public InternalHandler() {
             super(Looper.getMainLooper());
         }
 
-        private static InternalHandler defaultHandler = new InternalHandler();
-
         public static InternalHandler getDefault(){
-            return defaultHandler;
+            synchronized (InternalHandler.class) {
+                if (defaultHandler == null) {
+                    defaultHandler = new InternalHandler();
+                }
+                return defaultHandler;
+            }
         }
     }
 

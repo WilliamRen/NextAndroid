@@ -41,11 +41,28 @@ public class Reactor<T> {
         return this;
     }
 
-    public Reactor<T> emit(T input) {
-        try {
-            emitInput(input);
-        } catch (ScheduleException errorsWhenSchedule) {
-            throw new ScheduleException("Error when schedule/emit", errorsWhenSchedule);
+    public Reactor<T> emit(final T input) {
+        final Schedule schedule = mScheduleWrap.get();
+        int hits = 0;
+        for (final Subscription<T> callable : mSubs) {
+            // filter at per emit action:
+            if (callable.accept(input)) {
+                hits += 1;
+                try {
+                    schedule.invoke(new Callable<Void>() {
+                        @Override public Void call() throws Exception {
+                            callable.target.onCall(input);
+                            return null;
+                        }
+                    }, callable.targetScheduleFlags);
+                } catch (Exception errorWhenCall) {
+                    callable.target.onErrors(input, errorWhenCall);
+                }
+            }
+        }
+        final OnEventListener<T> listener = mOnEventListenerWrap.get();
+        if (hits <= 0 && listener != null) {
+            listener.onEventMiss(input);
         }
         return this;
     }
@@ -58,32 +75,6 @@ public class Reactor<T> {
     public Reactor<T> onEventListener(OnEventListener<T> listener) {
         mOnEventListenerWrap.set(listener);
         return this;
-    }
-
-    private void emitInput(final T input) throws ScheduleException {
-        final Schedule schedule = mScheduleWrap.get();
-        int hits = 0;
-        for (final Subscription<T> callable : mSubs) {
-            // filter at per emit action:
-            if (callable.filter(input)) {
-                hits += 1;
-                schedule.submit(new Callable<Void>() {
-                    @Override public Void call() throws Exception {
-                        try{
-                            callable.target.onCall(input);
-                        }catch (Exception errorsWhenCall) {
-                            callable.target.onErrors(input, errorsWhenCall);
-                        }
-                        return null;
-                    }
-                }, callable.targetScheduleFlags);
-            }
-        }
-        // check event target
-        final OnEventListener<T> listener = mOnEventListenerWrap.get();
-        if (hits <= 0 && listener != null) {
-            listener.onTargetMiss(input);
-        }
     }
 
 }

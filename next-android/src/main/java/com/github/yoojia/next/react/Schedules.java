@@ -25,7 +25,7 @@ public class Schedules {
     public static Schedule newCaller() {
         return new Schedule() {
             @Override
-            public void submit(Callable<Void> task, int flags) throws Exception {
+            public void invoke(Callable<Void> task, int flags) throws Exception {
                 if (Schedule.FLAG_ON_CALLER != flags) {
                     throw new IllegalArgumentException("Caller schedule just accept <Schedule.FLAG_ON_CALLER>");
                 }
@@ -45,8 +45,8 @@ public class Schedules {
             private final ExecutorService mThreads = service;
 
             @Override
-            public void submit(Callable<Void> task, int scheduleFlags) throws Exception {
-                Schedules.submit(mThreads, task, scheduleFlags);
+            public void invoke(Callable<Void> task, int scheduleFlags) throws Exception {
+                Schedules.invoke(mThreads, task, scheduleFlags);
             }
 
         };
@@ -60,7 +60,7 @@ public class Schedules {
         return SharedSchedule.getDefault();
     }
 
-    private static void submit(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
+    private static void invoke(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
         switch (scheduleFlags) {
             case Schedule.FLAG_ON_CALLER:
                 task.call();
@@ -111,8 +111,8 @@ public class Schedules {
         private static SharedSchedule mDefaultSchedule;
 
         @Override
-        public void submit(Callable<Void> task, int flags) throws Exception {
-            Schedules.submit(EXECUTOR, task, flags);
+        public void invoke(Callable<Void> task, int flags) throws Exception {
+            Schedules.invoke(EXECUTOR, task, flags);
         }
 
         public static SharedSchedule getDefault(){

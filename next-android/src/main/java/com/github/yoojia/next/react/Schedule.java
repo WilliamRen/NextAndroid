@@ -16,8 +16,8 @@ public interface Schedule {
      * 根据给定的Flags来决定如何调度任务的执行
      * @param task 需要被调度执行的任务
      * @param flags 指定执行的Flags
-     * @throws ScheduleException 任务执行过程时抛出异常
+     * @throws Exception 任务执行过程中可以抛出异常
      */
-    void submit(Callable<Void> task, int flags) throws ScheduleException;
+    void invoke(Callable<Void> task, int flags) throws Exception;
 
 }

@@ -38,7 +38,7 @@ public class NextClickProxy {
         mEvents = new NextEvents(mScheduleRef);
         // Click event not allow missing target
         mEvents.onEventListener(new OnEventListener<EventMeta>() {
-            @Override public void onTargetMiss(EventMeta input) {
+            @Override public void onEventMiss(EventMeta input) {
                 throw new IllegalStateException("Handler target is missed, Input event: " + input);
             }
         });
@@ -54,8 +54,9 @@ public class NextClickProxy {
     public NextClickProxy registerAsync(final Object target){
         notNull(target, "Target Object must not be null !");
         try {
-            mScheduleRef.submit(new Callable<Void>() {
-                @Override public Void call() throws Exception {
+            mScheduleRef.invoke(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
                     register(target);
                     return null;
                 }

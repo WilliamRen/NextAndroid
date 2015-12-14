@@ -29,7 +29,7 @@ public class Subscription<T> {
     }
 
     /* hide for Reactor */
-    boolean filter(T input) {
+    boolean accept(T input) {
         for (Filter<T> filter : mFilters) {
             if ( ! filter.accept(input)) {
                 return false;

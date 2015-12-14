@@ -38,7 +38,7 @@ public class NextClickProxy {
         mEvents = new NextEvents(mScheduleRef);
         // Click event not allow missing target
         mEvents.onEventListener(new OnEventListener<EventMeta>() {
-            @Override public void onMiss(EventMeta input) {
+            @Override public void onTargetMiss(EventMeta input) {
                 throw new IllegalStateException("Handler target is missed, Input event: " + input);
             }
         });

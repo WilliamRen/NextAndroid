@@ -44,8 +44,8 @@ public class Reactor<T> {
     public Reactor<T> emit(T input) {
         try {
             emitInput(input);
-        } catch (Exception err) {
-            throw new RuntimeException(err);
+        } catch (ScheduleException errorsWhenSchedule) {
+            throw new ScheduleException("Error when schedule/emit", errorsWhenSchedule);
         }
         return this;
     }
@@ -60,7 +60,7 @@ public class Reactor<T> {
         return this;
     }
 
-    private void emitInput(final T input) throws Exception {
+    private void emitInput(final T input) throws ScheduleException {
         final Schedule schedule = mScheduleWrap.get();
         int hits = 0;
         for (final Subscription<T> callable : mSubs) {
@@ -71,8 +71,8 @@ public class Reactor<T> {
                     @Override public Void call() throws Exception {
                         try{
                             callable.target.onCall(input);
-                        }catch (Exception err) {
-                            callable.target.onErrors(input, err);
+                        }catch (Exception errorsWhenCall) {
+                            callable.target.onErrors(input, errorsWhenCall);
                         }
                         return null;
                     }
@@ -82,7 +82,7 @@ public class Reactor<T> {
         // check event target
         final OnEventListener<T> listener = mOnEventListenerWrap.get();
         if (hits <= 0 && listener != null) {
-            listener.onMiss(input);
+            listener.onTargetMiss(input);
         }
     }
 

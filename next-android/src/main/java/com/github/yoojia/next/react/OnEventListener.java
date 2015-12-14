@@ -7,5 +7,5 @@ package com.github.yoojia.next.react;
  */
 public interface OnEventListener<T> {
 
-    void onMiss(T input);
+    void onTargetMiss(T input);
 }

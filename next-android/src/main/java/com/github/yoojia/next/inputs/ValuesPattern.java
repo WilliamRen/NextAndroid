@@ -13,27 +13,27 @@ public class ValuesPattern {
     }
 
     public static Pattern MinLength(final int minLength) {
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String input) throws Exception {
+            public boolean performTestNotEmpty(String input) throws Exception {
                 return input.length() >= minLength;
             }
         }).msgOnFail("输入内容长度必须不少于：" + minLength);
     }
 
     public static Pattern MaxLength(final int maxLength) {
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String input) throws Exception {
+            public boolean performTestNotEmpty(String input) throws Exception {
                 return input.length() <= maxLength;
             }
         }).msgOnFail("输入内容长度必须不多于：" + maxLength);
     }
 
     public static Pattern RangeLength(final int minLength, final int maxLength) {
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String input) throws Exception {
+            public boolean performTestNotEmpty(String input) throws Exception {
                 final int length = input.length();
                 return minLength <= length && length <= maxLength;
             }
@@ -327,9 +327,9 @@ public class ValuesPattern {
     }
 
     public static <T> Pattern proxy(final ValuesProxy<T> proxy) {
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String input) throws Exception {
+            public boolean performTestNotEmpty(String input) throws Exception {
                 final T value = proxy.valueOf(input);
                 return proxy.test(value, proxy.value0(), proxy. value1());
             }

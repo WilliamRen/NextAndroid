@@ -21,8 +21,8 @@ public class StaticPattern {
     public static Pattern Required(){
         return new Pattern(new Tester() {
             @Override
-            public boolean performTest(String input) throws Exception {
-                return !TextUtils.isEmpty(input);
+            public boolean performTest(String rawInput) throws Exception {
+                return !TextUtils.isEmpty(rawInput);
             }
         })
         .priority(PRIORITY_REQUIRED)
@@ -36,11 +36,11 @@ public class StaticPattern {
     public static Pattern NotBlank(){
         return new Pattern(new Tester() {
             @Override
-            public boolean performTest(String input) throws Exception {
-                if (TextUtils.isEmpty(input)) {
+            public boolean performTest(String rawInput) throws Exception {
+                if (TextUtils.isEmpty(rawInput)) {
                     return false;
                 }
-                return java.util.regex.Pattern.compile("^\\s*$").matcher(input).matches();
+                return regexMatch(rawInput, "^\\s*$");
             }
         })
         .priority(PRIORITY_GENERAL)
@@ -52,9 +52,9 @@ public class StaticPattern {
      * @return Pattern
      */
     public static Pattern Digits(){
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String notEmptyInput) throws Exception {
+            public boolean performTestNotEmpty(String notEmptyInput) throws Exception {
                 return TextUtils.isDigitsOnly(notEmptyInput);
             }
         })
@@ -63,13 +63,13 @@ public class StaticPattern {
     }
 
     /**
-     * 输入内容为有效的
+     * 电子邮件地址
      * @return Pattern
      */
     public static Pattern Email(){
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String input) throws Exception {
+            public boolean performTestNotEmpty(String input) throws Exception {
                 return regexMatch(input.toLowerCase(), "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+" +
                         "(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+" +
                         "[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$");
@@ -84,9 +84,9 @@ public class StaticPattern {
      * @return Pattern
      */
     public static Pattern Host(){
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String input) throws Exception {
+            public boolean performTestNotEmpty(String input) throws Exception {
                 return regexMatch(input.toLowerCase(), "^([a-z0-9]([a-z0-9\\-]{0,65}[a-z0-9])?\\.)+[a-z]{2,6}$");
             }
         })
@@ -99,9 +99,9 @@ public class StaticPattern {
      * @return Pattern
      */
     public static Pattern URL(){
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String notEmptyInput) throws Exception {
+            public boolean performTestNotEmpty(String notEmptyInput) throws Exception {
                 return regexMatch(notEmptyInput.toLowerCase(),
                         "^(https?:\\/\\/)?[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?$");
             }
@@ -115,9 +115,9 @@ public class StaticPattern {
      * @return Pattern
      */
     public static Pattern IPv4(){
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String notEmptyInput) throws Exception {
+            public boolean performTestNotEmpty(String notEmptyInput) throws Exception {
                 return regexMatch(notEmptyInput,
                         "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
             }
@@ -161,9 +161,9 @@ public class StaticPattern {
      * @return Pattern
      */
     public static Pattern ChineseMobile(){
-        return new Pattern(new TesterEx() {
+        return new Pattern(new FilterTester() {
             @Override
-            public boolean performTest0(String notEmptyInput) throws Exception {
+            public boolean performTestNotEmpty(String notEmptyInput) throws Exception {
                 return regexMatch(notEmptyInput, "^(\\+?\\d{2}-?)?(1[0-9])\\d{9}$");
             }
         })
@@ -171,11 +171,33 @@ public class StaticPattern {
         .msgOnFail("请输入有效的手机号");
     }
 
+    public static Pattern IsTrue(){
+        return new Pattern(new FilterTester() {
+            @Override
+            public boolean performTestNotEmpty(String input) throws Exception {
+                return "true".equals(input.toLowerCase());
+            }
+        })
+        .priority(PRIORITY_GENERAL)
+        .msgOnFail("当前项必须为True");
+    }
+
+    public static Pattern IsFalse(){
+        return new Pattern(new FilterTester() {
+            @Override
+            public boolean performTestNotEmpty(String input) throws Exception {
+                return "false".equals(input.toLowerCase());
+            }
+        })
+        .priority(PRIORITY_GENERAL)
+        .msgOnFail("当前项必须为False");
+    }
+
     public static Pattern RegexMatch(final String regex) {
         return new Pattern(new Tester() {
             @Override
-            public boolean performTest(String input) throws Exception {
-                return regexMatch(input, regex);
+            public boolean performTest(String rawInput) throws Exception {
+                return regexMatch(rawInput, regex);
             }
         }).priority(PRIORITY_GENERAL);
     }

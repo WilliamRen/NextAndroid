@@ -1,16 +1,16 @@
 package com.github.yoojia.next.inputs.impls;
 
-import com.github.yoojia.next.inputs.TesterEx;
+import com.github.yoojia.next.inputs.FilterTester;
 
 /**
  * Numeric tester
  * !!! NOTE THAT: Impl comes from ApacheCommonUtils
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public class NumericTester extends TesterEx {
+public class NumericTester extends FilterTester {
 
     @Override
-    public boolean performTest0(String input) throws Exception {
+    public boolean performTestNotEmpty(String input) throws Exception {
         return isNumeric(input);
     }
 

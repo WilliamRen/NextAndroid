@@ -1,6 +1,6 @@
 package com.github.yoojia.next.inputs.impls;
 
-import com.github.yoojia.next.inputs.TesterEx;
+import com.github.yoojia.next.inputs.FilterTester;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  *
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public class ChineseIDCardTester extends TesterEx {
+public class ChineseIDCardTester extends FilterTester {
 
     static final int[] WEIGHT = {7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2};
 
@@ -22,7 +22,7 @@ public class ChineseIDCardTester extends TesterEx {
     static final SimpleDateFormat YYMMdd = new SimpleDateFormat("yyMMdd", Locale.getDefault());
 
     @Override
-    public boolean performTest0(String notEmptyInput) {
+    public boolean performTestNotEmpty(String notEmptyInput) {
         final int length = notEmptyInput.length();
         if (15 == length){
             try{

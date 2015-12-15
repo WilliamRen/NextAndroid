@@ -1,5 +1,6 @@
 package com.github.yoojia.next.views;
 
+import android.content.res.Resources;
 import android.util.Log;
 import android.view.View;
 
@@ -29,13 +30,19 @@ public class ViewFinder implements NextAutoView.Finder{
         if (view != null){
             return view.findViewById(targetId);
         }else{
-            Log.e(TAG, "Found a NULL view: targetId=" + targetId + ", parents.size=" + parents.length);
-            return null;
+            throw new NotFoundException("View not found: targetId=" + targetId + ", parents.size=" + parents.length);
         }
     }
 
     @SuppressWarnings("unchecked")
     public <T> T find(int viewId) {
         return (T) mRootView.findViewById(viewId);
+    }
+
+    public static class NotFoundException extends RuntimeException{
+
+        public NotFoundException(String detailMessage) {
+            super(detailMessage);
+        }
     }
 }

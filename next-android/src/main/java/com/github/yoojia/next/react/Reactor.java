@@ -1,12 +1,10 @@
 package com.github.yoojia.next.react;
 
-import com.github.yoojia.next.lang.ObjectWrap;
-
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
@@ -18,10 +16,11 @@ public class Reactor<T> {
 
     private final List<Subscription<T>> mSubs = new CopyOnWriteArrayList<>();
     private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
-    private final ObjectWrap<Schedule> mScheduleWrap;
+    private final AtomicReference<Schedule> mScheduleWrap;
+    private final AtomicReference<OnEventListener<T>> mOnEventListenerWrap = new AtomicReference<>();
 
     public Reactor(Schedule subscribeOn) {
-        mScheduleWrap = new ObjectWrap<>(subscribeOn);
+        mScheduleWrap = new AtomicReference<>(subscribeOn);
     }
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {
@@ -34,18 +33,29 @@ public class Reactor<T> {
     }
 
     public synchronized Reactor<T> remove(Subscriber<T> oldSub) {
-        final Subscription sn = mRefs.remove(oldSub);
-        if (sn != null) {
-            mSubs.remove(sn);
+        final Subscription s = mRefs.remove(oldSub);
+        if (s != null) {
+            mSubs.remove(s);
         }
         return this;
     }
 
-    public Reactor<T> emit(T input) {
-        try {
-            emitInput(input);
-        } catch (Exception err) {
-            throw new RuntimeException(err);
+    public Reactor<T> emit(final T input) {
+        final Schedule schedule = mScheduleWrap.get();
+        int hits = 0;
+        for (final Subscription<T> sub : mSubs) {
+            if (sub.accept(input)) {
+                hits += 1;
+                try {
+                    schedule.invoke(sub.createTask(input), sub.scheduleFlag);
+                } catch (Exception errorWhenCall) {
+                    sub.target.onErrors(input, errorWhenCall);
+                }
+            }
+        }
+        final OnEventListener<T> listener = mOnEventListenerWrap.get();
+        if (hits <= 0 && listener != null) {
+            listener.onEventMiss(input);
         }
         return this;
     }
@@ -55,23 +65,9 @@ public class Reactor<T> {
         return this;
     }
 
-    private void emitInput(final T input) throws Exception {
-        final Schedule schedule = mScheduleWrap.get();
-        for (final Subscription<T> callable : mSubs) {
-            // filter at per emit action:
-            if (callable.filter(input)) {
-                schedule.submit(new Callable<Void>() {
-                    @Override public Void call() throws Exception {
-                        try{
-                            callable.target.onCall(input);
-                        }catch (Exception err) {
-                            callable.target.onErrors(input, err);
-                        }
-                        return null;
-                    }
-                }, callable.targetScheduleFlags);
-            }
-        }
+    public Reactor<T> onEventListener(OnEventListener<T> listener) {
+        mOnEventListenerWrap.set(listener);
+        return this;
     }
 
 }

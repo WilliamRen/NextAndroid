@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.MethodsFinder;
+import com.github.yoojia.next.react.OnEventListener;
 import com.github.yoojia.next.react.Reactor;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
@@ -93,7 +94,7 @@ public class NextEvents {
         for (final Method method : annotatedMethods) {
             checkSignature(method);
             final Subscribe subscribe = method.getAnnotation(Subscribe.class);
-            final MethodSubscriber subscriber = new MethodSubscriber(mReactor, target, method);
+            final MethodSubscriber subscriber = new MethodSubscriber(target, method);
             subscribers.add(subscriber);
             final Evt event = (Evt) method.getParameterAnnotations()[0][0];
             final String defineName = event.value();
@@ -184,6 +185,12 @@ public class NextEvents {
         return this;
     }
 
+    public NextEvents onEventListener(OnEventListener<EventMeta> listener){
+        notNull(listener);
+        mReactor.onEventListener(listener);
+        return this;
+    }
+
     private static Filter<Method> newMethodFilter(final Filter<Method> customFilter) {
         return new Filter<Method>() {
             @Override public boolean accept(Method method) {
@@ -208,20 +215,17 @@ public class NextEvents {
 
     private static void checkSignature(Method method){
         if (! Void.TYPE.equals(method.getReturnType())) {
-            throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID" +
-                    ", method: " + method);
+            throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID , method: " + method);
         }
         final Class<?>[] params = method.getParameterTypes();
         if (params.length != 1) {
-            throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter" +
-                    ", method: " + method);
+            throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter , method: " + method);
         }
         final Annotation[][] annotations = method.getParameterAnnotations();
         if (annotations.length == 0 ||
                 annotations[0].length == 0 ||
                 ! Evt.class.equals(annotations[0][0].annotationType())) {
-            throw new IllegalArgumentException("The parameter without @Evt annotation" +
-                    ", method" + method);
+            throw new IllegalArgumentException("The parameter without @Evt annotation , method" + method);
         }
         final Evt event = (Evt) method.getParameterAnnotations()[0][0];
         if (TextUtils.isEmpty(event.value())) {

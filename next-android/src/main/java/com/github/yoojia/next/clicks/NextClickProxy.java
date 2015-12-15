@@ -6,9 +6,11 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
+import com.github.yoojia.next.events.EventMeta;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.react.OnEventListener;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 
@@ -25,7 +27,7 @@ import static com.github.yoojia.next.lang.Preconditions.notNull;
  */
 public class NextClickProxy {
 
-    private static final String TAG = "CLICKS-PROXY";
+    private static final String TAG = "CLICK-PROXY";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
     private final NextEvents mEvents;
@@ -34,6 +36,12 @@ public class NextClickProxy {
     public NextClickProxy() {
         mScheduleRef = Schedules.sharedThreads();
         mEvents = new NextEvents(mScheduleRef);
+        // Click event not allow missing target
+        mEvents.onEventListener(new OnEventListener<EventMeta>() {
+            @Override public void onEventMiss(EventMeta input) {
+                throw new IllegalStateException("Handler target is missed, Input event: " + input);
+            }
+        });
     }
 
     /**
@@ -43,42 +51,58 @@ public class NextClickProxy {
      * @param target 目标对象
      * @return NextClickProxy
      */
-    public NextClickProxy register(final Object target){
+    public NextClickProxy registerAsync(final Object target){
         notNull(target, "Target Object must not be null !");
-        final Callable<Void> task = new Callable<Void>() {
-            @Override public Void call() throws Exception {
-                final List<Field> fields = new FieldsFinder()
-                        .filter(ClickEvtFieldFilter.defaultFilter)
-                        .find(target.getClass());
-                if (fields.isEmpty()){
-                    Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
-                    Warning.show(TAG);
+        try {
+            mScheduleRef.invoke(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    register(target);
                     return null;
                 }
-                for (Field field : fields){
-                    field.setAccessible(true);
-                    final ClickEvt evt = field.getAnnotation(ClickEvt.class);
-                    checkAnnotation(evt);
-                    final View view = createClickActionView(target, field, new View.OnClickListener() {
-                        @Override
-                        @SuppressWarnings("unchecked")
-                        public void onClick(View v) {
-                            emitClick(v, evt.value());
-                        }
-                    });
-                    if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
-                        mKeyCodeMapping.append(evt.keyCode(), view);
-                    }
-                }
-                mEvents.register(target, CallbackMethodFilter.defaultFilter);
-                return null;
-            }
-        };
-        try {
-            mScheduleRef.submit(task, Schedule.FLAG_ON_THREADS);
+            }, Schedule.FLAG_ON_THREADS);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
+        return this;
+    }
+
+    /**
+     * 注册点击处理。
+     * - 注册过程为同步，在目标对象的 @ClickEvt 成员变量全部被注册后返回。
+     * @param target 目标对象
+     * @return NextEvents
+     */
+    public NextClickProxy register(final Object target) {
+        notNull(target, "Target Object must not be null !");
+        final List<Field> fields = new FieldsFinder()
+                .filter(ClickEvtFieldFilter.getDefault())
+                .find(target.getClass());
+        if (fields.isEmpty()){
+            Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
+            Warning.show(TAG);
+            return this;
+        }
+        try{
+            for (Field field : fields){
+                field.setAccessible(true);
+                final ClickEvt evt = field.getAnnotation(ClickEvt.class);
+                checkAnnotation(evt);
+                final View view = createClickActionView(target, field, new View.OnClickListener() {
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public void onClick(View v) {
+                        emitClick(v, evt.value());
+                    }
+                });
+                if (KeyEvent.KEYCODE_UNKNOWN != evt.keyCode()) {
+                    mKeyCodeMapping.append(evt.keyCode(), view);
+                }
+            }
+        }catch (Exception e){
+            throw new IllegalArgumentException(e);
+        }
+        mEvents.register(target, CallbackMethodFilter.getDefault());
         return this;
     }
 
@@ -121,7 +145,7 @@ public class NextClickProxy {
 
     private static class ClickEvtFieldFilter implements Filter<Field> {
 
-        public final static ClickEvtFieldFilter defaultFilter = new ClickEvtFieldFilter();
+        private static ClickEvtFieldFilter mDefaultFilter;
 
         @Override
         public boolean accept(Field field) {
@@ -141,11 +165,22 @@ public class NextClickProxy {
             return field.isAnnotationPresent(ClickEvt.class);
         }
 
+        public static ClickEvtFieldFilter getDefault(){
+            synchronized (ClickEvtFieldFilter.class) {
+                if (mDefaultFilter == null) {
+                    mDefaultFilter = new ClickEvtFieldFilter();
+                    return mDefaultFilter;
+                }else {
+                    return mDefaultFilter;
+                }
+            }
+        }
+
     }
 
     private static class CallbackMethodFilter implements Filter<Method> {
 
-        public final static CallbackMethodFilter defaultFilter = new CallbackMethodFilter();
+        private static CallbackMethodFilter mDefaultFilter;
 
         @Override
         public boolean accept(Method method) {
@@ -153,6 +188,16 @@ public class NextClickProxy {
             return ClickEvent.class.equals(types[0]);
         }
 
+        public static CallbackMethodFilter getDefault(){
+            synchronized (CallbackMethodFilter.class) {
+                if (mDefaultFilter == null) {
+                    mDefaultFilter = new CallbackMethodFilter();
+                    return mDefaultFilter;
+                }else {
+                    return mDefaultFilter;
+                }
+            }
+        }
     }
 
     /**

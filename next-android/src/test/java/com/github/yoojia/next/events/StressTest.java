@@ -112,7 +112,7 @@ public class StressTest extends BaseTester{
 
     @Test
     public void testNop2(){
-        testStress(new ThreadsNopPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
+        testStress(new ThreadsNopPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThreads(Nop Payload)");
     }
 
     @Test
@@ -127,7 +127,7 @@ public class StressTest extends BaseTester{
 
     @Test
     public void test1ms2(){
-        testStress(new Threads1msPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
+        testStress(new Threads1msPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThreads(1ms Payload)");
     }
 
     @Test

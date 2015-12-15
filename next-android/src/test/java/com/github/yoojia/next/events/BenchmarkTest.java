@@ -150,7 +150,7 @@ public class BenchmarkTest {
 
     @Test
     public void testNop2(){
-        nextStress(new NextNopThreadsPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThread(Nop Payload)");
+        nextStress(new NextNopThreadsPayload(COUNT_NOP), Schedules.sharedThreads(), "SharedThreads(Nop Payload)");
     }
 
     @Test
@@ -170,7 +170,7 @@ public class BenchmarkTest {
 
     @Test
     public void test1ms2(){
-        nextStress(new Next1msThreadsPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThread(1ms Payload)");
+        nextStress(new Next1msThreadsPayload(COUNT_PAYLOAD), Schedules.sharedThreads(), "SharedThreads(1ms Payload)");
     }
 
     @Test

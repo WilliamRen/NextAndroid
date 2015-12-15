@@ -18,6 +18,6 @@ public interface Schedule {
      * @param flags 指定执行的Flags
      * @throws Exception 任务执行过程中可以抛出异常
      */
-    void submit(Callable<Void> task, int flags) throws Exception;
+    void invoke(Callable<Void> task, int flags) throws Exception;
 
 }

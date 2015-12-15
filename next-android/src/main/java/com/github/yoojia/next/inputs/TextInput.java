@@ -1,6 +1,5 @@
 package com.github.yoojia.next.inputs;
 
-import android.widget.EditText;
 import android.widget.TextView;
 
 /**
@@ -8,7 +7,7 @@ import android.widget.TextView;
  *
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public final class TextInput<T extends TextView> implements Input{
+public class TextInput<T extends TextView> implements Input{
 
     final T inputView;
 
@@ -21,11 +20,4 @@ public final class TextInput<T extends TextView> implements Input{
         return String.valueOf(inputView.getText());
     }
 
-    public static TextInput<TextView> text(TextView textView){
-        return new TextInput<>(textView);
-    }
-
-    public static TextInput<EditText> edit(EditText editText) {
-        return new TextInput<>(editText);
-    }
 }

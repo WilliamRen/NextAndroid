@@ -19,19 +19,13 @@ public abstract class AbstractStore<T> {
     }
 
     public void register(Object target){
+        mDispatcher.register(this);
         mDispatcher.register(target);
     }
 
-    public void register() {
-        register(this);
-    }
-
     public void unregister(Object target){
+        mDispatcher.unregister(this);
         mDispatcher.unregister(target);
-    }
-
-    public void unregister(){
-        unregister(this);
     }
 
     @Deprecated

@@ -4,8 +4,7 @@ import com.github.yoojia.next.lang.Filter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * 事件订阅者封装处理对象
@@ -16,13 +15,13 @@ public class Subscription<T> {
     private static final int COUNT_OF_PER_SUBSCRIBER_MAY_HAS_FILTERS = 2;
 
     final Subscriber<T> target;
-    final int targetScheduleFlags;
+    final int scheduleFlag;
 
     private final ArrayList<Filter<T>> mFilters = new ArrayList<>(COUNT_OF_PER_SUBSCRIBER_MAY_HAS_FILTERS);
 
-    private Subscription(Subscriber<T> target, int scheduleFlags, Filter<T>[] filters) {
+    private Subscription(Subscriber<T> target, int scheduleFlag, Filter<T>[] filters) {
         this.target = target;
-        this.targetScheduleFlags = scheduleFlags;
+        this.scheduleFlag = scheduleFlag;
         if (filters.length != 0) {
             mFilters.addAll(Arrays.asList(filters));
         }
@@ -36,6 +35,16 @@ public class Subscription<T> {
             }
         }
         return true;
+    }
+
+    /* hide for Reactor */
+    Callable<Void> createTask(final T input){
+        return new Callable<Void>() {
+            @Override public Void call() throws Exception {
+                target.onCall(input);
+                return null;
+            }
+        };
     }
 
     /**

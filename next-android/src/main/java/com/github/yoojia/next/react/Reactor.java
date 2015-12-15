@@ -2,7 +2,6 @@ package com.github.yoojia.next.react;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,9 +33,9 @@ public class Reactor<T> {
     }
 
     public synchronized Reactor<T> remove(Subscriber<T> oldSub) {
-        final Subscription sn = mRefs.remove(oldSub);
-        if (sn != null) {
-            mSubs.remove(sn);
+        final Subscription s = mRefs.remove(oldSub);
+        if (s != null) {
+            mSubs.remove(s);
         }
         return this;
     }
@@ -44,19 +43,13 @@ public class Reactor<T> {
     public Reactor<T> emit(final T input) {
         final Schedule schedule = mScheduleWrap.get();
         int hits = 0;
-        for (final Subscription<T> callable : mSubs) {
-            // filter at per emit action:
-            if (callable.accept(input)) {
+        for (final Subscription<T> sub : mSubs) {
+            if (sub.accept(input)) {
                 hits += 1;
                 try {
-                    schedule.invoke(new Callable<Void>() {
-                        @Override public Void call() throws Exception {
-                            callable.target.onCall(input);
-                            return null;
-                        }
-                    }, callable.targetScheduleFlags);
+                    schedule.invoke(sub.createTask(input), sub.scheduleFlag);
                 } catch (Exception errorWhenCall) {
-                    callable.target.onErrors(input, errorWhenCall);
+                    sub.target.onErrors(input, errorWhenCall);
                 }
             }
         }

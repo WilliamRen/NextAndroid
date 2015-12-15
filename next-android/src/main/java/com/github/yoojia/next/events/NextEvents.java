@@ -10,7 +10,7 @@ import com.github.yoojia.next.react.Reactor;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 import com.github.yoojia.next.react.Subscriber;
-import com.github.yoojia.next.react.Subscription;
+import com.github.yoojia.next.react.Subscriptions;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -30,8 +30,8 @@ public class NextEvents {
 
     private static final String TAG = "NextEvents";
 
-    private final Reactor<EventMeta> mReactor;
-    private final Map<Object, ArrayList<Subscriber<EventMeta>>> mRefs = new ConcurrentHashMap<>();
+    private final Reactor<Meta> mReactor;
+    private final Map<Object, InvokableMethods> mObjectMaps = new ConcurrentHashMap<>();
 
     /**
      * Create a NextEvents instance, using default(shared threads) schedule for subscribers.
@@ -53,55 +53,48 @@ public class NextEvents {
     /**
      * Register and scan methods with @Subscriber in target object, and accept a filter to
      * filter accepted methods.
-     * @param target Target object which should contains methods with @Subscribe.
+     * @param object Target object which should contains methods with @Subscribe.
      * @param customFilter Nullable, to filter accepted methods.
      * @return NextEvent
-     * @throws IllegalStateException If target has been registered before
-     * @throws IllegalArgumentException
-     * If methods with @Subscribe annotation in target object method one of belows:
+     * @throws IllegalArgumentException If methods with @Subscribe annotation in target object match one of belows:
      *  - NOT VOID return type
      *  - NOT SINGLE AND REQUIRED parameter
      *  - NOT WITH @Evt in parameter
      *  - EMPTY in @Evt.value
      */
-    public NextEvents register(final Object target, final Filter<Method> customFilter) {
-        notNull(target, "Target Object must not be null !");
-        if (mRefs.containsKey(target)) {
-            throw new IllegalStateException("Target object was REGISTERED! " +
-                    "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
-        }
-
+    public NextEvents register(final Object object, final Filter<Method> customFilter) {
+        notNull(object, "Target Object must not be null");
         // Filter methods and register them
-        final ArrayList<Subscriber<EventMeta>> subscribers;
-        // if not registered, add to Refs(register)
-        if ( ! mRefs.containsKey(target)) {
-            subscribers = new ArrayList<>();
-            mRefs.put(target, subscribers);
+        final InvokableMethods invokable;
+        // if not registered, put to register
+        if ( ! mObjectMaps.containsKey(object)) {
+            invokable = new InvokableMethods();
+            mObjectMaps.put(object, invokable);
         }else{
-            subscribers = mRefs.get(target);
+            invokable = mObjectMaps.get(object);
         }
-
         final List<Method> annotatedMethods = new MethodsFinder()
                 .filter(newMethodFilter(customFilter))
-                .find(target.getClass());
-
+                .find(object.getClass());
         if (annotatedMethods.isEmpty()) {
-            Log.e(TAG, "- Empty Methods(with @Subscribe)! Object host: " + target);
+            Log.e(TAG, "- Empty Methods(with @Subscribe)! Target: " + object);
             Warning.show(TAG);
-            return this;
+        }else{
+            for (final Method method : annotatedMethods) {
+                checkSignature(method);
+                if (invokable.notContains(method)) {
+                    final Subscribe subscribe = method.getAnnotation(Subscribe.class);
+                    final MethodSubscriber subscriber = new MethodSubscriber(object, method);
+                    invokable.add(subscriber);
+                    final Evt event = (Evt) method.getParameterAnnotations()[0][0];
+                    final String defineName = event.value();
+                    final Class<?> defineType = method.getParameterTypes()[0];
+                    subscribe(defineName, defineType, subscriber, subscribe.runOn().scheduleFlag);
+                }else {
+                    Log.w(TAG, "- Skip method(registered): " + method);
+                }
+            }
         }
-
-        for (final Method method : annotatedMethods) {
-            checkSignature(method);
-            final Subscribe subscribe = method.getAnnotation(Subscribe.class);
-            final MethodSubscriber subscriber = new MethodSubscriber(target, method);
-            subscribers.add(subscriber);
-            final Evt event = (Evt) method.getParameterAnnotations()[0][0];
-            final String defineName = event.value();
-            final Class<?> defineType = method.getParameterTypes()[0];
-            this.subscribe(defineName, defineType, subscriber, subscribe.runOn().scheduleFlag);
-        }
-
         return this;
     }
 
@@ -114,13 +107,10 @@ public class NextEvents {
      */
     public synchronized NextEvents unregister(Object target) {
         notNull(target);
-        if (! mRefs.containsKey(target)) {
-            throw new IllegalStateException("Target object was NOT REGISTERED! " +
-                    "<NextEvents.register(...)> and <NextEvents.unregister(...)> must be call in pairs !");
-        }else{// registered
-            final ArrayList<Subscriber<EventMeta>> subscribers = mRefs.remove(target);
-            for (Subscriber<EventMeta> subscriber : subscribers) {
-                unsubscribe(subscriber);
+        final InvokableMethods invokable = mObjectMaps.remove(target);
+        if (invokable != null) {
+            for (Subscriber<Meta> sub : invokable) {
+                unsubscribe(sub);
             }
         }
         return this;
@@ -139,11 +129,11 @@ public class NextEvents {
      * @throws IllegalArgumentException If event name is null or empty
      * @throws IllegalStateException If the subscriber was registered before
      */
-    public NextEvents subscribe(String defineName, Class<?> defineType, Subscriber<EventMeta> subscriber, int flag) {
+    public NextEvents subscribe(String defineName, Class<?> defineType, Subscriber<Meta> subscriber, int flag) {
         notNull(subscriber);
         notEmpty(defineName, "Event name cannot be null or empty");
         notNull(defineType);
-        mReactor.add(Subscription.create1(subscriber, flag, EventsFilter.with(defineName, defineType)));
+        mReactor.add(Subscriptions.create1(subscriber, flag, EventsFilter.with(defineName, defineType)));
         return this;
     }
 
@@ -153,7 +143,7 @@ public class NextEvents {
      * @return NextEvents
      * @throws NullPointerException If subscriber is null
      */
-    public NextEvents unsubscribe(Subscriber<EventMeta> subscriber) {
+    public NextEvents unsubscribe(Subscriber<Meta> subscriber) {
         notNull(subscriber);
         mReactor.remove(subscriber);
         return this;
@@ -169,7 +159,7 @@ public class NextEvents {
     public NextEvents emit(String eventName, Object eventObject) {
         notNull(eventName);
         notNull(eventObject);
-        mReactor.emit(EventMeta.with(eventName, eventObject));
+        mReactor.emit(Meta.with(eventName, eventObject));
         return this;
     }
 
@@ -185,7 +175,13 @@ public class NextEvents {
         return this;
     }
 
-    public NextEvents onEventListener(OnEventListener<EventMeta> listener){
+    /**
+     * Set event listener
+     * @param listener Listener
+     * @return NextEvents
+     * @throws NullPointerException If listener is null
+     */
+    public NextEvents onEventListener(OnEventListener<Meta> listener){
         notNull(listener);
         mReactor.onEventListener(listener);
         return this;
@@ -215,11 +211,11 @@ public class NextEvents {
 
     private static void checkSignature(Method method){
         if (! Void.TYPE.equals(method.getReturnType())) {
-            throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be VOID , method: " + method);
+            throw new IllegalArgumentException("Return type of @Subscribe annotated methods must be <VOID> , method: " + method);
         }
         final Class<?>[] params = method.getParameterTypes();
         if (params.length != 1) {
-            throw new IllegalArgumentException("@Subscribe annotated methods must have a single parameter , method: " + method);
+            throw new IllegalArgumentException("@Subscribe annotated methods must has a single param , method: " + method);
         }
         final Annotation[][] annotations = method.getParameterAnnotations();
         if (annotations.length == 0 ||
@@ -233,4 +229,15 @@ public class NextEvents {
         }
     }
 
+    private static class InvokableMethods extends ArrayList<MethodSubscriber> {
+
+        public boolean notContains(Method method) {
+            for (MethodSubscriber ms : this) {
+                if (ms.isSameWith(method)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 }

@@ -6,7 +6,7 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
-import com.github.yoojia.next.events.EventMeta;
+import com.github.yoojia.next.events.Meta;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
@@ -37,8 +37,8 @@ public class NextClickProxy {
         mScheduleRef = Schedules.sharedThreads();
         mEvents = new NextEvents(mScheduleRef);
         // Click event not allow missing target
-        mEvents.onEventListener(new OnEventListener<EventMeta>() {
-            @Override public void onEventMiss(EventMeta input) {
+        mEvents.onEventListener(new OnEventListener<Meta>() {
+            @Override public void onEventMiss(Meta input) {
                 throw new IllegalStateException("Handler target is missed, Input event: " + input);
             }
         });
@@ -52,7 +52,7 @@ public class NextClickProxy {
      * @return NextClickProxy
      */
     public NextClickProxy registerAsync(final Object target){
-        notNull(target, "Target Object must not be null !");
+        notNull(target, "Target object must not be null");
         try {
             mScheduleRef.invoke(new Callable<Void>() {
                 @Override
@@ -74,12 +74,12 @@ public class NextClickProxy {
      * @return NextEvents
      */
     public NextClickProxy register(final Object target) {
-        notNull(target, "Target Object must not be null !");
+        notNull(target, "Target object must not be null");
         final List<Field> fields = new FieldsFinder()
                 .filter(ClickEvtFieldFilter.getDefault())
                 .find(target.getClass());
         if (fields.isEmpty()){
-            Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
+            Log.e(TAG, "- Empty Fields(with @ClickEvt)! Object: " + target);
             Warning.show(TAG);
             return this;
         }
@@ -119,8 +119,8 @@ public class NextClickProxy {
 
     @SuppressWarnings("unchecked")
     public <T extends View> void emitClick(T view, String event){
-        notNull(view, "View must not be null !");
-        notNull(event, "Event must not be null !");
+        notNull(view, "View must not be null");
+        notNull(event, "Event must not be null");
         mEvents.emit(event, new ClickEvent(view));
     }
 
@@ -139,7 +139,7 @@ public class NextClickProxy {
 
     private static void checkAnnotation(ClickEvt evt){
         if (TextUtils.isEmpty(evt.value())) {
-            throw new IllegalArgumentException("Event name in @ClickEvent cannot be empty !");
+            throw new IllegalArgumentException("Event name in @ClickEvent cannot be empty");
         }
     }
 
@@ -200,14 +200,19 @@ public class NextClickProxy {
         }
     }
 
+    public static NextClickProxy bind(Object host) {
+        final NextClickProxy proxy = new NextClickProxy();
+        proxy.register(host);
+        return proxy;
+    }
+
     /**
      * 由使用者确保只会调用一次的绑定处理
      * @param host 目标对象
      * @return NextClickProxy对象
      */
+    @Deprecated
     public static NextClickProxy oneshotBind(Object host) {
-        final NextClickProxy proxy = new NextClickProxy();
-        proxy.register(host);
-        return proxy;
+        return bind(host);
     }
 }

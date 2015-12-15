@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
         NextClickProxy.oneshotBind(this);
         // Flux
         mStore = new TestStore(mDispatcher, this);
-        mStore.register();
         mDispatcher.register(this);
     }
 
@@ -62,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mStore.unregister();
         mDispatcher.unregister(this);
     }
 }

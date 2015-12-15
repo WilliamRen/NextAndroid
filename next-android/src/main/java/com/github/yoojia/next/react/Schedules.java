@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 任务调度器
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  */
-public class Schedules {
+public final class Schedules {
 
     /**
      * 调用者调度器

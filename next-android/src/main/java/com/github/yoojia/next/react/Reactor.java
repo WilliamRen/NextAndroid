@@ -14,7 +14,7 @@ import static com.github.yoojia.next.lang.Preconditions.notNull;
  */
 public class Reactor<T> {
 
-    private final List<Subscription<T>> mSubs = new CopyOnWriteArrayList<>();
+    private final List<Subscription<T>> mSubscriptions = new CopyOnWriteArrayList<>();
     private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
     private final AtomicReference<Schedule> mScheduleWrap;
     private final AtomicReference<OnEventListener<T>> mOnEventListenerWrap = new AtomicReference<>();
@@ -24,10 +24,10 @@ public class Reactor<T> {
     }
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {
-        if (mSubs.contains(newSub) || mRefs.containsKey(newSub.target)) {
+        if (mSubscriptions.contains(newSub) || mRefs.containsKey(newSub.target)) {
             throw new IllegalStateException("Duplicate Subscription/Subscription.subscriber");
         }
-        mSubs.add(newSub);
+        mSubscriptions.add(newSub);
         mRefs.put(newSub.target, newSub);
         return this;
     }
@@ -35,7 +35,7 @@ public class Reactor<T> {
     public synchronized Reactor<T> remove(Subscriber<T> oldSub) {
         final Subscription s = mRefs.remove(oldSub);
         if (s != null) {
-            mSubs.remove(s);
+            mSubscriptions.remove(s);
         }
         return this;
     }
@@ -43,7 +43,7 @@ public class Reactor<T> {
     public Reactor<T> emit(final T input) {
         final Schedule schedule = mScheduleWrap.get();
         int hits = 0;
-        for (final Subscription<T> sub : mSubs) {
+        for (final Subscription<T> sub : mSubscriptions) {
             if (sub.accept(input)) {
                 hits += 1;
                 try {

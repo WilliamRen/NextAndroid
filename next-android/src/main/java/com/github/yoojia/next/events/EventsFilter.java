@@ -8,7 +8,7 @@ import com.github.yoojia.next.lang.Primitives;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-07
  */
-class EventsFilter implements Filter<EventMeta> {
+class EventsFilter implements Filter<Meta> {
 
     private final String mDefineName;
     private final Class<?> mDefineType;
@@ -19,7 +19,7 @@ class EventsFilter implements Filter<EventMeta> {
     }
 
     @Override
-    public boolean accept(EventMeta evt) {
+    public boolean accept(Meta evt) {
         // 不接受: 事件名不同
         if (!mDefineName.equals(evt.name)) {
             return false;

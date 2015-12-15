@@ -25,7 +25,7 @@ public final class Action {
     public final Bundle data = new Bundle();
 
     private Action(String type, Bundle data) {
-        notEmpty(type, "Action.type must not be null or empty !");
+        notEmpty(type, "Action.type must not be null or empty");
         this.type = type;
         this.data.putAll(data);
     }

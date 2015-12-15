@@ -5,6 +5,7 @@ import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 import com.github.yoojia.next.react.Subscriber;
 import com.github.yoojia.next.react.Subscription;
+import com.github.yoojia.next.react.Subscriptions;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +54,7 @@ public class ReactorTest extends BaseTester {
 
         TestSubscriber payload = new TestSubscriber(COUNT_NOP);
 
-        reactor.add(Subscription.create(payload, Schedule.FLAG_ON_CALLER));
+        reactor.add(Subscriptions.create(payload, Schedule.FLAG_ON_CALLER));
 
         final long timeBeforeEmits = System.nanoTime();
 

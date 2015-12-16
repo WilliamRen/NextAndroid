@@ -28,11 +28,6 @@ public abstract class AbstractStore<T> {
         mDispatcher.unregister(target);
     }
 
-    @Deprecated
-    public void emit(Action action){
-        dispatch(action);
-    }
-
     public void dispatch(Action action) {
         mDispatcher.dispatch(action);
     }

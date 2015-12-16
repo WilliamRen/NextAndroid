@@ -5,15 +5,15 @@ import android.app.Activity;
 import com.github.yoojia.next.events.Evt;
 import com.github.yoojia.next.events.RunOn;
 import com.github.yoojia.next.events.Subscribe;
+import com.github.yoojia.next.flux.AbstractStore;
 import com.github.yoojia.next.flux.Action;
 import com.github.yoojia.next.flux.Dispatcher;
-import com.github.yoojia.next.flux.Store;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-public class TestStore extends Store<Activity>{
+public class TestStore extends AbstractStore<Activity> {
 
     protected TestStore(Dispatcher dispatcher, Activity contextHost) {
         super(dispatcher, contextHost);
@@ -25,6 +25,6 @@ public class TestStore extends Store<Activity>{
         final long data = evt.data.getLong("data");
 //        Log.d("TestStore", "Received request, data: " + data);
         // Emit result, invoke View to update
-        emit(TestActions.newNotifyClick(data));
+        dispatch(TestActions.newNotifyClick(data));
     }
 }

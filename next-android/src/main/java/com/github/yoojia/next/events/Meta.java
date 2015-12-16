@@ -1,6 +1,6 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.lang.Primitives;
+import com.github.yoojia.next.lang.ClassTypes;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -16,7 +16,7 @@ public class Meta {
         this.name = name;
         this.value = value;
         final Class<?> type = value.getClass();
-        this.type = type.isPrimitive() ? Primitives.getWrapClass(type) : type;
+        this.type = ClassTypes.wrap(type);
     }
 
     @Override

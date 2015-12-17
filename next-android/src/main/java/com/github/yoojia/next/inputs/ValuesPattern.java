@@ -41,9 +41,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MinValue(final int minValue) {
-        return proxy(new ValuesProxy<Integer>() {
+        return proxy(new ABValuesProxy<Integer>() {
             @Override
-            protected Integer value0() {
+            protected Integer valueA() {
                 return minValue;
             }
 
@@ -60,9 +60,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MinValue(final long minValue) {
-        return proxy(new ValuesProxy<Long>() {
+        return proxy(new ABValuesProxy<Long>() {
             @Override
-            protected Long value0() {
+            protected Long valueA() {
                 return minValue;
             }
 
@@ -79,9 +79,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MinValue(final float minValue) {
-        return proxy(new ValuesProxy<Float>() {
+        return proxy(new ABValuesProxy<Float>() {
             @Override
-            protected Float value0() {
+            protected Float valueA() {
                 return minValue;
             }
 
@@ -98,9 +98,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MinValue(final double minValue) {
-        return proxy(new ValuesProxy<Double>() {
+        return proxy(new ABValuesProxy<Double>() {
             @Override
-            protected Double value0() {
+            protected Double valueA() {
                 return minValue;
             }
 
@@ -117,9 +117,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MaxValue(final int maxValue) {
-        return proxy(new ValuesProxy<Integer>() {
+        return proxy(new ABValuesProxy<Integer>() {
             @Override
-            protected Integer value0() {
+            protected Integer valueA() {
                 return maxValue;
             }
 
@@ -136,9 +136,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MaxValue(final long maxValue) {
-        return proxy(new ValuesProxy<Long>() {
+        return proxy(new ABValuesProxy<Long>() {
             @Override
-            protected Long value0() {
+            protected Long valueA() {
                 return maxValue;
             }
 
@@ -155,9 +155,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MaxValue(final float maxValue) {
-        return proxy(new ValuesProxy<Float>() {
+        return proxy(new ABValuesProxy<Float>() {
             @Override
-            protected Float value0() {
+            protected Float valueA() {
                 return maxValue;
             }
 
@@ -174,9 +174,9 @@ public class ValuesPattern {
     }
 
     public static Pattern MaxValue(final double maxValue) {
-        return proxy(new ValuesProxy<Double>() {
+        return proxy(new ABValuesProxy<Double>() {
             @Override
-            protected Double value0() {
+            protected Double valueA() {
                 return maxValue;
             }
 
@@ -193,14 +193,14 @@ public class ValuesPattern {
     }
 
     public static Pattern RangeValue(final int minValue, final int maxValue) {
-        return proxy(new ValuesProxy<Integer>() {
+        return proxy(new ABValuesProxy<Integer>() {
             @Override
-            protected Integer value0() {
+            protected Integer valueA() {
                 return minValue;
             }
 
             @Override
-            protected Integer value1() {
+            protected Integer valueB() {
                 return maxValue;
             }
 
@@ -217,14 +217,14 @@ public class ValuesPattern {
     }
 
     public static Pattern RangeValue(final long minValue, final long maxValue) {
-        return proxy(new ValuesProxy<Long>() {
+        return proxy(new ABValuesProxy<Long>() {
             @Override
-            protected Long value0() {
+            protected Long valueA() {
                 return minValue;
             }
 
             @Override
-            protected Long value1() {
+            protected Long valueB() {
                 return maxValue;
             }
 
@@ -241,14 +241,14 @@ public class ValuesPattern {
     }
 
     public static Pattern RangeValue(final float minValue, final float maxValue) {
-        return proxy(new ValuesProxy<Float>() {
+        return proxy(new ABValuesProxy<Float>() {
             @Override
-            protected Float value0() {
+            protected Float valueA() {
                 return minValue;
             }
 
             @Override
-            protected Float value1() {
+            protected Float valueB() {
                 return maxValue;
             }
 
@@ -265,14 +265,14 @@ public class ValuesPattern {
     }
 
     public static Pattern RangeValue(final double minValue, final double maxValue) {
-        return proxy(new ValuesProxy<Double>() {
+        return proxy(new ABValuesProxy<Double>() {
             @Override
-            protected Double value0() {
+            protected Double valueA() {
                 return minValue;
             }
 
             @Override
-            protected Double value1() {
+            protected Double valueB() {
                 return maxValue;
             }
 
@@ -289,10 +289,10 @@ public class ValuesPattern {
     }
 
     public static Pattern EqualsTo(final ValueLoader<String> loader){
-        return proxy(new ValuesProxy<String>() {
+        return proxy(new ABValuesProxy<String>() {
             @Override
-            protected String value0() {
-                return loader.value0();
+            protected String valueA() {
+                return loader.value();
             }
 
             @Override
@@ -307,11 +307,20 @@ public class ValuesPattern {
         });
     }
 
-    public static Pattern NotEqualsTo(final ValueLoader<String> loader){
-        return proxy(new ValuesProxy<String>() {
+    public static Pattern EqualsTo(final String fixedValue) {
+        return EqualsTo(new ValueLoader<String>() {
             @Override
-            protected String value0() {
-                return loader.value0();
+            public String value() {
+                return fixedValue;
+            }
+        });
+    }
+
+    public static Pattern NotEqualsTo(final ValueLoader<String> loader){
+        return proxy(new ABValuesProxy<String>() {
+            @Override
+            protected String valueA() {
+                return loader.value();
             }
 
             @Override
@@ -321,17 +330,26 @@ public class ValuesPattern {
 
             @Override
             protected boolean test(String input, String value0, String value1) {
-                return ! input.equals(value0);
+                return !input.equals(value0);
             }
         });
     }
 
-    public static <T> Pattern proxy(final ValuesProxy<T> proxy) {
+    public static Pattern NotEqualsTo(final String fixedValue) {
+        return NotEqualsTo(new ValueLoader<String>() {
+            @Override
+            public String value() {
+                return fixedValue;
+            }
+        });
+    }
+
+    public static <T> Pattern proxy(final ABValuesProxy<T> proxy) {
         return new Pattern(new FilterTester() {
             @Override
             public boolean performTestNotEmpty(String input) throws Exception {
                 final T value = proxy.valueOf(input);
-                return proxy.test(value, proxy.value0(), proxy. value1());
+                return proxy.test(value, proxy.valueA(), proxy.valueB());
             }
         }).priority(PRIORITY_GENERAL);
     }

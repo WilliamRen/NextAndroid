@@ -1,10 +1,10 @@
 package com.github.yoojia.next.inputs;
 
-public abstract class ValuesProxy<T> {
+public abstract class ABValuesProxy<T> {
 
-    protected abstract T value0();
+    protected abstract T valueA();
 
-    protected T value1(){
+    protected T valueB(){
         return null;
     }
 

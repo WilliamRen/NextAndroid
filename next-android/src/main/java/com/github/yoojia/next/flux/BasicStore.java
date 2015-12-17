@@ -13,7 +13,4 @@ public class BasicStore extends AbstractStore<Activity>{
         super(new Dispatcher(), context);
     }
 
-    public Dispatcher getDispatcher() {
-        return mDispatcher;
-    }
 }

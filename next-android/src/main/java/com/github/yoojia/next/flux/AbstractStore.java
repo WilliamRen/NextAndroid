@@ -31,4 +31,12 @@ public abstract class AbstractStore<T> {
     public void dispatch(Action action) {
         mDispatcher.dispatch(action);
     }
+
+    public T getContext() {
+        return mContext;
+    }
+
+    public Dispatcher getDispatcher() {
+        return mDispatcher;
+    }
 }

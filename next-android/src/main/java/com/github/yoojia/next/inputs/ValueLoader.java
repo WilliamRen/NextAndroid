@@ -6,6 +6,6 @@ package com.github.yoojia.next.inputs;
  */
 public interface ValueLoader<T> {
 
-    T value();
+    T onLoad();
 
 }

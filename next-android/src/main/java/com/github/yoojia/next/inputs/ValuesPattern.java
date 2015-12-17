@@ -292,7 +292,7 @@ public class ValuesPattern {
         return proxy(new ABValuesProxy<String>() {
             @Override
             protected String valueA() {
-                return loader.value();
+                return loader.onLoad();
             }
 
             @Override
@@ -310,7 +310,7 @@ public class ValuesPattern {
     public static Pattern EqualsTo(final String fixedValue) {
         return EqualsTo(new ValueLoader<String>() {
             @Override
-            public String value() {
+            public String onLoad() {
                 return fixedValue;
             }
         });
@@ -320,7 +320,7 @@ public class ValuesPattern {
         return proxy(new ABValuesProxy<String>() {
             @Override
             protected String valueA() {
-                return loader.value();
+                return loader.onLoad();
             }
 
             @Override
@@ -338,7 +338,7 @@ public class ValuesPattern {
     public static Pattern NotEqualsTo(final String fixedValue) {
         return NotEqualsTo(new ValueLoader<String>() {
             @Override
-            public String value() {
+            public String onLoad() {
                 return fixedValue;
             }
         });

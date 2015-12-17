@@ -13,7 +13,7 @@ import org.robolectric.annotation.Config;
 /**
  * Test ChineseI DCard Number
  *
- * @author 陈永佳 (chengyongjia@parkingwang.com)
+ * @author 陈小锅 (yoojia.chen@gmail.com)
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)

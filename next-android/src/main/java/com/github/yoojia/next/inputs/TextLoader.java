@@ -15,7 +15,7 @@ public class TextLoader implements ValueLoader<String>{
     }
 
     @Override
-    public String value() {
+    public String onLoad() {
         return mInput.getText().toString();
     }
 

@@ -23,25 +23,25 @@ public class TestOrderTest {
             public String onLoadValue() {
                 return "hahaha";
             }
-        }, new Pattern(new Tester() {
+        }, new Pattern(new AbstractTester() {
             @Override
             public boolean performTest(String rawInput) throws Exception {
                 ordered.append("0");
                 return true;
             }
-        }), new Pattern(new Tester() {
+        }), new Pattern(new AbstractTester() {
             @Override
             public boolean performTest(String rawInput) throws Exception {
                 ordered.append("1");
                 return true;
             }
-        }), new Pattern(new Tester() {
+        }), new Pattern(new AbstractTester() {
             @Override
             public boolean performTest(String rawInput) throws Exception {
                 ordered.append("2");
                 return true;
             }
-        }), new Pattern(new Tester() {
+        }), new Pattern(new AbstractTester() {
             @Override
             public boolean performTest(String rawInput) throws Exception {
                 ordered.append("3");

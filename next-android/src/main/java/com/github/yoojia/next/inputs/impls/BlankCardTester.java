@@ -1,6 +1,6 @@
 package com.github.yoojia.next.inputs.impls;
 
-import com.github.yoojia.next.inputs.FilterTester;
+import com.github.yoojia.next.inputs.Tester;
 
 import java.util.regex.Pattern;
 
@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  *
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public class BlankCardTester extends FilterTester {
+public class BlankCardTester extends Tester {
 
     @Override
     public boolean performTestNotEmpty(String input) {

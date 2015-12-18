@@ -13,37 +13,43 @@ public class ValuesPattern {
     }
 
     public static Pattern MinLength(final int minLength) {
-        return new Pattern(new FilterTester() {
+        return new Pattern(new Tester() {
             @Override
             public boolean performTestNotEmpty(String input) throws Exception {
                 return input.length() >= minLength;
             }
-        }).msgOnFail("输入内容长度必须不少于：" + minLength);
+        })
+        .msgOnFail("输入内容长度必须不少于：" + minLength)
+        .priority(PRIORITY_GENERAL);
     }
 
     public static Pattern MaxLength(final int maxLength) {
-        return new Pattern(new FilterTester() {
+        return new Pattern(new Tester() {
             @Override
             public boolean performTestNotEmpty(String input) throws Exception {
                 return input.length() <= maxLength;
             }
-        }).msgOnFail("输入内容长度必须不多于：" + maxLength);
+        })
+        .msgOnFail("输入内容长度必须不多于：" + maxLength)
+        .priority(PRIORITY_GENERAL);
     }
 
     public static Pattern RangeLength(final int minLength, final int maxLength) {
-        return new Pattern(new FilterTester() {
+        return new Pattern(new Tester() {
             @Override
             public boolean performTestNotEmpty(String input) throws Exception {
                 final int length = input.length();
                 return minLength <= length && length <= maxLength;
             }
-        }).msgOnFail("输入内容长度必须在[" + maxLength + "," + maxLength + "]之间");
+        })
+        .msgOnFail("输入内容长度必须在[" + maxLength + "," + maxLength + "]之间")
+        .priority(PRIORITY_GENERAL);
     }
 
     public static Pattern MinValue(final int minValue) {
-        return proxy(new ABValuesProxy<Integer>() {
+        return abTest(new ABTypedTester<Integer>() {
             @Override
-            protected Integer valueA() {
+            protected Integer onValueA() {
                 return minValue;
             }
 
@@ -53,16 +59,16 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Integer input, Integer value0, Integer value1) {
-                return input >= value0;
+            protected boolean test(Integer input, Integer valueA, Integer valueB) {
+                return input >= valueA;
             }
         }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
     public static Pattern MinValue(final long minValue) {
-        return proxy(new ABValuesProxy<Long>() {
+        return abTest(new ABTypedTester<Long>() {
             @Override
-            protected Long valueA() {
+            protected Long onValueA() {
                 return minValue;
             }
 
@@ -72,16 +78,16 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Long input, Long value0, Long value1) {
-                return input >= value0;
+            protected boolean test(Long input, Long valueA, Long valueB) {
+                return input >= valueA;
             }
         }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
     public static Pattern MinValue(final float minValue) {
-        return proxy(new ABValuesProxy<Float>() {
+        return abTest(new ABTypedTester<Float>() {
             @Override
-            protected Float valueA() {
+            protected Float onValueA() {
                 return minValue;
             }
 
@@ -91,16 +97,16 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Float input, Float value0, Float value1) {
-                return input >= value0;
+            protected boolean test(Float input, Float valueA, Float valueB) {
+                return input >= valueA;
             }
         }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
     public static Pattern MinValue(final double minValue) {
-        return proxy(new ABValuesProxy<Double>() {
+        return abTest(new ABTypedTester<Double>() {
             @Override
-            protected Double valueA() {
+            protected Double onValueA() {
                 return minValue;
             }
 
@@ -110,16 +116,16 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Double input, Double value0, Double value1) {
-                return input >= value0;
+            protected boolean test(Double input, Double valueA, Double valueB) {
+                return input >= valueA;
             }
         }).msgOnFail("输入数值大小必须不小于：" + minValue);
     }
 
     public static Pattern MaxValue(final int maxValue) {
-        return proxy(new ABValuesProxy<Integer>() {
+        return abTest(new ABTypedTester<Integer>() {
             @Override
-            protected Integer valueA() {
+            protected Integer onValueA() {
                 return maxValue;
             }
 
@@ -129,16 +135,16 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Integer input, Integer value0, Integer value1) {
-                return input <= value0;
+            protected boolean test(Integer input, Integer valueA, Integer valueB) {
+                return input <= valueA;
             }
         }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
     public static Pattern MaxValue(final long maxValue) {
-        return proxy(new ABValuesProxy<Long>() {
+        return abTest(new ABTypedTester<Long>() {
             @Override
-            protected Long valueA() {
+            protected Long onValueA() {
                 return maxValue;
             }
 
@@ -148,16 +154,16 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Long input, Long value0, Long value1) {
-                return input <= value0;
+            protected boolean test(Long input, Long valueA, Long valueB) {
+                return input <= valueA;
             }
         }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
     public static Pattern MaxValue(final float maxValue) {
-        return proxy(new ABValuesProxy<Float>() {
+        return abTest(new ABTypedTester<Float>() {
             @Override
-            protected Float valueA() {
+            protected Float onValueA() {
                 return maxValue;
             }
 
@@ -167,16 +173,16 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Float input, Float value0, Float value1) {
-                return input <= value0;
+            protected boolean test(Float input, Float valueA, Float valueB) {
+                return input <= valueA;
             }
         }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
     public static Pattern MaxValue(final double maxValue) {
-        return proxy(new ABValuesProxy<Double>() {
+        return abTest(new ABTypedTester<Double>() {
             @Override
-            protected Double valueA() {
+            protected Double onValueA() {
                 return maxValue;
             }
 
@@ -186,21 +192,21 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Double input, Double value0, Double value1) {
-                return input <= value0;
+            protected boolean test(Double input, Double valueA, Double valueB) {
+                return input <= valueA;
             }
         }).msgOnFail("输入数值大小必须不大于：" + maxValue);
     }
 
     public static Pattern RangeValue(final int minValue, final int maxValue) {
-        return proxy(new ABValuesProxy<Integer>() {
+        return abTest(new ABTypedTester<Integer>() {
             @Override
-            protected Integer valueA() {
+            protected Integer onValueA() {
                 return minValue;
             }
 
             @Override
-            protected Integer valueB() {
+            protected Integer onValueB() {
                 return maxValue;
             }
 
@@ -210,21 +216,21 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Integer input, Integer value0, Integer value1) {
-                return value0 <= input && input <= value1;
+            protected boolean test(Integer input, Integer valueA, Integer valueB) {
+                return valueA <= input && input <= valueB;
             }
         }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
     public static Pattern RangeValue(final long minValue, final long maxValue) {
-        return proxy(new ABValuesProxy<Long>() {
+        return abTest(new ABTypedTester<Long>() {
             @Override
-            protected Long valueA() {
+            protected Long onValueA() {
                 return minValue;
             }
 
             @Override
-            protected Long valueB() {
+            protected Long onValueB() {
                 return maxValue;
             }
 
@@ -234,21 +240,21 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Long input, Long value0, Long value1) {
-                return value0 <= input && input <= value1;
+            protected boolean test(Long input, Long valueA, Long valueB) {
+                return valueA <= input && input <= valueB;
             }
         }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
     public static Pattern RangeValue(final float minValue, final float maxValue) {
-        return proxy(new ABValuesProxy<Float>() {
+        return abTest(new ABTypedTester<Float>() {
             @Override
-            protected Float valueA() {
+            protected Float onValueA() {
                 return minValue;
             }
 
             @Override
-            protected Float valueB() {
+            protected Float onValueB() {
                 return maxValue;
             }
 
@@ -258,21 +264,21 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Float input, Float value0, Float value1) {
-                return value0 <= input && input <= value1;
+            protected boolean test(Float input, Float valueA, Float valueB) {
+                return valueA <= input && input <= valueB;
             }
         }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
     public static Pattern RangeValue(final double minValue, final double maxValue) {
-        return proxy(new ABValuesProxy<Double>() {
+        return abTest(new ABTypedTester<Double>() {
             @Override
-            protected Double valueA() {
+            protected Double onValueA() {
                 return minValue;
             }
 
             @Override
-            protected Double valueB() {
+            protected Double onValueB() {
                 return maxValue;
             }
 
@@ -282,17 +288,17 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(Double input, Double value0, Double value1) {
-                return value0 <= input && input <= value1;
+            protected boolean test(Double input, Double valueA, Double valueB) {
+                return valueA <= input && input <= valueB;
             }
         }).msgOnFail("输入数值大小必须在[" + minValue + "," + maxValue + "]之间");
     }
 
-    public static Pattern EqualsTo(final ValueLoader<String> loader){
-        return proxy(new ABValuesProxy<String>() {
+    public static Pattern EqualsTo(final Loader<String> loader){
+        return abTest(new ABTypedTester<String>() {
             @Override
-            protected String valueA() {
-                return loader.onLoad();
+            protected String onValueA() {
+                return loader.onLoadValue();
             }
 
             @Override
@@ -301,26 +307,26 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(String input, String value0, String value1) {
-                return input.equals(value0);
+            protected boolean test(String input, String valueA, String valueB) {
+                return input.equals(valueA);
             }
-        });
+        }).msgOnFail("输入内容与要求不一致");
     }
 
     public static Pattern EqualsTo(final String fixedValue) {
-        return EqualsTo(new ValueLoader<String>() {
+        return EqualsTo(new Loader<String>() {
             @Override
-            public String onLoad() {
+            public String onLoadValue() {
                 return fixedValue;
             }
         });
     }
 
-    public static Pattern NotEqualsTo(final ValueLoader<String> loader){
-        return proxy(new ABValuesProxy<String>() {
+    public static Pattern NotEqualsTo(final Loader<String> loader){
+        return abTest(new ABTypedTester<String>() {
             @Override
-            protected String valueA() {
-                return loader.onLoad();
+            protected String onValueA() {
+                return loader.onLoadValue();
             }
 
             @Override
@@ -329,27 +335,27 @@ public class ValuesPattern {
             }
 
             @Override
-            protected boolean test(String input, String value0, String value1) {
-                return !input.equals(value0);
+            protected boolean test(String input, String valueA, String valueB) {
+                return !input.equals(valueA);
             }
-        });
+        }).msgOnFail("输入内容不能与要求的相同");
     }
 
     public static Pattern NotEqualsTo(final String fixedValue) {
-        return NotEqualsTo(new ValueLoader<String>() {
+        return NotEqualsTo(new Loader<String>() {
             @Override
-            public String onLoad() {
+            public String onLoadValue() {
                 return fixedValue;
             }
         });
     }
 
-    public static <T> Pattern proxy(final ABValuesProxy<T> proxy) {
-        return new Pattern(new FilterTester() {
+    public static <T> Pattern abTest(final ABTypedTester<T> proxy) {
+        return new Pattern(new Tester() {
             @Override
             public boolean performTestNotEmpty(String input) throws Exception {
                 final T value = proxy.valueOf(input);
-                return proxy.test(value, proxy.valueA(), proxy.valueB());
+                return proxy.test(value, proxy.onValueA(), proxy.onValueB());
             }
         }).priority(PRIORITY_GENERAL);
     }

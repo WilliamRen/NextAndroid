@@ -3,15 +3,15 @@ package com.github.yoojia.next.inputs;
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public abstract class ABValuesProxy<T> {
+public abstract class ABTypedTester<T> {
 
-    protected abstract T valueA();
+    protected abstract T onValueA();
 
-    protected T valueB(){
+    protected T onValueB(){
         return null;
     }
 
     protected abstract T valueOf(String input);
 
-    protected abstract boolean test(T input, T value0, T value1);
+    protected abstract boolean test(T input, T valueA, T valueB);
 }

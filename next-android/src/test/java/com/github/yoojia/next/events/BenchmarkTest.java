@@ -35,13 +35,13 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents(@Evt("str") String start){
+        @Subscribe(on = "str", runOn = RunOn.THREADS)
+        public void onEvents(String start){
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents1(@Evt("long") long start){
+        @Subscribe(on = "long", runOn = RunOn.THREADS)
+        public void onEvents1(long start){
             hitEvt2();
         }
 
@@ -53,13 +53,13 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents(@Evt("str") String start){
+        @Subscribe(on = "str", runOn = RunOn.CALLER)
+        public void onEvents(String start){
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents1(@Evt("long") long start){
+        @Subscribe(on = "long", runOn = RunOn.CALLER)
+        public void onEvents1(long start){
             hitEvt2();
         }
 
@@ -71,14 +71,14 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents(@Evt("str") String start) throws InterruptedException {
+        @Subscribe(on = "str", runOn = RunOn.THREADS)
+        public void onEvents(String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents1(@Evt("long") long start) throws InterruptedException {
+        @Subscribe(on = "long", runOn = RunOn.THREADS)
+        public void onEvents1(long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
         }
@@ -91,14 +91,14 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents(@Evt("str") String start) throws InterruptedException {
+        @Subscribe(on = "str", runOn = RunOn.CALLER)
+        public void onEvents(String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents1(@Evt("long") long start) throws InterruptedException {
+        @Subscribe(on = "", runOn = RunOn.CALLER)
+        public void onEvents1(long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
         }

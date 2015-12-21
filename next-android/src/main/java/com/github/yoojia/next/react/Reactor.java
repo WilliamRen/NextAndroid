@@ -6,8 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.yoojia.next.lang.Preconditions.notNull;
-
 /**
  * 事件响应处理
  * @author YOOJIA.CHEN (yoojiachen@gmail.com)

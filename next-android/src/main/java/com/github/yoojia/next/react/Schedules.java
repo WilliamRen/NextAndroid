@@ -147,4 +147,8 @@ public final class Schedules {
         }
     }
 
+    public static void certainlyShutdownThreads(){
+        SharedSchedule.EXECUTOR.shutdown();
+    }
+
 }

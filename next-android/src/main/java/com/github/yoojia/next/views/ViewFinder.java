@@ -1,7 +1,5 @@
 package com.github.yoojia.next.views;
 
-import android.content.res.Resources;
-import android.util.Log;
 import android.view.View;
 
 /**

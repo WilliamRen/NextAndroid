@@ -56,8 +56,8 @@ public class RegTest{
 
         final AtomicInteger counter = new AtomicInteger(0);
 
-        @Subscribe
-        public void subscriber(@Evt("test")String evt) {
+        @Subscribe(on = "test")
+        public void subscriber(String evt) {
             counter.incrementAndGet();
         }
     }

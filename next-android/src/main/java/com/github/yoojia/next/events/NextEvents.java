@@ -1,6 +1,5 @@
 package com.github.yoojia.next.events;
 
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
@@ -12,7 +11,6 @@ import com.github.yoojia.next.react.Schedules;
 import com.github.yoojia.next.react.Subscriber;
 import com.github.yoojia.next.react.Subscriptions;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +61,7 @@ public class NextEvents {
      *  - EMPTY in @Evt.value
      */
     public NextEvents register(final Object object, final Filter<Method> customFilter) {
-        notNull(object, "Target Object must not be null");
+        notNull(object, "Target object must not be null");
         // Filter methods and register them
         final InvokableMethods invokable;
         // if not registered, put to register
@@ -86,12 +84,9 @@ public class NextEvents {
                     final Subscribe subscribe = method.getAnnotation(Subscribe.class);
                     final MethodSubscriber subscriber = new MethodSubscriber(object, method);
                     invokable.add(subscriber);
-                    final Evt event = (Evt) method.getParameterAnnotations()[0][0];
-                    final String defineName = event.value();
+                    final String defineName = subscribe.on();
                     final Class<?> defineType = method.getParameterTypes()[0];
                     subscribe(defineName, defineType, subscriber, subscribe.runOn().scheduleFlag);
-                }else {
-                    Log.w(TAG, "- Skip method(registered): " + method);
                 }
             }
         }
@@ -216,16 +211,6 @@ public class NextEvents {
         final Class<?>[] params = method.getParameterTypes();
         if (params.length != 1) {
             throw new IllegalArgumentException("@Subscribe annotated methods must has a single param , method: " + method);
-        }
-        final Annotation[][] annotations = method.getParameterAnnotations();
-        if (annotations.length == 0 ||
-                annotations[0].length == 0 ||
-                ! Evt.class.equals(annotations[0][0].annotationType())) {
-            throw new IllegalArgumentException("The parameter without @Evt annotation , method" + method);
-        }
-        final Evt event = (Evt) method.getParameterAnnotations()[0][0];
-        if (TextUtils.isEmpty(event.value())) {
-            throw new IllegalArgumentException("Event name in @Evt must not be empty");
         }
     }
 

@@ -2,7 +2,6 @@ package com.github.yoojia.next.app;
 
 import android.app.Activity;
 
-import com.github.yoojia.next.events.Evt;
 import com.github.yoojia.next.events.RunOn;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.flux.AbstractStore;
@@ -20,8 +19,8 @@ public class TestStore extends AbstractStore<Activity> {
     }
 
     // Run runAsync
-    @Subscribe(runOn = RunOn.THREADS)
-    private void onClick(@Evt(TestActions.REQ_CLICK) Action evt) {
+    @Subscribe(on = TestActions.REQ_CLICK, runOn = RunOn.THREADS)
+    private void onClick(Action evt) {
         final long data = evt.data.getLong("data");
 //        Log.d("TestStore", "Received request, data: " + data);
         // Emit result, invoke View to update

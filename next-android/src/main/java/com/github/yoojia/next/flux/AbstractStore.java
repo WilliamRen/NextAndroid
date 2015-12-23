@@ -34,4 +34,8 @@ public abstract class AbstractStore<T> {
     public void connect(Object target) {
         mDispatcher.register(target);
     }
+
+    public void disconnect(Object target) {
+        mDispatcher.unregister(target);
+    }
 }

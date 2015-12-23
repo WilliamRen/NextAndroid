@@ -16,16 +16,7 @@ public abstract class AbstractStore<T> {
     protected AbstractStore(Dispatcher dispatcher, T context) {
         mDispatcher = dispatcher;
         mContext = context;
-    }
-
-    public void register(Object target){
         mDispatcher.register(this);
-        mDispatcher.register(target);
-    }
-
-    public void unregister(Object target){
-        mDispatcher.unregister(this);
-        mDispatcher.unregister(target);
     }
 
     public void dispatch(Action action) {
@@ -38,5 +29,9 @@ public abstract class AbstractStore<T> {
 
     public Dispatcher getDispatcher() {
         return mDispatcher;
+    }
+
+    public void connect(Object target) {
+        mDispatcher.register(target);
     }
 }

@@ -7,9 +7,9 @@ import android.app.Activity;
  * @author 陈小锅 (yoojiachen@gmail.com)
  * @since 1.0
  */
-public class BasicStore extends AbstractStore<Activity>{
+public class DispatchStore extends AbstractStore<Activity>{
 
-    protected BasicStore(Activity context) {
+    protected DispatchStore(Activity context) {
         super(new Dispatcher(), context);
     }
 

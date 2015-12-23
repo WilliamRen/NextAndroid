@@ -203,6 +203,11 @@ public final class Action {
             return this;
         }
 
+        public Builder putAll(Bundle src) {
+            data.putAll(src);
+            return this;
+        }
+
         public Builder putByte(String key, byte value) {
             data.putByte(key, value);
             return this;

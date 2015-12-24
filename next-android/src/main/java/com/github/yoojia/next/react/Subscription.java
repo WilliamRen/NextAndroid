@@ -37,14 +37,4 @@ public class Subscription<T> {
         return true;
     }
 
-    /* hide for Reactor */
-    Callable<Void> createTask(final T input){
-        return new Callable<Void>() {
-            @Override public Void call() throws Exception {
-                target.onCall(input);
-                return null;
-            }
-        };
-    }
-
 }

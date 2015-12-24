@@ -6,7 +6,7 @@ import android.view.View;
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-public class ViewFinder implements NextAutoView.Finder{
+public class ViewFinder implements NextBindView.Finder{
 
     private static final String TAG = ViewFinder.class.getSimpleName();
 

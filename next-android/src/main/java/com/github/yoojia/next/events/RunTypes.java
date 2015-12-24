@@ -5,7 +5,7 @@ import com.github.yoojia.next.react.Schedule;
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  */
-public enum RunOn {
+public enum RunTypes {
     /**
      * 由调用者线程执行回调
      */
@@ -14,7 +14,7 @@ public enum RunOn {
     /**
      * 由主线程执行回调
      */
-    MAIN(Schedule.FLAG_ON_MAIN),
+    MAIN_THREAD(Schedule.FLAG_ON_MAIN_THREAD),
 
     /**
      * 由线程池的线程执行回调
@@ -23,7 +23,7 @@ public enum RunOn {
 
     final int scheduleFlag;
 
-    RunOn(int flag) {
+    RunTypes(int flag) {
         this.scheduleFlag = flag;
     }
 }

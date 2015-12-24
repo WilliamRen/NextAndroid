@@ -2,7 +2,7 @@ package com.github.yoojia.next.app;
 
 import android.app.Activity;
 
-import com.github.yoojia.next.events.RunOn;
+import com.github.yoojia.next.events.RunTypes;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.flux.AbstractStore;
 import com.github.yoojia.next.flux.Action;
@@ -19,7 +19,7 @@ public class TestStore extends AbstractStore<Activity> {
     }
 
     // Run runAsync
-    @Subscribe(on = TestActions.REQ_CLICK, runOn = RunOn.THREADS)
+    @Subscribe(on = TestActions.REQ_CLICK, run = RunTypes.THREADS)
     private void onClick(Action evt) {
         final long data = evt.data.getLong("data");
 //        Log.d("TestStore", "Received request, data: " + data);

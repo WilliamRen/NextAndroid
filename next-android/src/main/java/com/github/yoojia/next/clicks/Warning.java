@@ -10,7 +10,7 @@ class Warning {
 
     public static void show(String tag){
         final String tip = "@ClickEvent fields not found ! Try add belows to your <proguard-rules.pro> file:\n" +
-                " -keepclassmembers class * { @com.github.yoojia.next.clicks.ClickEvt *; }";
+                " -keepclassmembers class * { @com.github.yoojia.next.clicks.Click *; }";
         Log.e(tag, tip);
     }
 }

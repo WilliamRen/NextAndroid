@@ -86,7 +86,7 @@ public class NextEvents {
                     invokable.add(subscriber);
                     final String defineName = subscribe.on();
                     final Class<?> defineType = method.getParameterTypes()[0];
-                    subscribe(defineName, defineType, subscriber, subscribe.runOn().scheduleFlag);
+                    subscribe(defineName, defineType, subscriber, subscribe.run().scheduleFlag);
                 }
             }
         }

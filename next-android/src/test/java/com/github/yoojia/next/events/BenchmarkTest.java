@@ -35,12 +35,12 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(on = "str", runOn = RunOn.THREADS)
+        @Subscribe(on = "str", run = RunTypes.THREADS)
         public void onEvents(String start){
             hitEvt1();
         }
 
-        @Subscribe(on = "long", runOn = RunOn.THREADS)
+        @Subscribe(on = "long", run = RunTypes.THREADS)
         public void onEvents1(long start){
             hitEvt2();
         }
@@ -53,12 +53,12 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(on = "str", runOn = RunOn.CALLER)
+        @Subscribe(on = "str", run = RunTypes.CALLER)
         public void onEvents(String start){
             hitEvt1();
         }
 
-        @Subscribe(on = "long", runOn = RunOn.CALLER)
+        @Subscribe(on = "long", run = RunTypes.CALLER)
         public void onEvents1(long start){
             hitEvt2();
         }
@@ -71,13 +71,13 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(on = "str", runOn = RunOn.THREADS)
+        @Subscribe(on = "str", run = RunTypes.THREADS)
         public void onEvents(String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(on = "long", runOn = RunOn.THREADS)
+        @Subscribe(on = "long", run = RunTypes.THREADS)
         public void onEvents1(long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
@@ -91,13 +91,13 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(on = "str", runOn = RunOn.CALLER)
+        @Subscribe(on = "str", run = RunTypes.CALLER)
         public void onEvents(String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(on = "", runOn = RunOn.CALLER)
+        @Subscribe(on = "", run = RunTypes.CALLER)
         public void onEvents1(long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();

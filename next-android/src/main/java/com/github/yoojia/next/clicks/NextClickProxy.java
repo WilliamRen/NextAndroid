@@ -69,7 +69,7 @@ public class NextClickProxy {
 
     /**
      * 注册点击处理。
-     * - 注册过程为同步，在目标对象的 @ClickEvt 成员变量全部被注册后返回。
+     * - 注册过程为同步，在目标对象的 @Click 成员变量全部被注册后返回。
      * @param target 目标对象
      * @return NextEvents
      */
@@ -79,14 +79,14 @@ public class NextClickProxy {
                 .filter(ClickEvtFieldFilter.getDefault())
                 .find(target.getClass());
         if (fields.isEmpty()){
-            Log.e(TAG, "- Empty Fields(with @ClickEvt)! Object: " + target);
+            Log.e(TAG, "- Empty Fields(with @Click)! Object: " + target);
             Warning.show(TAG);
             return this;
         }
         try{
             for (Field field : fields){
                 field.setAccessible(true);
-                final ClickEvt evt = field.getAnnotation(ClickEvt.class);
+                final Click evt = field.getAnnotation(Click.class);
                 checkAnnotation(evt);
                 final View view = createClickActionView(target, field, new View.OnClickListener() {
                     @Override
@@ -137,7 +137,7 @@ public class NextClickProxy {
         return view;
     }
 
-    private static void checkAnnotation(ClickEvt evt){
+    private static void checkAnnotation(Click evt){
         if (TextUtils.isEmpty(evt.value())) {
             throw new IllegalArgumentException("Event name in @ClickEvent cannot be empty");
         }
@@ -162,7 +162,7 @@ public class NextClickProxy {
                 return false;
             }
             // Check annotation
-            return field.isAnnotationPresent(ClickEvt.class);
+            return field.isAnnotationPresent(Click.class);
         }
 
         public static ClickEvtFieldFilter getDefault(){

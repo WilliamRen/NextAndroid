@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Inherited
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AutoView {
+public @interface BindView {
     /**
      * View ResId
      * @return Int

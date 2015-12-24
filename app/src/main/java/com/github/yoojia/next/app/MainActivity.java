@@ -6,25 +6,25 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.github.yoojia.next.clicks.Click;
 import com.github.yoojia.next.clicks.ClickEvent;
-import com.github.yoojia.next.clicks.ClickEvt;
 import com.github.yoojia.next.clicks.NextClickProxy;
-import com.github.yoojia.next.events.RunOn;
+import com.github.yoojia.next.events.RunTypes;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.flux.Dispatcher;
-import com.github.yoojia.next.views.AutoView;
-import com.github.yoojia.next.views.NextAutoView;
+import com.github.yoojia.next.views.BindView;
+import com.github.yoojia.next.views.NextBindView;
 
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    @AutoView(R.id.helo)
+    @BindView(R.id.helo)
     private TextView mHelo;
 
-    @ClickEvt("click")
-    @AutoView(R.id.button)
+    @Click("click")
+    @BindView(R.id.button)
     private Button mButton;
 
     private final Dispatcher mDispatcher = new Dispatcher();
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Inject views
-        NextAutoView.use(this).inject(this);
+        NextBindView.use(this).inject(this);
         // Click proxy
         NextClickProxy.oneshotBind(this);
         // Flux
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         mDispatcher.register(this);
     }
 
-    @Subscribe(on = "click", runOn = RunOn.MAIN)
+    @Subscribe(on = "click", run = RunTypes.MAIN_THREAD)
     private void onClick(ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {

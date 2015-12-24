@@ -68,7 +68,7 @@ public final class Schedules {
             case Schedule.FLAG_ON_THREADS:
                 threads.submit(task);
                 break;
-            case Schedule.FLAG_ON_MAIN:
+            case Schedule.FLAG_ON_MAIN_THREAD:
                 if (Looper.getMainLooper() != Looper.myLooper()) {
                     InternalHandler.getDefault().post(new Runnable() {
                         @Override

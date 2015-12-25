@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
  */
 public interface Schedule {
 
-    int FLAG_ON_MAIN_THREAD =       1 << 1;
+    int FLAG_ON_UI_THREAD =       1 << 1;
     int FLAG_ON_THREADS =           1 << 2;
     int FLAG_ON_CALLER =            1 << 3;
 

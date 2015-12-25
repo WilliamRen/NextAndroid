@@ -9,7 +9,7 @@ import android.widget.TextView;
 import com.github.yoojia.next.clicks.Click;
 import com.github.yoojia.next.clicks.ClickEvent;
 import com.github.yoojia.next.clicks.NextClickProxy;
-import com.github.yoojia.next.events.RunTypes;
+import com.github.yoojia.next.events.Runs;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.flux.Dispatcher;
 import com.github.yoojia.next.views.BindView;
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         mDispatcher.register(this);
     }
 
-    @Subscribe(on = "click", run = RunTypes.MAIN_THREAD)
+    @Subscribe(on = "click", run = Runs.ON_UI_THREAD)
     private void onClick(ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {

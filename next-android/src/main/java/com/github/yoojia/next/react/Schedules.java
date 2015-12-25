@@ -72,7 +72,7 @@ public final class Schedules {
             case Schedule.FLAG_ON_THREADS:
                 threads.submit(task);
                 break;
-            case Schedule.FLAG_ON_MAIN_THREAD:
+            case Schedule.FLAG_ON_UI_THREAD:
                 if (Looper.getMainLooper() == Looper.myLooper()) {
                     task.call();
                 }else{

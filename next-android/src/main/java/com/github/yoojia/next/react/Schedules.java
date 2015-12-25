@@ -73,18 +73,18 @@ public final class Schedules {
                 threads.submit(task);
                 break;
             case Schedule.FLAG_ON_MAIN_THREAD:
-                if (Looper.getMainLooper() != Looper.myLooper()) {
+                if (Looper.getMainLooper() == Looper.myLooper()) {
+                    task.call();
+                }else{
                     InternalHandler.getDefault().post(new Runnable() {
                         @Override public void run() {
                             try {
                                 task.call();
-                            } catch (Exception err) {
-                                throw new RuntimeException(err);
+                            } catch (Exception error) {
+                                throw new RuntimeException(error);
                             }
                         }
                     });
-                }else{
-                    task.call();
                 }
                 break;
             default:

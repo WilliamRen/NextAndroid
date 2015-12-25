@@ -46,7 +46,7 @@ public class Reactor<T> {
             if (sub.accept(input)) {
                 hits += 1;
                 try {
-                    schedule.invoke(new ScheduleTask() {
+                    schedule.invoke(new CallableTask() {
                         @Override void onCall() throws Exception {
                             sub.target.onCall(input);
                         }
@@ -73,7 +73,7 @@ public class Reactor<T> {
         return this;
     }
 
-    private static abstract class ScheduleTask implements Callable<Void> {
+    private static abstract class CallableTask implements Callable<Void> {
 
         @Override
         public Void call() throws Exception {

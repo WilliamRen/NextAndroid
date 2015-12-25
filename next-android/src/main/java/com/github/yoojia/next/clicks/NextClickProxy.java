@@ -55,8 +55,7 @@ public class NextClickProxy {
         notNull(target, "Target object must not be null");
         try {
             mScheduleRef.invoke(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
+                @Override public Void call() throws Exception {
                     register(target);
                     return null;
                 }

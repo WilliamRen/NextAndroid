@@ -27,7 +27,7 @@ class MethodSubscriber implements Subscriber<Meta>{
     @Override
     @SuppressWarnings("unchecked")
     public void onErrors(Meta input, Exception errors) {
-        throw new RuntimeException("Error on method error handler, input: " + input, errors);
+        throw new RuntimeException("Error on Input: " + input, errors);
     }
 
     boolean isSameWith(Method method) {

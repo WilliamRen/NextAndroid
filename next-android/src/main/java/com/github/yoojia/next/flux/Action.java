@@ -180,10 +180,21 @@ public final class Action {
                 '}';
     }
 
+    /**
+     * 快捷地构建一个Action
+     * @param type Action类型
+     * @return Action
+     */
     public static Action create(String type) {
         return new Action.Builder().setType(type).build();
     }
 
+    /**
+     * 直接传递Action
+     * @param type 新的Action类型
+     * @param action 需要传递的Action
+     * @return Action
+     */
     public static Action forward(String type, Action action) {
         return new Action.Builder().setType(type).copy(action).build();
     }

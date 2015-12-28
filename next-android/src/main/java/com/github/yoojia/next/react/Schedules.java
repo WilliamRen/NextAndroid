@@ -60,6 +60,10 @@ public final class Schedules {
         return SharedSchedule.getDefault();
     }
 
+    public static void certainlyShutdownThreads(){
+        SharedSchedule.EXECUTOR.shutdown();
+    }
+
     private static void invoke(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
         switch (scheduleFlags) {
             case Schedule.FLAG_ON_CALLER:
@@ -68,20 +72,19 @@ public final class Schedules {
             case Schedule.FLAG_ON_THREADS:
                 threads.submit(task);
                 break;
-            case Schedule.FLAG_ON_MAIN:
-                if (Looper.getMainLooper() != Looper.myLooper()) {
+            case Schedule.FLAG_ON_UI_THREAD:
+                if (Looper.getMainLooper() == Looper.myLooper()) {
+                    task.call();
+                }else{
                     InternalHandler.getDefault().post(new Runnable() {
-                        @Override
-                        public void run() {
+                        @Override public void run() {
                             try {
                                 task.call();
-                            } catch (Exception err) {
-                                throw new RuntimeException(err);
+                            } catch (Exception error) {
+                                throw new RuntimeException(error);
                             }
                         }
                     });
-                }else{
-                    task.call();
                 }
                 break;
             default:
@@ -145,10 +148,6 @@ public final class Schedules {
                 return mDefaultHandler;
             }
         }
-    }
-
-    public static void certainlyShutdownThreads(){
-        SharedSchedule.EXECUTOR.shutdown();
     }
 
 }

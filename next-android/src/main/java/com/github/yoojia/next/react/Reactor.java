@@ -2,6 +2,7 @@ package com.github.yoojia.next.react;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -45,7 +46,11 @@ public class Reactor<T> {
             if (sub.accept(input)) {
                 hits += 1;
                 try {
-                    schedule.invoke(sub.createTask(input), sub.scheduleFlag);
+                    schedule.invoke(new CallableTask() {
+                        @Override void onCall() throws Exception {
+                            sub.target.onCall(input);
+                        }
+                    }, sub.scheduleFlag);
                 } catch (Exception errorWhenCall) {
                     sub.target.onErrors(input, errorWhenCall);
                 }
@@ -66,6 +71,17 @@ public class Reactor<T> {
     public Reactor<T> onEventListener(OnEventListener<T> listener) {
         mOnEventListenerWrap.set(listener);
         return this;
+    }
+
+    private static abstract class CallableTask implements Callable<Void> {
+
+        @Override
+        public Void call() throws Exception {
+            onCall();
+            return null;
+        }
+
+        abstract void onCall() throws Exception;
     }
 
 }

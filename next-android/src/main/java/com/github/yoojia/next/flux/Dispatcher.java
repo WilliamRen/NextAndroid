@@ -43,7 +43,6 @@ public final class Dispatcher {
             // Only accept Action type
             @Override
             public boolean accept(Method method) {
-                // Check categories
                 // - If set category, @Category is required
                 if (mCategoryName != null && !mCategoryName.isEmpty()) {
                     if (!method.isAnnotationPresent(Category.class)) {

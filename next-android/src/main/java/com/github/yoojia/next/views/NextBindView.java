@@ -15,14 +15,14 @@ import java.util.List;
  * @author 陈小锅 (yoojiachen@gmail.com)
  * @since 1.0
  */
-public class NextAutoView {
+public class NextBindView {
 
-    private static final String TAG = NextAutoView.class.getSimpleName();
+    private static final String TAG = NextBindView.class.getSimpleName();
 
     private final Object mTarget;
     private final Class<?> mTargetType;
 
-    public NextAutoView(Object target) {
+    public NextBindView(Object target) {
         mTarget = target;
         mTargetType = target.getClass();
     }
@@ -32,14 +32,14 @@ public class NextAutoView {
                 .filter(AutoViewFieldFilter.getDefault())
                 .find(mTargetType);
         if (fields.isEmpty()){
-            Log.d(TAG, "- Empty Views(with @AutoView) ! Target Object: " + mTarget);
+            Log.d(TAG, "- Empty Views(with @BindView) ! Target Object: " + mTarget);
             Warning.show(TAG);
         }else{
             for (Field field : fields){
                 field.setAccessible(true);
-                final AutoView av = field.getAnnotation(AutoView.class);
+                final BindView a = field.getAnnotation(BindView.class);
                 try {
-                    final View view = viewField.find(av.value(), av.parents());
+                    final View view = viewField.find(a.value(), a.parents());
                     field.set(mTarget, view);
                 } catch (IllegalAccessException e) {
                     throw new IllegalArgumentException(e);
@@ -78,7 +78,7 @@ public class NextAutoView {
             if (! View.class.isAssignableFrom(type)) {
                 return false;
             }
-            return field.isAnnotationPresent(AutoView.class);
+            return field.isAnnotationPresent(BindView.class);
         }
 
         public static AutoViewFieldFilter getDefault(){
@@ -96,9 +96,9 @@ public class NextAutoView {
     /**
      * 绑定扫描扫描对象及扫描停止类型
      * @param host 目标对象
-     * @return NextAutoView
+     * @return NextBindView
      */
-    public static NextAutoView use(Object host){
-        return new NextAutoView(host);
+    public static NextBindView use(Object host){
+        return new NextBindView(host);
     }
 }

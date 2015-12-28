@@ -5,25 +5,25 @@ import com.github.yoojia.next.react.Schedule;
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  */
-public enum RunOn {
+public enum Runs {
     /**
      * 由调用者线程执行回调
      */
-    CALLER(Schedule.FLAG_ON_CALLER),
+    ON_CALLER(Schedule.FLAG_ON_CALLER),
 
     /**
-     * 由主线程执行回调
+     * 由UI主线程执行回调
      */
-    MAIN(Schedule.FLAG_ON_MAIN),
+    ON_UI_THREAD(Schedule.FLAG_ON_UI_THREAD),
 
     /**
      * 由线程池的线程执行回调
      */
-    THREADS(Schedule.FLAG_ON_THREADS);
+    ON_THREADS(Schedule.FLAG_ON_THREADS);
 
     final int scheduleFlag;
 
-    RunOn(int flag) {
+    Runs(int flag) {
         this.scheduleFlag = flag;
     }
 }

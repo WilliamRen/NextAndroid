@@ -21,8 +21,8 @@ public @interface Subscribe {
 
     /**
      * 指定回调方式。
-     * - 默认方式为 CALLER；
-     * @return RunOn
+     * - 默认方式为 ON_CALLER；
+     * @return RunTypes
      */
-    RunOn runOn() default RunOn.CALLER;
+    Runs run() default Runs.ON_CALLER;
 }

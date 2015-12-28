@@ -14,7 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @java.lang.annotation.Target(ElementType.FIELD)
-public @interface ClickEvt {
+public @interface Click {
 
     /**
      * 事件名

@@ -6,8 +6,11 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
+import com.github.yoojia.next.events.MethodSubscriber;
+import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 
 import java.lang.reflect.Field;
@@ -25,10 +28,10 @@ public class NextClickProxy {
     private static final String TAG = "CLICK-PROXY";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
-    private final ClickEventsImpl mEvents;
+    private final ClickEvents mClickEvents;
 
     public NextClickProxy() {
-        mEvents = new ClickEventsImpl(Schedules.newCaller());
+        mClickEvents = new ClickEvents(Schedules.newCaller());
     }
 
     /**
@@ -66,7 +69,7 @@ public class NextClickProxy {
         }catch (Exception e){
             throw new IllegalArgumentException(e);
         }
-        mEvents.register(target, CallbackMethodFilter.getDefault());
+        mClickEvents.register(target, CallbackMethodFilter.getDefault());
         return this;
     }
 
@@ -85,11 +88,11 @@ public class NextClickProxy {
     public <T extends View> void emitClick(T view, String event){
         notNull(view, "View must not be null");
         notNull(event, "Event must not be null");
-        mEvents.emit(event, new ClickEvent(view));
+        mClickEvents.emit(event, new ClickEvent(view));
     }
 
     public NextClickProxy unregister(Object host){
-        mEvents.unregister(host);
+        mClickEvents.unregister(host);
         return this;
     }
 
@@ -105,6 +108,13 @@ public class NextClickProxy {
         if (TextUtils.isEmpty(evt.value())) {
             throw new IllegalArgumentException("Event name in @ClickEvent cannot be empty");
         }
+    }
+
+
+    public static NextClickProxy bind(Object host) {
+        final NextClickProxy proxy = new NextClickProxy();
+        proxy.register(host);
+        return proxy;
     }
 
     private static class ClickEvtFieldFilter implements Filter<Field> {
@@ -164,19 +174,35 @@ public class NextClickProxy {
         }
     }
 
-    public static NextClickProxy bind(Object host) {
-        final NextClickProxy proxy = new NextClickProxy();
-        proxy.register(host);
-        return proxy;
+    /**
+     * 覆盖NextEvents对@Subscriber注解的处理，并使用@ClickHandler来替换其处理过程
+     */
+    private class ClickEvents extends NextEvents {
+
+        public ClickEvents(Schedule subscribeOn) {
+            super(subscribeOn);
+        }
+
+        @Override
+        protected boolean isSubscribeMethod(Method method) {
+            if (method.isBridge() || method.isSynthetic()) {
+                return false;
+            }
+            if (! method.isAnnotationPresent(ClickHandler.class)) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected void subscribeTargetMethod(Object object, Method method, NextEvents.InvokableMethods invokable) {
+            final ClickHandler subscribe = method.getAnnotation(ClickHandler.class);
+            final MethodSubscriber subscriber = new MethodSubscriber(object, method);
+            invokable.add(subscriber);
+            final String defineName = subscribe.on();
+            final Class<?> defineType = method.getParameterTypes()[0];
+            subscribe(defineName, defineType, subscriber, Schedule.FLAG_ON_CALLER);
+        }
     }
 
-    /**
-     * 由使用者确保只会调用一次的绑定处理
-     * @param host 目标对象
-     * @return NextClickProxy对象
-     */
-    @Deprecated
-    public static NextClickProxy oneshotBind(Object host) {
-        return bind(host);
-    }
 }

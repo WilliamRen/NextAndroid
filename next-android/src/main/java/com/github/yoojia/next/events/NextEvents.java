@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.MethodsFinder;
-import com.github.yoojia.next.react.OnEventListener;
+import com.github.yoojia.next.react.OnTargetMissListener;
 import com.github.yoojia.next.react.Reactor;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
@@ -81,12 +81,7 @@ public class NextEvents {
             for (final Method method : annotatedMethods) {
                 checkSignature(method);
                 if (invokable.notContains(method)) {
-                    final Subscribe subscribe = method.getAnnotation(Subscribe.class);
-                    final MethodSubscriber subscriber = new MethodSubscriber(object, method);
-                    invokable.add(subscriber);
-                    final String defineName = subscribe.on();
-                    final Class<?> defineType = method.getParameterTypes()[0];
-                    subscribe(defineName, defineType, subscriber, subscribe.run().scheduleFlag);
+                    subscribeTargetMethod(object, method, invokable);
                 }
             }
         }
@@ -176,13 +171,28 @@ public class NextEvents {
      * @return NextEvents
      * @throws NullPointerException If listener is null
      */
-    public NextEvents onEventListener(OnEventListener<Meta> listener){
+    public NextEvents setOnTargetMissListener(OnTargetMissListener<Meta> listener){
         notNull(listener);
         mReactor.onEventListener(listener);
         return this;
     }
 
-    private static Filter<Method> newMethodFilter(final Filter<Method> customFilter) {
+    /**
+     * 提供可Override的访问权限，给子类改写默认处理过程的可能性
+     * @param object Object
+     * @param method Method with annotation
+     * @param invokable Invokable
+     */
+    protected void subscribeTargetMethod(Object object, Method method, InvokableMethods invokable) {
+        final Subscribe subscribe = method.getAnnotation(Subscribe.class);
+        final MethodSubscriber subscriber = new MethodSubscriber(object, method);
+        invokable.add(subscriber);
+        final String defineName = subscribe.on();
+        final Class<?> defineType = method.getParameterTypes()[0];
+        subscribe(defineName, defineType, subscriber, subscribe.run().scheduleFlag);
+    }
+
+    protected Filter<Method> newMethodFilter(final Filter<Method> customFilter) {
         return new Filter<Method>() {
             @Override public boolean accept(Method method) {
                 if ( ! isSubscribeMethod(method)) {
@@ -194,7 +204,7 @@ public class NextEvents {
         };
     }
 
-    private static boolean isSubscribeMethod(Method method) {
+    protected boolean isSubscribeMethod(Method method) {
         if (method.isBridge() || method.isSynthetic()) {
             return false;
         }
@@ -214,7 +224,7 @@ public class NextEvents {
         }
     }
 
-    private static class InvokableMethods extends ArrayList<MethodSubscriber> {
+    public static class InvokableMethods extends ArrayList<MethodSubscriber> {
 
         public boolean notContains(Method method) {
             for (MethodSubscriber ms : this) {

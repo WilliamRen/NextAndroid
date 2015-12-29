@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.github.yoojia.next.clicks.Click;
 import com.github.yoojia.next.clicks.ClickEvent;
+import com.github.yoojia.next.clicks.ClickHandler;
 import com.github.yoojia.next.clicks.NextClickProxy;
 import com.github.yoojia.next.events.Runs;
 import com.github.yoojia.next.events.Subscribe;
@@ -39,19 +40,19 @@ public class MainActivity extends AppCompatActivity {
         // Inject views
         NextBindView.use(this).inject(this);
         // Click proxy
-        NextClickProxy.oneshotBind(this);
+        NextClickProxy.bind(this);
         // Flux
         mStore = new TestStore(mDispatcher, this);
         mDispatcher.register(this);
     }
 
-    @Subscribe(on = "click", run = Runs.ON_UI_THREAD)
+    @ClickHandler(on = "click")
     private void onClick(ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {
             long genData = System.currentTimeMillis();
             // Emit action, TestStore will handle this request
-            mDispatcher.emit(TestActions.newReqClick(genData));
+            mDispatcher.dispatch(TestActions.newReqClick(genData));
         }
         long diff = System.currentTimeMillis() - emitStart;
         Log.d(TAG, "- Emit 1000 event, takes: " + diff + "ms");

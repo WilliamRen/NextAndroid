@@ -5,7 +5,7 @@ package com.github.yoojia.next.react;
  *
  * @author YOOJIA.CHEN (yoojiachen@gmail.com)
  */
-public interface OnEventListener<T> {
+public interface OnTargetMissListener<T> {
 
-    void onEventMiss(T input);
+    void onTargetMiss(T input);
 }

@@ -1,6 +1,6 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.react.OnEventListener;
+import com.github.yoojia.next.react.OnTargetMissListener;
 
 import junit.framework.Assert;
 
@@ -25,9 +25,9 @@ public class RegTest{
         final Target target = new Target();
         final CountDownLatch missCount = new CountDownLatch(3);
         final NextEvents events = new NextEvents();
-        events.onEventListener(new OnEventListener<Meta>() {
+        events.setOnTargetMissListener(new OnTargetMissListener<Meta>() {
             @Override
-            public void onEventMiss(Meta input) {
+            public void onTargetMiss(Meta input) {
                 System.err.println("> miss input: " + input);
                 missCount.countDown();
             }

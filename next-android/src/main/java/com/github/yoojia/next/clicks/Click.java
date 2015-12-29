@@ -20,7 +20,7 @@ public @interface Click {
      * 事件名
      * @return String
      */
-    String value() default "";
+    String value();
 
     /**
      * 按键码

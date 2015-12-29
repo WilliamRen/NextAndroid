@@ -16,10 +16,17 @@ public class Reactor<T> {
     private final List<Subscription<T>> mSubscriptions = new CopyOnWriteArrayList<>();
     private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
     private final AtomicReference<Schedule> mScheduleWrap;
-    private final AtomicReference<OnEventListener<T>> mOnEventListenerWrap = new AtomicReference<>();
+    private final AtomicReference<OnTargetMissListener<T>> mOnTargetMissListenerWrap;
 
     public Reactor(Schedule subscribeOn) {
         mScheduleWrap = new AtomicReference<>(subscribeOn);
+        mOnTargetMissListenerWrap = new AtomicReference<>();
+        mOnTargetMissListenerWrap.set(new OnTargetMissListener<T>() {
+            @Override
+            public void onTargetMiss(T input) {
+                throw new IllegalStateException("Invoke target is MISSED, Input: " + input);
+            }
+        });
     }
 
     public synchronized Reactor<T> add(Subscription<T> newSub) {
@@ -56,9 +63,9 @@ public class Reactor<T> {
                 }
             }
         }
-        final OnEventListener<T> listener = mOnEventListenerWrap.get();
+        final OnTargetMissListener<T> listener = mOnTargetMissListenerWrap.get();
         if (hits <= 0 && listener != null) {
-            listener.onEventMiss(input);
+            listener.onTargetMiss(input);
         }
         return this;
     }
@@ -68,8 +75,8 @@ public class Reactor<T> {
         return this;
     }
 
-    public Reactor<T> onEventListener(OnEventListener<T> listener) {
-        mOnEventListenerWrap.set(listener);
+    public Reactor<T> onEventListener(OnTargetMissListener<T> listener) {
+        mOnTargetMissListenerWrap.set(listener);
         return this;
     }
 

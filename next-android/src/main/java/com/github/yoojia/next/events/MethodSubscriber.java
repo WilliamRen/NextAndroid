@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @version 2015-11-06
  */
-class MethodSubscriber implements Subscriber<Meta>{
+public class MethodSubscriber implements Subscriber<Meta>{
 
     private final Object mObject;
     private final Method mMethod;

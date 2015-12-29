@@ -6,18 +6,13 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
-import com.github.yoojia.next.events.Meta;
-import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.react.OnEventListener;
-import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
@@ -30,40 +25,10 @@ public class NextClickProxy {
     private static final String TAG = "CLICK-PROXY";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
-    private final NextEvents mEvents;
-    private final Schedule mScheduleRef;
+    private final ClickEventsImpl mEvents;
 
     public NextClickProxy() {
-        mScheduleRef = Schedules.sharedThreads();
-        mEvents = new NextEvents(mScheduleRef);
-        // Click event not allow missing target
-        mEvents.onEventListener(new OnEventListener<Meta>() {
-            @Override public void onEventMiss(Meta input) {
-                throw new IllegalStateException("Handler target is missed, Input event: " + input);
-            }
-        });
-    }
-
-    /**
-     * 注册点击处理.
-     * - 注册过程为异步处理. 此方法执行后立即返回, 不保证方法执行后点击处理注册全部成功;
-     * - 必须在主线程中执行此方法;
-     * @param target 目标对象
-     * @return NextClickProxy
-     */
-    public NextClickProxy registerAsync(final Object target){
-        notNull(target, "Target object must not be null");
-        try {
-            mScheduleRef.invoke(new Callable<Void>() {
-                @Override public Void call() throws Exception {
-                    register(target);
-                    return null;
-                }
-            }, Schedule.FLAG_ON_THREADS);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
-        return this;
+        mEvents = new ClickEventsImpl(Schedules.newCaller());
     }
 
     /**

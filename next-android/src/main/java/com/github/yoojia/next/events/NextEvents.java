@@ -169,10 +169,8 @@ public class NextEvents {
      * Set event listener
      * @param listener Listener
      * @return NextEvents
-     * @throws NullPointerException If listener is null
      */
     public NextEvents setOnTargetMissListener(OnTargetMissListener<Meta> listener){
-        notNull(listener);
         mReactor.onEventListener(listener);
         return this;
     }

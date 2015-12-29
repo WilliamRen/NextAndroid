@@ -1,8 +1,10 @@
 package com.github.yoojia.next.flux;
 
+import com.github.yoojia.next.events.Meta;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
+import com.github.yoojia.next.react.OnTargetMissListener;
 import com.github.yoojia.next.react.Schedule;
 import com.github.yoojia.next.react.Schedules;
 
@@ -24,6 +26,7 @@ public final class Dispatcher {
     public Dispatcher(Schedule schedulers, String categoryName) {
         mCategoryName = categoryName;
         mEvents = new NextEvents(schedulers);
+        setOnTargetMissListener(null); // Set NULL to allow miss target
     }
 
     public Dispatcher(String categoryName) {
@@ -91,6 +94,10 @@ public final class Dispatcher {
      */
     public void setTraceEnabled(boolean enabled) {
         mTraceEnabled = enabled;
+    }
+
+    public void setOnTargetMissListener(OnTargetMissListener<Meta> listener) {
+        mEvents.setOnTargetMissListener(listener);
     }
 
     private void logCallStack(Action action) {

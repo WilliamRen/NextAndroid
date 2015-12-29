@@ -15,13 +15,13 @@ public class Reactor<T> {
 
     private final List<Subscription<T>> mSubscriptions = new CopyOnWriteArrayList<>();
     private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
-    private final AtomicReference<Schedule> mScheduleWrap;
-    private final AtomicReference<OnTargetMissListener<T>> mOnTargetMissListenerWrap;
+    private final AtomicReference<Schedule> mSchedule;
+    private final AtomicReference<OnTargetMissListener<T>> mOnTargetMissListener;
 
     public Reactor(Schedule subscribeOn) {
-        mScheduleWrap = new AtomicReference<>(subscribeOn);
-        mOnTargetMissListenerWrap = new AtomicReference<>();
-        mOnTargetMissListenerWrap.set(new OnTargetMissListener<T>() {
+        mSchedule = new AtomicReference<>(subscribeOn);
+        mOnTargetMissListener = new AtomicReference<>();
+        mOnTargetMissListener.set(new OnTargetMissListener<T>() {
             @Override
             public void onTargetMiss(T input) {
                 throw new IllegalStateException("Invoke target is MISSED, Input: " + input);
@@ -47,7 +47,7 @@ public class Reactor<T> {
     }
 
     public Reactor<T> emit(final T input) {
-        final Schedule schedule = mScheduleWrap.get();
+        final Schedule schedule = mSchedule.get();
         int hits = 0;
         for (final Subscription<T> sub : mSubscriptions) {
             if (sub.accept(input)) {
@@ -63,7 +63,7 @@ public class Reactor<T> {
                 }
             }
         }
-        final OnTargetMissListener<T> listener = mOnTargetMissListenerWrap.get();
+        final OnTargetMissListener<T> listener = mOnTargetMissListener.get();
         if (hits <= 0 && listener != null) {
             listener.onTargetMiss(input);
         }
@@ -71,12 +71,12 @@ public class Reactor<T> {
     }
 
     public Reactor<T> subscribeOn(Schedule schedule) {
-        mScheduleWrap.set(schedule);
+        mSchedule.set(schedule);
         return this;
     }
 
     public Reactor<T> onEventListener(OnTargetMissListener<T> listener) {
-        mOnTargetMissListenerWrap.set(listener);
+        mOnTargetMissListener.set(listener);
         return this;
     }
 

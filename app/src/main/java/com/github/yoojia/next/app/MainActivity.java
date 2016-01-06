@@ -12,6 +12,9 @@ import com.github.yoojia.next.clicks.ClickHandler;
 import com.github.yoojia.next.clicks.NextClickProxy;
 import com.github.yoojia.next.events.Runs;
 import com.github.yoojia.next.events.Subscribe;
+import com.github.yoojia.next.flux.Action;
+import com.github.yoojia.next.flux.ActionCreator;
+import com.github.yoojia.next.flux.ActionTypes;
 import com.github.yoojia.next.flux.Dispatcher;
 import com.github.yoojia.next.views.BindView;
 import com.github.yoojia.next.views.NextBindView;
@@ -36,23 +39,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         // Inject views
         NextBindView.use(this).inject(this);
         // Click proxy
         NextClickProxy.bind(this);
         // Flux
-        mStore = new TestStore(mDispatcher, this);
+        mStore = new TestStore(mDispatcher);
         mDispatcher.register(this);
+    }
+
+    @Subscribe(on = ActionTypes.CHANGED_MESSAGES, run = Runs.ON_CALLER)
+    public void onChanged(Action action) {
+        switch (action.type) {
+            case "finish":
+                Log.d(TAG, "- Emit 1000 event, finish");
+                break;
+        }
     }
 
     @ClickHandler(on = "click")
     private void onClick(ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {
-            long genData = System.currentTimeMillis();
+            long longData = System.currentTimeMillis();
             // Emit action, TestStore will handle this request
-            mDispatcher.dispatch(TestActions.newReqClick(genData));
+            mDispatcher.emit(ActionCreator.createRawMessage("on-long", new LongMessage(longData)));
+            mDispatcher.emit(ActionCreator.createRawMessage("on-string", new StringMessage("hahaha")));
         }
         long diff = System.currentTimeMillis() - emitStart;
         Log.d(TAG, "- Emit 1000 event, takes: " + diff + "ms");
@@ -63,4 +75,5 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         mDispatcher.unregister(this);
     }
+
 }

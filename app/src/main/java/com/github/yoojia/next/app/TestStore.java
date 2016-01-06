@@ -1,29 +1,45 @@
 package com.github.yoojia.next.app;
 
-import android.app.Activity;
+import android.util.Log;
 
-import com.github.yoojia.next.events.Runs;
 import com.github.yoojia.next.events.Subscribe;
-import com.github.yoojia.next.flux.AbstractStore;
 import com.github.yoojia.next.flux.Action;
+import com.github.yoojia.next.flux.ActionCreator;
+import com.github.yoojia.next.flux.ActionTypes;
 import com.github.yoojia.next.flux.Dispatcher;
+import com.github.yoojia.next.flux.Message;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-public class TestStore extends AbstractStore<Activity> {
+public class TestStore {
 
-    protected TestStore(Dispatcher dispatcher, Activity contextHost) {
-        super(dispatcher, contextHost);
+    private final Dispatcher mDispatcher;
+
+    public TestStore(Dispatcher dispatcher) {
+        mDispatcher = dispatcher;
     }
 
     // Run runAsync
-    @Subscribe(on = TestActions.REQ_CLICK, run = Runs.ON_THREADS)
-    private void onClick(Action evt) {
-        final long data = evt.data.getLong("data");
-//        Log.d("TestStore", "Received request, data: " + data);
-        // Emit result, invoke View to update
-        dispatch(TestActions.newNotifyClick(data));
+    @Subscribe(on = ActionTypes.RAW_MESSAGES)
+    public void onMessages(Action act) {
+        switch (act.type) {
+            case "on-long":
+                onLongData((LongMessage) act.message);
+                break;
+            case "on-string":
+                onStringData((StringMessage) act.message);
+                break;
+        }
+        mDispatcher.emit(ActionCreator.createChangedMessage("finish", new LongMessage(System.currentTimeMillis())));
+    }
+
+    private void onLongData(LongMessage message) {
+        Log.d("TestStore", "Received request, LONG data: " + message.data());
+    }
+
+    private void onStringData(StringMessage message) {
+        Log.d("TestStore", "Received request, STRING data: " + message.data());
     }
 }

@@ -185,6 +185,7 @@ public class NextClickProxy {
 
         @Override
         protected boolean isSubscribeMethod(Method method) {
+            // Hook call super to use @ClickHandler annotation
             if (method.isBridge() || method.isSynthetic()) {
                 return false;
             }
@@ -196,6 +197,7 @@ public class NextClickProxy {
 
         @Override
         protected void subscribeTargetMethod(Object object, Method method, NextEvents.InvokableMethods invokable) {
+            // Hook call super to use @ClickHandler annotation
             final ClickHandler subscribe = method.getAnnotation(ClickHandler.class);
             final MethodSubscriber subscriber = new MethodSubscriber(object, method);
             invokable.add(subscriber);

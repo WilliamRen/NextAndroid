@@ -19,22 +19,17 @@ public final class Dispatcher {
     private static final String CALL_STACK_WARN = "Use <dispatcher.setTraceEnabled(...)> to collect methods stack !";
 
     private final NextEvents mEvents;
-    private final String mCategoryName;
 
     private boolean mTraceEnabled = false;
 
-    public Dispatcher(Schedule schedulers, String categoryName) {
-        mCategoryName = categoryName;
+    public Dispatcher(Schedule schedulers) {
         mEvents = new NextEvents(schedulers);
         setOnTargetMissListener(null); // Set NULL to allow miss target
     }
 
-    public Dispatcher(String categoryName) {
-        this(Schedules.sharedThreads(), categoryName);
-    }
 
     public Dispatcher(){
-        this(null);
+        this(Schedules.sharedThreads());
     }
 
     /**
@@ -43,19 +38,9 @@ public final class Dispatcher {
      */
     public void register(Object host){
         mEvents.register(host, new Filter<Method>() {
-            // Only accept Action type
+            // Only accept Message type
             @Override
             public boolean accept(Method method) {
-                // - If set category, @Category is required
-                if (mCategoryName != null && !mCategoryName.isEmpty()) {
-                    if (!method.isAnnotationPresent(Category.class)) {
-                        return false;
-                    }
-                    final Category category = method.getAnnotation(Category.class);
-                    if (!mCategoryName.equals(category.value())) {
-                        return false;
-                    }
-                }
                 final Class<?>[] types = method.getParameterTypes();
                 return Action.class.equals(types[0]);
             }
@@ -72,20 +57,11 @@ public final class Dispatcher {
 
     /**
      * 提交Action事件
-     * @param action Action 事件
+     * @param at 事件
      */
-    @Deprecated
-    public void emit(Action action){
-        dispatch(action);
-    }
-
-    /**
-     * 派发Action事件
-     * @param action Action 事件
-     */
-    public void dispatch(Action action){
-        logCallStack(action);
-        mEvents.emit(action.type, action);
+    public void emit(ActionEvent at){
+        putCallStack(at.action);
+        mEvents.emit(at.event, at);
     }
 
     /**
@@ -100,7 +76,7 @@ public final class Dispatcher {
         mEvents.setOnTargetMissListener(listener);
     }
 
-    private void logCallStack(Action action) {
+    private void putCallStack(Action action) {
         // 记录回调方法栈
         if (mTraceEnabled) {
             action.setSenderStack(CallStack.collect());

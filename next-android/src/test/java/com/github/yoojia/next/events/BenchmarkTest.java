@@ -97,7 +97,7 @@ public class BenchmarkTest {
             hitEvt1();
         }
 
-        @Subscribe(on = "", run = Runs.ON_CALLER)
+        @Subscribe(on = "long", run = Runs.ON_CALLER)
         public void onEvents1(long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();

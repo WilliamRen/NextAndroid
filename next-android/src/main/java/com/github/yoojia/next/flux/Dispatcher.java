@@ -57,11 +57,11 @@ public final class Dispatcher {
 
     /**
      * 提交Action事件
-     * @param at 事件
+     * @param event 事件
      */
-    public void emit(ActionEvent at){
-        putCallStack(at.action);
-        mEvents.emit(at.event, at);
+    public void emit(ActionEvent event){
+        putCallStack(event.action);
+        mEvents.emit(event.event, event.action);
     }
 
     /**

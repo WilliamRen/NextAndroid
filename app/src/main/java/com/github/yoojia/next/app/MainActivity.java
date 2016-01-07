@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         NextClickProxy.bind(this);
         // Flux
         mStore = new TestStore(mDispatcher);
+        mDispatcher.register(mStore);
         mDispatcher.register(this);
     }
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     public void onChanged(Action action) {
         switch (action.type) {
             case "finish":
-                Log.d(TAG, "- Emit 1000 event, finish");
+                Log.d(TAG, "- Emit event, finish");
                 break;
         }
     }
@@ -60,19 +61,16 @@ public class MainActivity extends AppCompatActivity {
     @ClickHandler(on = "click")
     private void onClick(ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
-        for (int i = 0; i < 1000; i++) {
-            long longData = System.currentTimeMillis();
-            // Emit action, TestStore will handle this request
-            mDispatcher.emit(ActionCreator.createRawMessage("on-long", new LongMessage(longData)));
-            mDispatcher.emit(ActionCreator.createRawMessage("on-string", new StringMessage("hahaha")));
-        }
+        long longData = System.currentTimeMillis();
+        mDispatcher.emit(ActionCreator.createRawMessage("on-long", new LongMessage(longData)));
         long diff = System.currentTimeMillis() - emitStart;
-        Log.d(TAG, "- Emit 1000 event, takes: " + diff + "ms");
+        Log.d(TAG, "- Emit an event, takes: " + diff + "ms");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mDispatcher.unregister(mStore);
         mDispatcher.unregister(this);
     }
 

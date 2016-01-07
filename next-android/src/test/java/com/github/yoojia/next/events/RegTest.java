@@ -1,6 +1,6 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.react.OnTargetMissListener;
+import com.github.yoojia.next.events.supports.OnTargetMissListener;
 
 import junit.framework.Assert;
 

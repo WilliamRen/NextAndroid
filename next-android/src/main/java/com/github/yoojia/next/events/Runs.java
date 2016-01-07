@@ -1,6 +1,6 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.react.Schedule;
+import com.github.yoojia.next.events.supports.Schedule;
 
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)

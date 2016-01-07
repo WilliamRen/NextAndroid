@@ -1,6 +1,6 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.react.Subscriber;
+import com.github.yoojia.next.events.supports.Subscriber;
 
 import java.lang.reflect.Method;
 

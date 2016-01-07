@@ -1,7 +1,7 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.react.Schedule;
-import com.github.yoojia.next.react.Schedules;
+import com.github.yoojia.next.events.supports.Schedule;
+import com.github.yoojia.next.events.supports.Schedules;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 

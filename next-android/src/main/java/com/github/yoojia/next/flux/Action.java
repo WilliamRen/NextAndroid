@@ -8,7 +8,8 @@ import com.github.yoojia.next.lang.ObjectWrap;
  */
 public final class Action {
 
-    public final String type;
+    final String type;
+
     public final Message message;
     public final Object extras;
 

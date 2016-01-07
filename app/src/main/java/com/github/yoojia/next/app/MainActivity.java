@@ -13,12 +13,9 @@ import com.github.yoojia.next.clicks.NextClickProxy;
 import com.github.yoojia.next.events.Runs;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.flux.Action;
-import com.github.yoojia.next.flux.ActionCreator;
-import com.github.yoojia.next.flux.ActionTypes;
 import com.github.yoojia.next.flux.Dispatcher;
 import com.github.yoojia.next.views.BindView;
 import com.github.yoojia.next.views.NextBindView;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,18 +48,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe(on = ActionTypes.CHANGED_MESSAGES, run = Runs.ON_CALLER)
     public void onChanged(Action action) {
-        switch (action.type) {
-            case "finish":
-                Log.d(TAG, "- Emit event, finish");
-                break;
-        }
+        Log.d(TAG, "- Emit event, finish");
     }
 
     @ClickHandler(on = "click")
     private void onClick(ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
         long longData = System.currentTimeMillis();
-        mDispatcher.emit(ActionCreator.createRawMessage("on-long", new LongMessage(longData)));
+        mDispatcher.emit(ActionTypes.createRawMessage(new LongMessage(longData)));
         long diff = System.currentTimeMillis() - emitStart;
         Log.d(TAG, "- Emit an event, takes: " + diff + "ms");
     }

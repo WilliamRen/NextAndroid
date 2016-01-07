@@ -27,7 +27,6 @@ public final class Dispatcher {
         setOnTargetMissListener(null); // Set NULL to allow miss target
     }
 
-
     public Dispatcher(){
         this(Schedules.sharedThreads());
     }
@@ -38,7 +37,7 @@ public final class Dispatcher {
      */
     public void register(Object host){
         mEvents.register(host, new Filter<Method>() {
-            // Only accept Message type
+            // Only accept <Action> type
             @Override
             public boolean accept(Method method) {
                 final Class<?>[] types = method.getParameterTypes();
@@ -56,12 +55,20 @@ public final class Dispatcher {
     }
 
     /**
-     * 提交Action事件
-     * @param event 事件
+     * 发出一个Action事件
+     * @param action Action
      */
-    public void emit(ActionEvent event){
-        putCallStack(event.action);
-        mEvents.emit(event.event, event.action);
+    public void emit(Action action){
+        putCallStack(action);
+        mEvents.emit(action.type, action);
+    }
+
+    /**
+     * 导出Events的接口
+     * @param listener OnTargetMissListener<Meta>
+     */
+    public void setOnTargetMissListener(OnTargetMissListener<Meta> listener) {
+        mEvents.setOnTargetMissListener(listener);
     }
 
     /**
@@ -70,10 +77,6 @@ public final class Dispatcher {
      */
     public void setTraceEnabled(boolean enabled) {
         mTraceEnabled = enabled;
-    }
-
-    public void setOnTargetMissListener(OnTargetMissListener<Meta> listener) {
-        mEvents.setOnTargetMissListener(listener);
     }
 
     private void putCallStack(Action action) {

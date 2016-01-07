@@ -65,7 +65,7 @@ public final class Dispatcher {
 
     /**
      * 导出Events的接口
-     * @param listener OnTargetMissListener<Meta>
+     * @param listener OnTargetMissListener
      */
     public void setOnTargetMissListener(OnTargetMissListener<Meta> listener) {
         mEvents.setOnTargetMissListener(listener);

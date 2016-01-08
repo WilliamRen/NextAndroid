@@ -24,7 +24,6 @@ public final class Dispatcher {
 
     public Dispatcher(Schedule schedulers) {
         mEvents = new NextEvents(schedulers);
-        setOnTargetMissListener(null); // Set NULL to allow miss target
     }
 
     public Dispatcher(){

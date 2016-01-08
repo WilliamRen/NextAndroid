@@ -25,6 +25,10 @@ public final class Action {
         this(type, message, null);
     }
 
+    public Action(String type) {
+        this(type, null);
+    }
+
     /**
      * 获取Action被emit前的调用方法栈.
      * @return 方法栈调用过程文本描述
@@ -40,4 +44,11 @@ public final class Action {
         mSenderStack.set(senderStack);
     }
 
+    public Action create(String type, Message message) {
+        return new Action(type, message);
+    }
+
+    public Action create(String type) {
+        return new Action(type);
+    }
 }

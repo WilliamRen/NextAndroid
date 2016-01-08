@@ -44,11 +44,11 @@ public final class Action {
         mSenderStack.set(senderStack);
     }
 
-    public Action create(String type, Message message) {
+    public static Action create(String type, Message message) {
         return new Action(type, message);
     }
 
-    public Action create(String type) {
+    public static Action create(String type) {
         return new Action(type);
     }
 }

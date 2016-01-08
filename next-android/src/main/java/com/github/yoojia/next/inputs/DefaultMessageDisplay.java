@@ -9,7 +9,7 @@ import android.widget.Toast;
  * Default message display
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-class DefaultMessageDisplay implements MessageDisplay {
+public class DefaultMessageDisplay implements MessageDisplay {
 
     private final static String TAG = DefaultMessageDisplay.class.getSimpleName();
 

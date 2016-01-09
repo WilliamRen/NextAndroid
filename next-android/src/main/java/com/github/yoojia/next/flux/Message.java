@@ -13,17 +13,13 @@ import java.util.ArrayList;
  */
 public class Message {
 
-    // Action一般用于传递少量常用类型参数，使用Bundle比HashMap性能更好。
     public final Bundle data = new Bundle();
     
-    protected Message(){
-    }
+    protected Message(){}
 
     protected Message(Bundle data) {
         this.data.putAll(data);
     }
-
-    ////////////////////// Fast getters for data
 
     public int getInt(String key, int defaultValue) {
         return data.getInt(key, defaultValue);

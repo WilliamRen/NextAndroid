@@ -44,6 +44,16 @@ public final class Action {
         mSenderStack.set(senderStack);
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+                "\"extras\":\"" + extras + "\"" +
+                ", \"type:\"" + type + "\"" +
+                ", \"message\":\"" + message + "\"" +
+                ", \"sender_stack\":\"" + mSenderStack + "\"" +
+                '}';
+    }
+
     public static Action create(String type, Message message) {
         return new Action(type, message);
     }

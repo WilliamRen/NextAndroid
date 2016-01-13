@@ -1,4 +1,4 @@
-package com.github.yoojia.next.react;
+package com.github.yoojia.next.events.supports;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 任务调度器
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  */
-public class Schedules {
+public final class Schedules {
 
     /**
      * 调用者调度器
@@ -60,6 +60,10 @@ public class Schedules {
         return SharedSchedule.getDefault();
     }
 
+    public static void certainlyShutdownThreads(){
+        SharedSchedule.EXECUTOR.shutdown();
+    }
+
     private static void invoke(ExecutorService threads, final Callable<Void> task, int scheduleFlags) throws Exception{
         switch (scheduleFlags) {
             case Schedule.FLAG_ON_CALLER:
@@ -68,20 +72,19 @@ public class Schedules {
             case Schedule.FLAG_ON_THREADS:
                 threads.submit(task);
                 break;
-            case Schedule.FLAG_ON_MAIN:
-                if (Looper.getMainLooper() != Looper.myLooper()) {
+            case Schedule.FLAG_ON_UI_THREAD:
+                if (Looper.getMainLooper() == Looper.myLooper()) {
+                    task.call();
+                }else{
                     InternalHandler.getDefault().post(new Runnable() {
-                        @Override
-                        public void run() {
+                        @Override public void run() {
                             try {
                                 task.call();
-                            } catch (Exception err) {
-                                throw new RuntimeException(err);
+                            } catch (Exception error) {
+                                throw new RuntimeException(error);
                             }
                         }
                     });
-                }else{
-                    task.call();
                 }
                 break;
             default:

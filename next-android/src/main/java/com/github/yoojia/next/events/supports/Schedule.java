@@ -1,4 +1,4 @@
-package com.github.yoojia.next.react;
+package com.github.yoojia.next.events.supports;
 
 import java.util.concurrent.Callable;
 
@@ -8,9 +8,9 @@ import java.util.concurrent.Callable;
  */
 public interface Schedule {
 
-    int FLAG_ON_MAIN =      1 << 1;
-    int FLAG_ON_THREADS =   1 << 2;
-    int FLAG_ON_CALLER =    1 << 3;
+    int FLAG_ON_UI_THREAD =       1 << 1;
+    int FLAG_ON_THREADS =           1 << 2;
+    int FLAG_ON_CALLER =            1 << 3;
 
     /**
      * 根据给定的Flags来决定如何调度任务的执行

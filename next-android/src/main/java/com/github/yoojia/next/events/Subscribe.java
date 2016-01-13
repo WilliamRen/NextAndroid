@@ -14,9 +14,15 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Subscribe {
     /**
-     * 指定回调方式。
-     * - 默认方式为 CALLER；
-     * @return RunOn
+     * 订阅事件
+     * @return String
      */
-    RunOn runOn() default RunOn.CALLER;
+    String on();
+
+    /**
+     * 指定回调方式。
+     * - 默认方式为 ON_CALLER；
+     * @return RunTypes
+     */
+    Runs run() default Runs.ON_CALLER;
 }

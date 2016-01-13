@@ -1,10 +1,12 @@
 package com.github.yoojia.next.flux;
 
+import com.github.yoojia.next.events.Meta;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.react.Schedule;
-import com.github.yoojia.next.react.Schedules;
+import com.github.yoojia.next.events.supports.OnTargetMissListener;
+import com.github.yoojia.next.events.supports.Schedule;
+import com.github.yoojia.next.events.supports.Schedules;
 
 import java.lang.reflect.Method;
 
@@ -17,21 +19,15 @@ public final class Dispatcher {
     private static final String CALL_STACK_WARN = "Use <dispatcher.setTraceEnabled(...)> to collect methods stack !";
 
     private final NextEvents mEvents;
-    private final String mCategoryName;
 
     private boolean mTraceEnabled = false;
 
-    public Dispatcher(Schedule schedulers, String categoryName) {
-        mCategoryName = categoryName;
+    public Dispatcher(Schedule schedulers) {
         mEvents = new NextEvents(schedulers);
     }
 
-    public Dispatcher(String categoryName) {
-        this(Schedules.sharedThreads(), categoryName);
-    }
-
     public Dispatcher(){
-        this(null);
+        this(Schedules.sharedThreads());
     }
 
     /**
@@ -40,20 +36,9 @@ public final class Dispatcher {
      */
     public void register(Object host){
         mEvents.register(host, new Filter<Method>() {
-            // Only accept Action type
+            // Only accept <Action> type
             @Override
             public boolean accept(Method method) {
-                // Check categories
-                // - If set category, @Category is required
-                if (mCategoryName != null && !mCategoryName.isEmpty()) {
-                    if (!method.isAnnotationPresent(Category.class)) {
-                        return false;
-                    }
-                    final Category category = method.getAnnotation(Category.class);
-                    if (!mCategoryName.equals(category.value())) {
-                        return false;
-                    }
-                }
                 final Class<?>[] types = method.getParameterTypes();
                 return Action.class.equals(types[0]);
             }
@@ -69,21 +54,20 @@ public final class Dispatcher {
     }
 
     /**
-     * 提交Action事件
-     * @param action Action 事件
+     * 发出一个Action事件
+     * @param action Action
      */
-    @Deprecated
     public void emit(Action action){
-        dispatch(action);
+        putCallStack(action);
+        mEvents.emit(action.type, action);
     }
 
     /**
-     * 派发Action事件
-     * @param action Action 事件
+     * 导出Events的接口
+     * @param listener OnTargetMissListener
      */
-    public void dispatch(Action action){
-        logCallStack(action);
-        mEvents.emit(action.type, action);
+    public void setOnTargetMissListener(OnTargetMissListener<Meta> listener) {
+        mEvents.setOnTargetMissListener(listener);
     }
 
     /**
@@ -94,7 +78,7 @@ public final class Dispatcher {
         mTraceEnabled = enabled;
     }
 
-    private void logCallStack(Action action) {
+    private void putCallStack(Action action) {
         // 记录回调方法栈
         if (mTraceEnabled) {
             action.setSenderStack(CallStack.collect());

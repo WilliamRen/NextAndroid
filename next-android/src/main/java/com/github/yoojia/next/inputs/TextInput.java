@@ -9,14 +9,14 @@ import android.widget.TextView;
  */
 public class TextInput<T extends TextView> implements Input{
 
-    final T inputView;
+    public final T inputView;
 
     public TextInput(T input) {
         inputView = input;
     }
 
     @Override
-    public String value() {
+    public String onLoadValue() {
         return String.valueOf(inputView.getText());
     }
 

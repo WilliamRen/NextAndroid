@@ -1,11 +1,20 @@
 package com.github.yoojia.next.inputs;
 
+import android.text.TextUtils;
+
 /**
- * Basic Tester
+ * Allow empty input
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public abstract class Tester {
+public abstract class Tester implements AbstractTester {
 
-    public abstract boolean performTest(String rawInput) throws Exception;
+    @Override
+    public final boolean performTest(String rawInput) throws Exception {
+        if (TextUtils.isEmpty(rawInput)) {
+            return true;
+        }
+        return performTestNotEmpty(rawInput);
+    }
 
+    public abstract boolean performTestNotEmpty(String notEmptyInput) throws Exception;
 }

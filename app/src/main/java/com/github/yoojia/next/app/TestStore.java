@@ -1,30 +1,32 @@
 package com.github.yoojia.next.app;
 
-import android.app.Activity;
+import android.util.Log;
 
-import com.github.yoojia.next.events.Evt;
-import com.github.yoojia.next.events.RunOn;
 import com.github.yoojia.next.events.Subscribe;
 import com.github.yoojia.next.flux.Action;
 import com.github.yoojia.next.flux.Dispatcher;
-import com.github.yoojia.next.flux.Store;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
  * @since 1.0
  */
-public class TestStore extends Store<Activity>{
+public class TestStore {
 
-    protected TestStore(Dispatcher dispatcher, Activity contextHost) {
-        super(dispatcher, contextHost);
+    private final Dispatcher mDispatcher;
+
+    public TestStore(Dispatcher dispatcher) {
+        mDispatcher = dispatcher;
     }
 
     // Run runAsync
-    @Subscribe(runOn = RunOn.THREADS)
-    private void onClick(@Evt(TestActions.REQ_CLICK) Action evt) {
-        final long data = evt.data.getLong("data");
-//        Log.d("TestStore", "Received request, data: " + data);
-        // Emit result, invoke View to update
-        emit(TestActions.newNotifyClick(data));
+    @Subscribe(on = ActionTypes.RAW_MESSAGES)
+    public void onMessages(Action act) {
+        onLongData((LongMessage) act.message);
+        mDispatcher.emit(ActionTypes.createChangedMessages(new LongMessage(System.currentTimeMillis())));
     }
+
+    private void onLongData(LongMessage message) {
+        Log.d("TestStore", "Received request, LONG data: " + message.data());
+    }
+
 }

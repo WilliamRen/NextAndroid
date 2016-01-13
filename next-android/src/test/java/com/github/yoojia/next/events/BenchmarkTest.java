@@ -1,7 +1,7 @@
 package com.github.yoojia.next.events;
 
-import com.github.yoojia.next.react.Schedule;
-import com.github.yoojia.next.react.Schedules;
+import com.github.yoojia.next.events.supports.Schedule;
+import com.github.yoojia.next.events.supports.Schedules;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
@@ -35,13 +35,13 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents(@Evt("str") String start){
+        @Subscribe(on = "str", run = Runs.ON_THREADS)
+        public void onEvents(String start){
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents1(@Evt("long") long start){
+        @Subscribe(on = "long", run = Runs.ON_THREADS)
+        public void onEvents1(long start){
             hitEvt2();
         }
 
@@ -53,13 +53,13 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents(@Evt("str") String start){
+        @Subscribe(on = "str", run = Runs.ON_CALLER)
+        public void onEvents(String start){
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents1(@Evt("long") long start){
+        @Subscribe(on = "long", run = Runs.ON_CALLER)
+        public void onEvents1(long start){
             hitEvt2();
         }
 
@@ -71,14 +71,14 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents(@Evt("str") String start) throws InterruptedException {
+        @Subscribe(on = "str", run = Runs.ON_THREADS)
+        public void onEvents(String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.THREADS)
-        public void onEvents1(@Evt("long") long start) throws InterruptedException {
+        @Subscribe(on = "long", run = Runs.ON_THREADS)
+        public void onEvents1(long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
         }
@@ -91,14 +91,14 @@ public class BenchmarkTest {
             super(count);
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents(@Evt("str") String start) throws InterruptedException {
+        @Subscribe(on = "str", run = Runs.ON_CALLER)
+        public void onEvents(String start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt1();
         }
 
-        @Subscribe(runOn = RunOn.CALLER)
-        public void onEvents1(@Evt("long") long start) throws InterruptedException {
+        @Subscribe(on = "long", run = Runs.ON_CALLER)
+        public void onEvents1(long start) throws InterruptedException {
             Thread.sleep(1);
             hitEvt2();
         }

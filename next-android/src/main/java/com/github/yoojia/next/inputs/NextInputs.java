@@ -58,7 +58,7 @@ public class NextInputs {
     }
 
     private boolean performTest(TestRule rule) throws Exception {
-        final String value = rule.input.value();
+        final String value = rule.input.onLoadValue();
         for (Pattern pattern : rule.patterns) {
             if ( ! pattern.tester.performTest(value)) {
                 tryShowMessage(rule.input, pattern.message);

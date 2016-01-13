@@ -1,4 +1,4 @@
-package com.github.yoojia.next.react;
+package com.github.yoojia.next.events.supports;
 
 /**
  * 事件订阅者

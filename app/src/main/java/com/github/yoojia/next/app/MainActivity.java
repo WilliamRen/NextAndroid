@@ -6,26 +6,26 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.github.yoojia.next.clicks.Click;
 import com.github.yoojia.next.clicks.ClickEvent;
-import com.github.yoojia.next.clicks.ClickEvt;
+import com.github.yoojia.next.clicks.ClickHandler;
 import com.github.yoojia.next.clicks.NextClickProxy;
-import com.github.yoojia.next.events.Evt;
-import com.github.yoojia.next.events.RunOn;
+import com.github.yoojia.next.events.Runs;
 import com.github.yoojia.next.events.Subscribe;
+import com.github.yoojia.next.flux.Action;
 import com.github.yoojia.next.flux.Dispatcher;
-import com.github.yoojia.next.views.AutoView;
-import com.github.yoojia.next.views.NextAutoView;
-
+import com.github.yoojia.next.views.BindView;
+import com.github.yoojia.next.views.NextBindView;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    @AutoView(R.id.helo)
+    @BindView(R.id.helo)
     private TextView mHelo;
 
-    @ClickEvt("click")
-    @AutoView(R.id.button)
+    @Click("click")
+    @BindView(R.id.button)
     private Button mButton;
 
     private final Dispatcher mDispatcher = new Dispatcher();
@@ -36,33 +36,35 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         // Inject views
-        NextAutoView.use(this).inject(this);
+        NextBindView.use(this).inject(this);
         // Click proxy
-        NextClickProxy.oneshotBind(this);
+        NextClickProxy.bind(this);
         // Flux
-        mStore = new TestStore(mDispatcher, this);
-        mStore.register();
+        mStore = new TestStore(mDispatcher);
+        mDispatcher.register(mStore);
         mDispatcher.register(this);
     }
 
-    @Subscribe(runOn = RunOn.MAIN)
-    private void onClick(@Evt("click") ClickEvent<Button> evt) {
+    @Subscribe(on = ActionTypes.CHANGED_MESSAGES, run = Runs.ON_CALLER)
+    public void onChanged(Action action) {
+        Log.d(TAG, "- Emit event, finish");
+    }
+
+    @ClickHandler(on = "click")
+    private void onClick(ClickEvent<Button> evt) {
         long emitStart = System.currentTimeMillis();
-        for (int i = 0; i < 1000; i++) {
-            long genData = System.currentTimeMillis();
-            // Emit action, TestStore will handle this request
-            mDispatcher.emit(TestActions.newReqClick(genData));
-        }
+        long longData = System.currentTimeMillis();
+        mDispatcher.emit(ActionTypes.createRawMessage(new LongMessage(longData)));
         long diff = System.currentTimeMillis() - emitStart;
-        Log.d(TAG, "- Emit 1000 event, takes: " + diff + "ms");
+        Log.d(TAG, "- Emit an event, takes: " + diff + "ms");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mStore.unregister();
+        mDispatcher.unregister(mStore);
         mDispatcher.unregister(this);
     }
+
 }

@@ -9,9 +9,9 @@ public class Pattern {
 
     String message;
     int priority;
-    final Tester tester;
+    final AbstractTester tester;
 
-    public Pattern(Tester tester) {
+    public Pattern(AbstractTester tester) {
         this.tester = tester;
     }
 

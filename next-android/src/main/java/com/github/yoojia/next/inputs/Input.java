@@ -1,10 +1,15 @@
 package com.github.yoojia.next.inputs;
 
 /**
- * Input
+ * Abstract interface for any Inputs
  *
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
 public interface Input {
-    String value();
+
+    /**
+     * Load value from Inputs
+     * @return String value
+     */
+    String onLoadValue();
 }

@@ -12,7 +12,7 @@ class Warning {
         Log.e(tag, "- Seems something wrong in release mode? " +
                         "Try add the belows to your [proguard-rules.pro] file: " +
                         "-keepclassmembers class * {" +
-                        "    @com.github.yoojia.next.views.AutoView *;" +
+                        "    @com.github.yoojia.next.views.BindView *;" +
                         "}"
         );
     }

@@ -6,18 +6,16 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
-import com.github.yoojia.next.events.EventMeta;
+import com.github.yoojia.next.events.MethodSubscriber;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.FieldsFinder;
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.react.OnEventListener;
-import com.github.yoojia.next.react.Schedule;
-import com.github.yoojia.next.react.Schedules;
+import com.github.yoojia.next.events.supports.Schedule;
+import com.github.yoojia.next.events.supports.Schedules;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static com.github.yoojia.next.lang.Preconditions.notNull;
 
@@ -30,63 +28,32 @@ public class NextClickProxy {
     private static final String TAG = "CLICK-PROXY";
 
     private final SparseArray<View> mKeyCodeMapping = new SparseArray<>();
-    private final NextEvents mEvents;
-    private final Schedule mScheduleRef;
+    private final ClickEvents mClickEvents;
 
     public NextClickProxy() {
-        mScheduleRef = Schedules.sharedThreads();
-        mEvents = new NextEvents(mScheduleRef);
-        // Click event not allow missing target
-        mEvents.onEventListener(new OnEventListener<EventMeta>() {
-            @Override public void onEventMiss(EventMeta input) {
-                throw new IllegalStateException("Handler target is missed, Input event: " + input);
-            }
-        });
-    }
-
-    /**
-     * 注册点击处理.
-     * - 注册过程为异步处理. 此方法执行后立即返回, 不保证方法执行后点击处理注册全部成功;
-     * - 必须在主线程中执行此方法;
-     * @param target 目标对象
-     * @return NextClickProxy
-     */
-    public NextClickProxy registerAsync(final Object target){
-        notNull(target, "Target Object must not be null !");
-        try {
-            mScheduleRef.invoke(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    register(target);
-                    return null;
-                }
-            }, Schedule.FLAG_ON_THREADS);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
-        return this;
+        mClickEvents = new ClickEvents(Schedules.newCaller());
     }
 
     /**
      * 注册点击处理。
-     * - 注册过程为同步，在目标对象的 @ClickEvt 成员变量全部被注册后返回。
+     * - 注册过程为同步，在目标对象的 @Click 成员变量全部被注册后返回。
      * @param target 目标对象
      * @return NextEvents
      */
     public NextClickProxy register(final Object target) {
-        notNull(target, "Target Object must not be null !");
+        notNull(target, "Target object must not be null");
         final List<Field> fields = new FieldsFinder()
                 .filter(ClickEvtFieldFilter.getDefault())
                 .find(target.getClass());
         if (fields.isEmpty()){
-            Log.e(TAG, "- Empty Fields(with @ClickEvt) ! ObjectHost: " + target);
+            Log.e(TAG, "- Empty Fields(with @Click)! Object: " + target);
             Warning.show(TAG);
             return this;
         }
         try{
             for (Field field : fields){
                 field.setAccessible(true);
-                final ClickEvt evt = field.getAnnotation(ClickEvt.class);
+                final Click evt = field.getAnnotation(Click.class);
                 checkAnnotation(evt);
                 final View view = createClickActionView(target, field, new View.OnClickListener() {
                     @Override
@@ -102,7 +69,7 @@ public class NextClickProxy {
         }catch (Exception e){
             throw new IllegalArgumentException(e);
         }
-        mEvents.register(target, CallbackMethodFilter.getDefault());
+        mClickEvents.register(target, CallbackMethodFilter.getDefault());
         return this;
     }
 
@@ -119,13 +86,13 @@ public class NextClickProxy {
 
     @SuppressWarnings("unchecked")
     public <T extends View> void emitClick(T view, String event){
-        notNull(view, "View must not be null !");
-        notNull(event, "Event must not be null !");
-        mEvents.emit(event, new ClickEvent(view));
+        notNull(view, "View must not be null");
+        notNull(event, "Event must not be null");
+        mClickEvents.emit(event, new ClickEvent(view));
     }
 
     public NextClickProxy unregister(Object host){
-        mEvents.unregister(host);
+        mClickEvents.unregister(host);
         return this;
     }
 
@@ -137,10 +104,17 @@ public class NextClickProxy {
         return view;
     }
 
-    private static void checkAnnotation(ClickEvt evt){
+    private static void checkAnnotation(Click evt){
         if (TextUtils.isEmpty(evt.value())) {
-            throw new IllegalArgumentException("Event name in @ClickEvent cannot be empty !");
+            throw new IllegalArgumentException("Event name in @ClickEvent cannot be empty");
         }
+    }
+
+
+    public static NextClickProxy bind(Object host) {
+        final NextClickProxy proxy = new NextClickProxy();
+        proxy.register(host);
+        return proxy;
     }
 
     private static class ClickEvtFieldFilter implements Filter<Field> {
@@ -162,7 +136,7 @@ public class NextClickProxy {
                 return false;
             }
             // Check annotation
-            return field.isAnnotationPresent(ClickEvt.class);
+            return field.isAnnotationPresent(Click.class);
         }
 
         public static ClickEvtFieldFilter getDefault(){
@@ -201,13 +175,36 @@ public class NextClickProxy {
     }
 
     /**
-     * 由使用者确保只会调用一次的绑定处理
-     * @param host 目标对象
-     * @return NextClickProxy对象
+     * 覆盖NextEvents对@Subscriber注解的处理，并使用@ClickHandler来替换其处理过程
      */
-    public static NextClickProxy oneshotBind(Object host) {
-        final NextClickProxy proxy = new NextClickProxy();
-        proxy.register(host);
-        return proxy;
+    private class ClickEvents extends NextEvents {
+
+        public ClickEvents(Schedule subscribeOn) {
+            super(subscribeOn);
+        }
+
+        @Override
+        protected boolean isSubscribeMethod(Method method) {
+            // Hook call super to use @ClickHandler annotation
+            if (method.isBridge() || method.isSynthetic()) {
+                return false;
+            }
+            if (! method.isAnnotationPresent(ClickHandler.class)) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected void subscribeTargetMethod(Object object, Method method, NextEvents.InvokableMethods invokable) {
+            // Hook call super to use @ClickHandler annotation
+            final ClickHandler subscribe = method.getAnnotation(ClickHandler.class);
+            final MethodSubscriber subscriber = new MethodSubscriber(object, method);
+            invokable.add(subscriber);
+            final String defineName = subscribe.on();
+            final Class<?> defineType = method.getParameterTypes()[0];
+            subscribe(defineName, defineType, subscriber, Schedule.FLAG_ON_CALLER);
+        }
     }
+
 }

@@ -1,7 +1,5 @@
 package com.github.yoojia.next.flux;
 
-import com.github.yoojia.next.lang.ObjectWrap;
-
 /**
  * @author 陈小锅 (yoojiachen@gmail.com)
  * @since 1.0
@@ -13,7 +11,7 @@ public final class Action {
     public final Message message;
     public final Object extras;
 
-    private final ObjectWrap<String> mSenderStack = new ObjectWrap<>();
+    private final StringBuilder mSenderStack = new StringBuilder();
 
     public Action(String type, Message payload, Object extras) {
         this.type = type;
@@ -34,14 +32,15 @@ public final class Action {
      * @return 方法栈调用过程文本描述
      */
     public String getSenderStack(){
-        return mSenderStack.get();
+        return mSenderStack.toString();
     }
 
     /**
      * hide for flux
      */
     void setSenderStack(String senderStack) {
-        mSenderStack.set(senderStack);
+        mSenderStack.setLength(0);
+        mSenderStack.append(senderStack);
     }
 
     @Override
@@ -50,7 +49,7 @@ public final class Action {
                 "\"extras\":\"" + extras + "\"" +
                 ", \"type:\"" + type + "\"" +
                 ", \"message\":\"" + message + "\"" +
-                ", \"sender_stack\":\"" + mSenderStack + "\"" +
+                ", \"senders\":\"" + mSenderStack + "\"" +
                 '}';
     }
 

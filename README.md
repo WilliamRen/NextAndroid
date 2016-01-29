@@ -40,7 +40,7 @@ SQUARE.OTTO (Nop Payload)|	 2361166/s|		846ms|		847ms|		2000000
 
 View自动注入处理，不再findViewById。
 
-## Flux - 比MVC更清晰的开发模式
+## Flux
 
 单向数据流App开发模式。
 

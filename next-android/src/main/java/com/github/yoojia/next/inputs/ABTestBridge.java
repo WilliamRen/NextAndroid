@@ -3,7 +3,7 @@ package com.github.yoojia.next.inputs;
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
  */
-public abstract class ABTypedTester<T> {
+public abstract class ABTestBridge<T> {
 
     protected abstract T onValueA();
 
@@ -11,7 +11,7 @@ public abstract class ABTypedTester<T> {
         return null;
     }
 
-    protected abstract T valueOf(String input);
+    protected abstract T stringToValue(String input);
 
-    protected abstract boolean test(T input, T valueA, T valueB);
+    protected abstract boolean onTest(T input, T valueA, T valueB);
 }

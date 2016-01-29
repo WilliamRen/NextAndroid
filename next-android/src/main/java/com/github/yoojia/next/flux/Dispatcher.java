@@ -4,7 +4,7 @@ import com.github.yoojia.next.events.Meta;
 import com.github.yoojia.next.events.NextEvents;
 import com.github.yoojia.next.lang.CallStack;
 import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.events.supports.OnTargetMissListener;
+import com.github.yoojia.next.events.supports.OnEventsListener;
 import com.github.yoojia.next.events.supports.Schedule;
 import com.github.yoojia.next.events.supports.Schedules;
 
@@ -66,7 +66,7 @@ public final class Dispatcher {
      * 导出Events的接口
      * @param listener OnTargetMissListener
      */
-    public void setOnTargetMissListener(OnTargetMissListener<Meta> listener) {
+    public void setOnTargetMissListener(OnEventsListener<Meta> listener) {
         mEvents.setOnTargetMissListener(listener);
     }
 

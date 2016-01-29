@@ -5,7 +5,7 @@ package com.github.yoojia.next.events.supports;
  *
  * @author YOOJIA.CHEN (yoojiachen@gmail.com)
  */
-public interface OnTargetMissListener<T> {
+public interface OnEventsListener<T> {
 
-    void onTargetMiss(T input);
+    void onWithoutSubscriber(T input);
 }

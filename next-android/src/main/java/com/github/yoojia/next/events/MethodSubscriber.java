@@ -30,7 +30,7 @@ public class MethodSubscriber implements Subscriber<Meta>{
         throw new RuntimeException(input.toString(), errors);
     }
 
-    boolean isSameWith(Method method) {
+    boolean isSameMethod(Method method) {
         return mMethod.equals(method);
     }
 }

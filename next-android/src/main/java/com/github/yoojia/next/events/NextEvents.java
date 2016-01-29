@@ -4,12 +4,12 @@ import android.util.Log;
 
 import com.github.yoojia.next.lang.Filter;
 import com.github.yoojia.next.lang.MethodsFinder;
-import com.github.yoojia.next.events.supports.OnTargetMissListener;
+import com.github.yoojia.next.events.supports.OnEventsListener;
 import com.github.yoojia.next.events.supports.Reactor;
 import com.github.yoojia.next.events.supports.Schedule;
 import com.github.yoojia.next.events.supports.Schedules;
 import com.github.yoojia.next.events.supports.Subscriber;
-import com.github.yoojia.next.events.supports.Subscriptions;
+import com.github.yoojia.next.events.supports.Descriptors;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -123,7 +123,7 @@ public class NextEvents {
         notNull(subscriber);
         notEmpty(defineName, "Event name cannot be null or empty");
         notNull(defineType);
-        mReactor.add(Subscriptions.create1(subscriber, flag, EventsFilter.with(defineName, defineType)));
+        mReactor.add(Descriptors.create1(subscriber, flag, EventsFilter.with(defineName, defineType)));
         return this;
     }
 
@@ -170,8 +170,8 @@ public class NextEvents {
      * @param listener Listener
      * @return NextEvents
      */
-    public NextEvents setOnTargetMissListener(OnTargetMissListener<Meta> listener){
-        mReactor.onEventListener(listener);
+    public NextEvents setOnTargetMissListener(OnEventsListener<Meta> listener){
+        mReactor.onEventsListener(listener);
         return this;
     }
 
@@ -226,7 +226,7 @@ public class NextEvents {
 
         public boolean notContains(Method method) {
             for (MethodSubscriber ms : this) {
-                if (ms.isSameWith(method)) {
+                if (ms.isSameMethod(method)) {
                     return false;
                 }
             }

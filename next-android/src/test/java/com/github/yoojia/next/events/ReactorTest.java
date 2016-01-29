@@ -4,7 +4,7 @@ import com.github.yoojia.next.events.supports.Reactor;
 import com.github.yoojia.next.events.supports.Schedule;
 import com.github.yoojia.next.events.supports.Schedules;
 import com.github.yoojia.next.events.supports.Subscriber;
-import com.github.yoojia.next.events.supports.Subscriptions;
+import com.github.yoojia.next.events.supports.Descriptors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +53,7 @@ public class ReactorTest extends BaseTester {
 
         TestSubscriber payload = new TestSubscriber(COUNT_NOP);
 
-        reactor.add(Subscriptions.create(payload, Schedule.FLAG_ON_CALLER));
+        reactor.add(Descriptors.create(payload, Schedule.FLAG_ON_CALLER));
 
         final long timeBeforeEmits = System.nanoTime();
 

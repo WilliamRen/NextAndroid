@@ -13,35 +13,43 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class Reactor<T> {
 
-    private final List<Subscription<T>> mSubscriptions = new CopyOnWriteArrayList<>();
-    private final Map<Subscriber<T>, Subscription> mRefs = new ConcurrentHashMap<>();
+    private final List<Descriptor<T>> mDescriptors = new CopyOnWriteArrayList<>();
+    private final Map<Subscriber<T>, Descriptor> mRefs = new ConcurrentHashMap<>();
+
+    /**
+     * 事件调试器
+     */
     private final AtomicReference<Schedule> mSchedule;
-    private final AtomicReference<OnTargetMissListener<T>> mOnTargetMissListener;
+
+    /**
+     * 事件没有订阅者时的处理接口
+     */
+    private final AtomicReference<OnEventsListener<T>> mOnEventsListener;
 
     public Reactor(Schedule subscribeOn) {
         mSchedule = new AtomicReference<>(subscribeOn);
-        mOnTargetMissListener = new AtomicReference<>();
-        mOnTargetMissListener.set(new OnTargetMissListener<T>() {
+        mOnEventsListener = new AtomicReference<>();
+        mOnEventsListener.set(new OnEventsListener<T>() {
             @Override
-            public void onTargetMiss(T input) {
+            public void onWithoutSubscriber(T input) {
                 throw new IllegalStateException("Invoke target is MISSED, Input: " + input);
             }
         });
     }
 
-    public synchronized Reactor<T> add(Subscription<T> newSub) {
-        if (mSubscriptions.contains(newSub) || mRefs.containsKey(newSub.target)) {
+    public synchronized Reactor<T> add(Descriptor<T> newDes) {
+        if (mDescriptors.contains(newDes) || mRefs.containsKey(newDes.subscriber)) {
             throw new IllegalStateException("Duplicate Subscription/Subscription.subscriber");
         }
-        mSubscriptions.add(newSub);
-        mRefs.put(newSub.target, newSub);
+        mDescriptors.add(newDes);
+        mRefs.put(newDes.subscriber, newDes);
         return this;
     }
 
     public synchronized Reactor<T> remove(Subscriber<T> oldSub) {
-        final Subscription s = mRefs.remove(oldSub);
+        final Descriptor s = mRefs.remove(oldSub);
         if (s != null) {
-            mSubscriptions.remove(s);
+            mDescriptors.remove(s);
         }
         return this;
     }
@@ -49,23 +57,23 @@ public class Reactor<T> {
     public Reactor<T> emit(final T input) {
         final Schedule schedule = mSchedule.get();
         int hits = 0;
-        for (final Subscription<T> sub : mSubscriptions) {
+        for (final Descriptor<T> sub : mDescriptors) {
             if (sub.accept(input)) {
                 hits += 1;
                 try {
                     schedule.invoke(new CallableTask() {
                         @Override void onCall() throws Exception {
-                            sub.target.onCall(input);
+                            sub.subscriber.onCall(input);
                         }
                     }, sub.scheduleFlag);
                 } catch (Exception errorWhenCall) {
-                    sub.target.onErrors(input, errorWhenCall);
+                    sub.subscriber.onErrors(input, errorWhenCall);
                 }
             }
         }
-        final OnTargetMissListener<T> listener = mOnTargetMissListener.get();
+        final OnEventsListener<T> listener = mOnEventsListener.get();
         if (hits <= 0 && listener != null) {
-            listener.onTargetMiss(input);
+            listener.onWithoutSubscriber(input);
         }
         return this;
     }
@@ -75,8 +83,8 @@ public class Reactor<T> {
         return this;
     }
 
-    public Reactor<T> onEventListener(OnTargetMissListener<T> listener) {
-        mOnTargetMissListener.set(listener);
+    public Reactor<T> onEventsListener(OnEventsListener<T> listener) {
+        mOnEventsListener.set(listener);
         return this;
     }
 

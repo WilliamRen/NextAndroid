@@ -1,4 +1,6 @@
-package com.github.yoojia.next.lang;
+package com.github.yoojia.next;
+
+import com.github.yoojia.events.supports.AnnotatedFinder;
 
 import java.lang.reflect.Field;
 

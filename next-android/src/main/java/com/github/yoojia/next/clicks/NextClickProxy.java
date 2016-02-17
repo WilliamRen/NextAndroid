@@ -6,18 +6,21 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
-import com.github.yoojia.next.events.MethodSubscriber;
-import com.github.yoojia.next.events.NextEvents;
-import com.github.yoojia.next.lang.FieldsFinder;
-import com.github.yoojia.next.lang.Filter;
-import com.github.yoojia.next.events.supports.Schedule;
-import com.github.yoojia.next.events.supports.Schedules;
+
+import com.github.yoojia.events.AndroidNextEvents;
+import com.github.yoojia.events.MethodSubscriber;
+import com.github.yoojia.events.NextEvents;
+import com.github.yoojia.events.core.Schedule;
+import com.github.yoojia.events.core.Schedules;
+import com.github.yoojia.events.supports.Filter;
+import com.github.yoojia.next.FieldsFinder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static com.github.yoojia.next.lang.Preconditions.notNull;
+import static com.github.yoojia.events.supports.Preconditions.notNull;
+
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)
@@ -177,7 +180,7 @@ public class NextClickProxy {
     /**
      * 覆盖NextEvents对@Subscriber注解的处理，并使用@ClickHandler来替换其处理过程
      */
-    private class ClickEvents extends NextEvents {
+    private class ClickEvents extends AndroidNextEvents {
 
         public ClickEvents(Schedule subscribeOn) {
             super(subscribeOn);
@@ -203,7 +206,7 @@ public class NextClickProxy {
             invokable.add(subscriber);
             final String defineName = subscribe.on();
             final Class<?> defineType = method.getParameterTypes()[0];
-            subscribe(defineName, defineType, subscriber, Schedule.FLAG_ON_CALLER);
+            subscribe(defineName, defineType, subscriber, Schedule.FLAG_ON_CALLER_THREAD);
         }
     }
 

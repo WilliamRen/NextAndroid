@@ -9,7 +9,8 @@
 
     <ImageView
         android:id="@+id/icon"
-        android:visibility="gone"
+        android:layout_centerHorizontal="true"
+        android:scaleType="center"
         android:layout_width="80dp"
         android:layout_height="80dp"/>
 
@@ -17,7 +18,7 @@
         android:id="@+id/message"
         android:layout_below="@id/icon"
         android:layout_centerInParent="true"
-        android:layout_margin="10dp"
+        android:layout_margin="20dp"
         android:textSize="16sp"
         android:gravity="center"
         android:textColor="@android:color/white"

@@ -2,6 +2,8 @@ package com.github.yoojia.next.utils;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -24,7 +26,11 @@ public class NextToast {
     private final TextView mMessage;
     private final Resources mRes;
 
-    public NextToast(Context context) {
+    private final Handler mMainHandler = new Handler(Looper.getMainLooper());
+    private Style mStyle;
+
+    public NextToast(Context context, Style style) {
+        mStyle = style;
         mToast = new Toast(context);
         mRes = context.getResources();
         final View view = LayoutInflater.from(context).inflate(R.layout.next_toast, null);
@@ -33,43 +39,135 @@ public class NextToast {
         mMessage = (TextView) view.findViewById(R.id.message);
     }
 
+    /**
+     * 设置提示样式
+     * @param style 样式
+     */
+    public void setStyle(Style style) {
+        mStyle = style;
+    }
+
+    /**
+     * 指定图标资源ID，显示长时间的提示信息
+     * @param iconResId 图标资源ID
+     * @param message 提示信息内容
+     */
     public void showLong(int iconResId, String message) {
         show(iconResId, message, Toast.LENGTH_LONG);
     }
 
+    /**
+     * 显示长时间的提示信息
+     * @param message 提示信息内容
+     */
     public void showLong(String message) {
-        showLong(0, message);
+        showLong(mStyle.resId, message);
     }
 
+    /**
+     * 显示长时间的提示信息
+     * @param message 提示信息内容
+     */
     public void showLong(int message) {
         showLong(mRes.getString(message));
     }
 
+    /**
+     * 指定图标资源ID，显示短时间的提示信息
+     * @param iconResId 图标资源ID
+     * @param message 提示信息内容
+     */
     public void show(int iconResId, String message) {
         show(iconResId, message, Toast.LENGTH_SHORT);
     }
 
+    /**
+     * 使用创建NextToast指定类型的图标资源ID，显示短时间的提示信息
+     * @param message 提示信息内容
+     */
     public void show(String message) {
-        show(0, message);
+        show(mStyle.resId, message);
     }
 
+    /**
+     * 使用创建NextToast指定类型的图标资源ID，显示短时间的提示信息
+     * @param message 提示信息内容
+     */
     public void show(int message) {
         show(mRes.getString(message));
     }
 
-    private void show(int iconResId, String message, int duration) {
-        if (iconResId != 0) {
-            mIcon.setVisibility(View.VISIBLE);
-            mIcon.setImageResource(iconResId);
+    /**
+     * 创建一个无图标的NextToast
+     * @param context Context
+     * @return NextToast
+     */
+    public static NextToast create(Context context){
+        return new NextToast(context, Style.None);
+    }
+
+    /**
+     * 创建一个对号图标的NextToast
+     * @param context Context
+     * @return NextToast
+     */
+    public static NextToast success(Context context){
+        return new NextToast(context, Style.SUCCESS);
+    }
+
+    /**
+     * 创建一个叉号图标的NextToast
+     * @param context Context
+     * @return NextToast
+     */
+    public static NextToast fail(Context context){
+        return new NextToast(context, Style.FAIL);
+    }
+
+    /**
+     * 创建一个叹号图标的NextToast
+     * @param context Context
+     * @return NextToast
+     */
+    public static NextToast warn(Context context){
+        return new NextToast(context, Style.WARN);
+    }
+
+    private void show(final int iconResId, final String message, final int duration) {
+        final Runnable task = new Runnable() {
+            @Override public void run() {
+                if (iconResId != 0) {
+                    mIcon.setVisibility(View.VISIBLE);
+                    mIcon.setImageResource(iconResId);
+                }else{
+                    mIcon.setVisibility(View.GONE);
+                }
+                if ( ! TextUtils.isEmpty(message)) {
+                    mMessage.setText(message);
+                }
+                mToast.setDuration(duration);
+                mToast.setGravity(Gravity.CENTER, 0, 0);
+                mToast.show();
+            }
+        };
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            task.run();
         }else{
-            mIcon.setVisibility(View.GONE);
+            mMainHandler.post(task);
         }
-        if ( ! TextUtils.isEmpty(message)) {
-            mMessage.setText(message);
+    }
+
+    public enum Style{
+        None(0),
+        SUCCESS(R.drawable.next_icon_success),
+        FAIL(R.drawable.next_icon_fail),
+        WARN(R.drawable.next_icon_warning)
+        ;
+        private final int resId;
+
+        Style(int resId) {
+            this.resId = resId;
         }
-        mToast.setDuration(duration);
-        mToast.setGravity(Gravity.CENTER, 0, 0);
-        mToast.show();
     }
 
 }

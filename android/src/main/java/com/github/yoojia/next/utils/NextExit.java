@@ -30,7 +30,7 @@ public class NextExit {
         mConfirmExitMsg = confirmExitMsg;
     }
 
-    public NextExit(Activity context, int confirmExitMsgResId) {
+    public NextExit(Activity context,int confirmExitMsgResId) {
         this(context, context.getResources().getString(confirmExitMsgResId));
     }
 

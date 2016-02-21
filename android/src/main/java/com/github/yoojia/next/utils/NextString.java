@@ -1,5 +1,7 @@
 package com.github.yoojia.next.utils;
 
+import android.text.TextUtils;
+
 /**
  * @author YOOJIA.CHEN (yoojia.chen@gmail.com)
  * @since 1.0
@@ -16,5 +18,14 @@ public class NextString {
             uri = root + (ends || starts ? "" : "/") + path;
         }
         return uri;
+    }
+
+    public static boolean isEmpty(CharSequence...inputs) {
+        for (CharSequence input : inputs) {
+            if (!TextUtils.isEmpty(input)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -23,7 +23,7 @@ public class NextMap {
     @SuppressWarnings("unchecked")
     public Object get(String keyChain, Object defValue){
         mPreValue = mSource; // reset
-        final String[] keys = TextUtils.split(keyChain, ".");
+        final List<String> keys = split(keyChain, '.');
         final List<String> _keyChain = new ArrayList<>();
         for (String key : keys) {
             _keyChain.add(key);
@@ -56,6 +56,27 @@ public class NextMap {
 
     public String getString(String keyChain){
         return (String) getTyped(keyChain, null);
+    }
+
+    public static List<String> split(String input, char splitterChar) {
+        final List<String> segments = new ArrayList<>();
+        if (TextUtils.isEmpty(input)) {
+            return segments;
+        }else{
+            int index = 0;
+            int preIndex = index;
+            while ((index = input.indexOf(splitterChar, index)) != -1) {
+                if (preIndex != index) {
+                    segments.add(input.substring(preIndex, index));
+                }
+                index++;
+                preIndex = index;
+            }
+            if (preIndex < input.length()) {
+                segments.add(input.substring(preIndex));
+            }
+            return segments;
+        }
     }
 
     public static NextMap use(Map<String, Object> source){

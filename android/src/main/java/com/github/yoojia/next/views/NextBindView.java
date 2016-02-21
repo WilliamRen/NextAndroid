@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.View;
 
-
 import com.github.yoojia.events.supports.Filter;
 import com.github.yoojia.next.FieldsFinder;
 

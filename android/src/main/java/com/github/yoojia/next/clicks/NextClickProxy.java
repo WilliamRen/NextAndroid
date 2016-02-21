@@ -6,7 +6,6 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 
-
 import com.github.yoojia.events.AndroidNextEvents;
 import com.github.yoojia.events.MethodSubscriber;
 import com.github.yoojia.events.NextEvents;

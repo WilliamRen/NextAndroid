@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+    <ImageButton
+        android:id="@+id/next_actionbar_left_image"
+        style="@style/next_actionbar.button"
+        android:visibility="gone"
+        />
+
+    <TextView
+        android:id="@+id/next_actionbar_title"
+        style="@style/next_actionbar.title"
+        />
+
+    <ImageButton
+        android:id="@+id/next_actionbar_right_image"
+        style="@style/next_actionbar.button"
+        android:background="@android:color/transparent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/next_actionbar_right_text"
+        style="@style/next_actionbar.button"
+        android:background="@android:color/transparent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:visibility="gone"
+        />
+
+    <Button
+        android:id="@+id/next_actionbar_left_text"
+        style="@style/next_actionbar.button"
+        android:background="@android:color/transparent"
+        android:visibility="gone"
+        />
+
+</RelativeLayout>

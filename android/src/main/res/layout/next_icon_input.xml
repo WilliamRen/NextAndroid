@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                style="@style/NextIconInput">
+
+    <ImageView
+        android:id="@+id/next_iconinput_icon"
+        style="@style/NextIconInput.Icon"/>
+
+    <EditText
+        android:id="@+id/next_iconinput_input"
+        android:layout_toRightOf="@+id/next_iconinput_icon"
+        style="@style/NextIconInput.Input"/>
+</RelativeLayout>

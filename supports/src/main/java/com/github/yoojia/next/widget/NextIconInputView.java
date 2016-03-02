@@ -9,7 +9,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.github.yoojia.next.ext.R;
+import com.github.yoojia.next.R;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)

@@ -4,10 +4,10 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.StringRes;
 import android.widget.TextView;
 
-import com.github.yoojia.next.ext.R;
+import com.github.yoojia.next.R;
+
 
 /**
  * @author  YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -19,7 +19,28 @@ public class NextProgress extends Dialog {
     private CharSequence mMessageText;
     private int mMessageId;
 
-    private Handler mHandler;
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
+
+    private final Runnable mShowDelayTask = new Runnable() {
+        @Override
+        public void run() {
+            safetyShow();
+        }
+    };
+
+    private final Runnable mHideDelayTask = new Runnable() {
+        @Override
+        public void run() {
+            NextProgress.this.hide();
+        }
+    };
+
+    private final Runnable mDismissDelayTask = new Runnable() {
+        @Override
+        public void run() {
+            NextProgress.this.dismiss();
+        }
+    };
 
     public NextProgress(Context context) {
         super(context, R.style.next_progress);
@@ -28,7 +49,7 @@ public class NextProgress extends Dialog {
         mMessage = (TextView) findViewById(R.id.message);
     }
 
-    public NextProgress setMessage(@StringRes int msg){
+    public NextProgress setMessage(int msg){
         mMessageId = msg;
         return this;
     }
@@ -44,8 +65,20 @@ public class NextProgress extends Dialog {
     }
 
     @Override
-    public void setTitle(@StringRes int titleId) {
+    public void setTitle(int titleId) {
         setMessage(titleId);
+    }
+
+    public void showDelay(long delayMillis) {
+        mHandler.postDelayed(mShowDelayTask, delayMillis);
+    }
+
+    public void hideDelay(long delayMillis) {
+        mHandler.postDelayed(mHideDelayTask, delayMillis);
+    }
+
+    public void dismissDelay(long delayMillis) {
+        mHandler.postDelayed(mDismissDelayTask, delayMillis);
     }
 
     /**
@@ -54,21 +87,23 @@ public class NextProgress extends Dialog {
     @Override
     public void show() {
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            finallyShow();
+            safetyShow();
         }else{
-            if (mHandler == null) {
-                mHandler = new Handler(Looper.getMainLooper());
-            }
             mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    finallyShow();
+                @Override public void run() {
+                    safetyShow();
                 }
             });
         }
     }
 
-    private void finallyShow(){
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mHandler.removeCallbacks(mShowDelayTask);
+    }
+
+    private void safetyShow(){
         if (mMessageId != 0) {
             mMessage.setText(mMessageId);
         }else{

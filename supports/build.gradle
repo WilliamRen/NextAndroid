@@ -45,7 +45,7 @@ dependencies {
 
 
 ext{
-    projVersion = '2.1'
+    projVersion = '2.2'
     projArtifactId = 'next-android'
     projName = 'NextAndroid'
     projDesc = 'NextAndroid: Tools, Widgets, Utils'

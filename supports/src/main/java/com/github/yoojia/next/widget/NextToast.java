@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.yoojia.next.ext.R;
+import com.github.yoojia.next.R;
 
 /**
  * @author  YOOJIA.CHEN (yoojia.chen@gmail.com)

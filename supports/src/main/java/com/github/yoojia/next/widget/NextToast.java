@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.yoojia.next.ext.R;
+import com.github.yoojia.next.R;
 
 /**
  * @author  YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -27,13 +27,14 @@ public class NextToast {
     private final TextView mMessage;
     private final Resources mRes;
 
-    private final Handler mMainHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler;
     private Style mStyle;
 
     public NextToast(Context context, Style style) {
         mStyle = style;
         mToast = new Toast(context);
         mRes = context.getResources();
+        mHandler = new Handler(Looper.getMainLooper());
         final View view = LayoutInflater.from(context).inflate(R.layout.next_toast, null);
         mToast.setView(view);
         mIcon = (ImageView) view.findViewById(R.id.icon);
@@ -154,7 +155,7 @@ public class NextToast {
         if (Looper.getMainLooper() == Looper.myLooper()) {
             task.run();
         }else{
-            mMainHandler.post(task);
+            mHandler.post(task);
         }
     }
 

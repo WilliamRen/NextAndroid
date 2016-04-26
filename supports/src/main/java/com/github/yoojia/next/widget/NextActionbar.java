@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.github.yoojia.next.ext.R;
+import com.github.yoojia.next.R;
 
 /**
  * A simple ActionBar

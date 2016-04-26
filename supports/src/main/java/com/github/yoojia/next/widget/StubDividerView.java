@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewStub;
 import android.widget.FrameLayout;
 
-import com.github.yoojia.next.ext.R;
+import com.github.yoojia.next.R;
 
 /**
  * @author 陈小锅 (yoojia.chen@gmail.com)

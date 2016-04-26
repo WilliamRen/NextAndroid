@@ -4,10 +4,10 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.StringRes;
 import android.widget.TextView;
 
-import com.github.yoojia.next.ext.R;
+import com.github.yoojia.next.R;
+
 
 /**
  * @author  YOOJIA.CHEN (yoojia.chen@gmail.com)
@@ -15,20 +15,41 @@ import com.github.yoojia.next.ext.R;
  */
 public class NextProgress extends Dialog {
 
+    private final Handler mHandler;
     private final TextView mMessage;
     private CharSequence mMessageText;
     private int mMessageId;
 
-    private Handler mHandler;
+    private final Runnable mShowDelayTask = new Runnable() {
+        @Override
+        public void run() {
+            showOnMainThread();
+        }
+    };
+
+    private final Runnable mHideDelayTask = new Runnable() {
+        @Override
+        public void run() {
+            NextProgress.this.hide();
+        }
+    };
+
+    private final Runnable mDismissDelayTask = new Runnable() {
+        @Override
+        public void run() {
+            NextProgress.this.dismiss();
+        }
+    };
 
     public NextProgress(Context context) {
         super(context, R.style.next_progress);
         setContentView(R.layout.next_progress);
         setCancelable(false);
+        mHandler = new Handler();
         mMessage = (TextView) findViewById(R.id.message);
     }
 
-    public NextProgress setMessage(@StringRes int msg){
+    public NextProgress setMessage(int msg){
         mMessageId = msg;
         return this;
     }
@@ -44,8 +65,28 @@ public class NextProgress extends Dialog {
     }
 
     @Override
-    public void setTitle(@StringRes int titleId) {
+    public void setTitle(int titleId) {
         setMessage(titleId);
+    }
+
+    public void showDelay(long delayMillis) {
+        mHandler.postDelayed(mShowDelayTask, delayMillis);
+    }
+
+    public void hideDelay(long delayMillis) {
+        mHandler.postDelayed(mHideDelayTask, delayMillis);
+    }
+
+    public void dismissDelay(long delayMillis) {
+        mHandler.postDelayed(mDismissDelayTask, delayMillis);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mHandler.removeCallbacks(mShowDelayTask);
+        mHandler.removeCallbacks(mHideDelayTask);
+        mHandler.removeCallbacks(mDismissDelayTask);
     }
 
     /**
@@ -54,21 +95,18 @@ public class NextProgress extends Dialog {
     @Override
     public void show() {
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            finallyShow();
+            showOnMainThread();
         }else{
-            if (mHandler == null) {
-                mHandler = new Handler(Looper.getMainLooper());
-            }
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    finallyShow();
+                    showOnMainThread();
                 }
             });
         }
     }
 
-    private void finallyShow(){
+    private void showOnMainThread(){
         if (mMessageId != 0) {
             mMessage.setText(mMessageId);
         }else{

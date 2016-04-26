@@ -15,16 +15,16 @@ import com.github.yoojia.next.ext.R;
  */
 public class NextProgress extends Dialog {
 
+    private final Handler mHandler;
     private final TextView mMessage;
     private CharSequence mMessageText;
     private int mMessageId;
-
-    private Handler mHandler;
 
     public NextProgress(Context context) {
         super(context, R.style.next_progress);
         setContentView(R.layout.next_progress);
         setCancelable(false);
+        mHandler = new Handler();
         mMessage = (TextView) findViewById(R.id.message);
     }
 
@@ -54,21 +54,18 @@ public class NextProgress extends Dialog {
     @Override
     public void show() {
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            finallyShow();
+            showOnMainThread();
         }else{
-            if (mHandler == null) {
-                mHandler = new Handler(Looper.getMainLooper());
-            }
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    finallyShow();
+                    showOnMainThread();
                 }
             });
         }
     }
 
-    private void finallyShow(){
+    private void showOnMainThread(){
         if (mMessageId != 0) {
             mMessage.setText(mMessageId);
         }else{
